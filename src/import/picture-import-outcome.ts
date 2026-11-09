@@ -13,17 +13,22 @@ import {
   type ReadPicture,
   type ReadVideo,
 } from "./picture-source";
-import { UnreadablePictureError } from "./unreadable-picture";
+import { UnreadablePictureError, type PictureFailureStage } from "./unreadable-picture";
+import { isQuotaExceeded } from "../storage-quota/is-quota-exceeded";
 import { VideoRefusedError } from "./video-refusal";
 
-const QUOTA_EXCEEDED = "QuotaExceededError";
+const SKIP_REASON_OF_STAGE: Record<PictureFailureStage, SkipReason> = {
+  read: "unreadable",
+  decode: "undecodable",
+  tooLarge: "tooLarge",
+};
 
 export interface OutcomePorts {
   readonly store: Pick<LibraryStore, "putPicture" | "putPictureFocus" | "putVideo">;
   /** The stored display rendition's pixels, sampled for `pictureColours` (ADR-0033). */
   pixels(blob: Blob): Promise<readonly RgbPixel[]>;
   newId(): string;
-  /** Told why a picture was skipped as unreadable or undecodable; absent: no one is told. */
+  /** Told why a picture was skipped as unreadable, undecodable or too large; absent: no one is told. */
   log?(error: unknown): void;
   /**
    * The nearest bundled place to a picture's GPS, or null beyond its reach (ADR-0043); absent, or
@@ -58,11 +63,15 @@ export function duplicateReason(
   return chosen.some(matches) ? "chosenTwice" : null;
 }
 
-/** Identifies, decodes and stores one queued picture, or reports why it was skipped instead. */
+/**
+ * Identifies, decodes and stores one queued picture, or reports why it was skipped instead. An
+ * abort of `signal` cancels its download and rejects with the signal's reason.
+ */
 export async function importOne(
   { source, skipDuplicate }: Queued,
   ports: OutcomePorts,
   duplicateReasonFor: (identity: PictureIdentity) => DuplicateReason | null,
+  signal: AbortSignal,
 ): Promise<Outcome> {
   let identity: PictureIdentity;
   let read: ReadPicture;
@@ -72,11 +81,11 @@ export async function importOne(
     if (duplicate !== null) {
       return { kind: "skipped", reason: duplicate };
     }
-    read = await source.read();
+    read = await source.read(signal);
   } catch (error) {
     if (error instanceof UnreadablePictureError) {
       ports.log?.(error);
-      return { kind: "skipped", reason: error.stage === "read" ? "unreadable" : "undecodable" };
+      return { kind: "skipped", reason: SKIP_REASON_OF_STAGE[error.stage] };
     }
     if (error instanceof VideoRefusedError) {
       return { kind: "skipped", reason: error.reason };
@@ -101,7 +110,7 @@ export async function importOne(
       await ports.store.putPictureFocus(id, { focus, detector: FOCUS_DETECTOR_VERSION });
     }
   } catch (error) {
-    if (error instanceof DOMException && error.name === QUOTA_EXCEEDED) {
+    if (isQuotaExceeded(error)) {
       return { kind: "storageFull" };
     }
     throw error;

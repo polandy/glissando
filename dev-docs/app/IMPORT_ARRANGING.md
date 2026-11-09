@@ -43,12 +43,12 @@ while the import runs, with these differences:
   picture full screen ([PICTURE_VIEWER.md](PICTURE_VIEWER.md)), as do F on a focused tile and
   a double-click with a mouse. The picture editor needs a stored slideshow and stays in the
   editor.
-- Earlier and Later in that bar are the editor's icons with a label bubble (`BarAction.svelte`,
-  [REMOVE_SELECT_REORDER.md](slideshow-editing/REMOVE_SELECT_REORDER.md)); View and Remove keep
-  their words beside their icons (`AddingBarActions.svelte`).
+- Earlier and Later in that bar are icons named by their tooltip; View and Remove keep their
+  words beside their icons (`AddingBarActions.svelte`). It has no "More" and no "Move to …"
+  ([REMOVE_SELECT_REORDER.md](slideshow-editing/REMOVE_SELECT_REORDER.md)).
 - Removal is the step's own: the toast "Picture removed" · "Undo" that adds up, and the last
   picture can go too (the empty drop zone returns).
-- The strip head reads "Capture order" or "Own order"; while the import runs it adds
+- The strip head reads "Capture order" or "Your order"; while the import runs it adds
   "· new pictures are sorted in by date" or "· new pictures go at the end".
 
 **Order**: as long as nothing was moved, the strip is in capture order and every picture that
@@ -58,13 +58,18 @@ set-aside pictures taken in, go at the end, in capture order among themselves; n
 moves. A picture the user moved counts as chosen and is never set aside by a cull. "Create
 slideshow" stores the order shown and, when it is the user's own, `ownOrder`.
 
+"Sort by date" in the strip header (between Shuffle and Select, shown only while the order is the
+user's own) returns to capture order: the own order ends, pictures that become ready are sorted
+in by date again, and pictures once moved stay exempt from culls. There is no undo toast, as
+with Shuffle here.
+
 A selection follows its pictures, not their places: a picture sorted in before it shifts the
 tile and keeps it selected; new tiles glide in (not with reduced motion).
 
 ## In "Add media"
 
 The queue, the placeholders, selecting, View, F and removing are the same; there is no
-arranging: no Earlier, Later, drag, Shift+arrows or Shuffle, and the bar has View, Remove and
+arranging: no Earlier, Later, drag, Shift+arrows, Shuffle or Sort by date, and the bar has View, Remove and
 Done. The pictures go into the slideshow as ADDING_PICTURES.md places them.
 
 ## Keys (on a focused tile)

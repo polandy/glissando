@@ -27,6 +27,14 @@ export class DeferredMusic implements MusicPlayback {
     this.#music?.setVolume(volume);
   }
 
+  playingSeconds(): number | null {
+    return this.#music?.playingSeconds() ?? null;
+  }
+
+  seek(atSeconds: number): void {
+    this.#music?.seek(atSeconds);
+  }
+
   pause(): void {
     this.#music?.pause();
   }

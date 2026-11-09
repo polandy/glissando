@@ -121,13 +121,20 @@
 
 # Plain HTTP: TLS and access protection come from the owner's reverse proxy.
 :8080 {
-	log {
-		output stdout
-		import credential_log_filters
-	}
 	log share {
 		output stdout
 		import share_log_filters
+	}
+	# Last, as a site without a host logs every request without a log_name to its last logger.
+	log access {
+		output stdout
+		import credential_log_filters
+	}
+
+	# Docker's healthcheck, kept out of every log.
+	handle /healthz {
+		log_skip
+		respond 200
 	}
 
 	# A share or TV path whose raw URI holds an escape or a dot segment could, once Caddy unescaped

@@ -7,17 +7,16 @@ export const enEditor: Pick<Catalogue, keyof typeof deEditor> = {
   "slideshow.view": "View",
   "slideshow.viewFullScreen": "View full screen",
   "slideshow.editPicture": "Edit picture",
-  "slideshow.ownMotionBadge": "own",
-  "slideshow.pictureLabelOwnMotion": "Picture {number}, taken on {date}, own motion",
-  "slideshow.automaticWithOwn": "automatic, {count} own",
+  "slideshow.ownMotionBadge": "chosen",
+  "slideshow.pictureLabelOwnMotion": "Picture {number}, taken on {date}, chosen motion",
   "editor.crumb": "Picture {number}",
   "editor.position": "Picture {number} of {count}",
   "editor.counter": "{number} / {count}",
   "editor.previous": "Previous picture",
   "editor.next": "Next picture",
-  "editor.kenBurns": "Ken Burns",
+  "editor.kenBurns": "Motion",
   "editor.automatic": "Automatic",
-  "editor.own": "Own motion",
+  "editor.own": "Chosen",
   "editor.frames": "Frames",
   "editor.start": "Start",
   "editor.end": "End",
@@ -35,8 +34,7 @@ export const enEditor: Pick<Catalogue, keyof typeof deEditor> = {
   "editor.reset": "Back to automatic",
   "editor.alreadyAutomatic": "The motion is already automatic",
   "editor.motionAutomatic": "Motion back to automatic",
-  "editor.durationAutomatic": "Duration back to automatic",
-  "editor.transitionAutomatic": "Transition back to automatic",
+  "editor.timingAutomatic": "Timing back to automatic",
   "editor.hintWide":
     "Drag to move the frame, drag a corner to zoom · mouse wheel zooms · arrow keys, + and −",
   "editor.hintNarrow": "Drag anywhere to move the frame; corners or two fingers zoom.",
@@ -63,21 +61,13 @@ export const enEditor: Pick<Catalogue, keyof typeof deEditor> = {
   "editor.lookAgain": "Look again",
   "editor.lookAgainNow": "Look again now",
   "editor.tryAgain": "Try again",
-  "editor.ownMotionFace":
-    "Own motion – your start and end stay, whatever is found. The focus (face found) is used only if you go back to automatic.",
-  "editor.ownMotionSubject":
-    "Own motion – your start and end stay, whatever is found. The focus (subject found) is used only if you go back to automatic.",
-  "editor.ownMotionImmich":
-    "Own motion – your start and end stay, whatever is found. The focus (faces from Immich) is used only if you go back to automatic.",
-  "editor.ownMotionScenery":
-    "Own motion – your start and end stay, whatever is found. The focus (scenery) is used only if you go back to automatic.",
-  "editor.ownMotionNone":
-    "Own motion – your start and end stay, whatever is found. The focus (no subject found) is used only if you go back to automatic.",
+  "editor.ownMotion": "Chosen motion – it runs from your start to your end, whatever is found.",
   "editor.searchingFocus": "Looking for the focus …",
   "editor.caption": "Caption",
   "editor.captionPlaceholder": "e.g. Evening on the jetty",
   "editor.captionCount": "{count} / {max}",
-  "editor.captionClear": "Clear caption",
+  "editor.captionCleared": "Caption cleared",
+  "editor.captionClear": "Remove caption",
   "editor.captionHint":
     "Shown bottom left in the player, fading in and out with the picture. Empty: no caption.",
 };

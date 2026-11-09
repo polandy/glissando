@@ -26,7 +26,10 @@ export class FakeDecoder {
   /** Settles once a decode waits behind `hold()`. */
   reached: Promise<void> = Promise.resolve();
 
-  constructor(private readonly unreadable: ReadonlySet<string> = new Set()) {}
+  constructor(
+    private readonly unreadable: ReadonlySet<string> = new Set(),
+    private readonly tooLarge: ReadonlySet<string> = new Set(),
+  ) {}
 
   /** Holds every decode until `open()`, to act while a file is in flight. */
   hold(): void {
@@ -46,6 +49,9 @@ export class FakeDecoder {
     if (this.unreadable.has(file.name)) {
       throw new UnreadablePictureError(file.name, "decode");
     }
+    if (this.tooLarge.has(file.name)) {
+      throw new UnreadablePictureError(file.name, "tooLarge");
+    }
     return {
       width: 300,
       height: 200,
@@ -61,7 +67,7 @@ export const captureDates =
   (file: File): Promise<string> =>
     Promise.resolve(dates[file.name] ?? "2025-07-01T10:00:00Z");
 
-export function sequentialIds(): () => string {
+function sequentialIds(): () => string {
   let next = 1;
   return () => `picture-${next++}`;
 }
@@ -113,7 +119,10 @@ export function setUp(
   const gps = options.gps ?? (() => Promise.resolve(null));
   const addFiles = (files: readonly File[], pick?: PickInput): void => {
     const sources = files.map((file) =>
-      localPictureSource(file, { decode: decoder.decode, captureDate, gps }),
+      localPictureSource(file, {
+        decode: decoder.decode,
+        exif: async (f) => ({ capturedAt: await captureDate(f), gps: await gps(f) }),
+      }),
     );
     if (pick === undefined) pictureImport.add(sources);
     else pictureImport.add(sources, pick);

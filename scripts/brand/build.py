@@ -37,6 +37,7 @@ BALOO2_SOURCE = FontSource(
     source_commit=BALOO2_SOURCE_COMMIT,
     source_file="Baloo2%5Bwght%5D.ttf",
     source_sha256="d47a6852548059b1db49a1319d06d499d546c3fa2237cf9eee9c43c8abb025c2",
+    license_sha256="ad09b05dc8bc678c9daf7c4c5f7ef1f55e5726127f4330b2e98e40b9dffcb860",
     license_name="OFL.txt",
     axis_limits={"wght": UI_WEIGHT_RANGE},
     output_name=f"baloo2-latin-wght{UI_WEIGHT_RANGE[0]}-{UI_WEIGHT_RANGE[1]}.woff2",
@@ -52,6 +53,7 @@ INSTRUMENT_SANS_SOURCE = FontSource(
     source_commit=WEBFONT_SOURCE_COMMIT,
     source_file="InstrumentSans%5Bwdth%2Cwght%5D.ttf",
     source_sha256="b24f1812584816958afcf22e22d08e44318c5e51651e25d2438efdde389b33b1",
+    license_sha256="9e27a72ed30eb49a08678f6a5d6ed98ec7ba5368f541637ee0683ec9134ef966",
     license_name="OFL-instrument-sans.txt",
     axis_limits={"wdth": INSTRUMENT_SANS_WIDTH, "wght": INSTRUMENT_SANS_WEIGHT_RANGE},
     output_name=(
@@ -72,6 +74,7 @@ BRICOLAGE_GROTESQUE_SOURCE = FontSource(
     source_commit=WEBFONT_SOURCE_COMMIT,
     source_file="BricolageGrotesque%5Bopsz%2Cwdth%2Cwght%5D.ttf",
     source_sha256="413e7357809ddd12fd80a96a8a396de0e401638d4acd3cb3e37532f0472ac682",
+    license_sha256="4b5a7d8f37f5602621c8a8d7358a6a2e71317e6c231c661e15aef0275d3e07ba",
     license_name="OFL-bricolage-grotesque.txt",
     axis_limits={
         "opsz": BRICOLAGE_GROTESQUE_OPTICAL_SIZE,
@@ -88,6 +91,7 @@ GEIST_MONO_SOURCE = FontSource(
     source_commit=WEBFONT_SOURCE_COMMIT,
     source_file="GeistMono%5Bwght%5D.ttf",
     source_sha256="d00e590b8eb3a59acc329b2d044fd143ae935090b7da33199ebee27cc7de8196",
+    license_sha256="1781d2806a07d91c4edf4740b88449fab7d0eadad53f7c351b94cd4d4eb8c00f",
     license_name="OFL-geist-mono.txt",
     axis_limits={"wght": GEIST_MONO_WEIGHT_RANGE},
     output_name=f"geistmono-latin-wght{GEIST_MONO_WEIGHT_RANGE[0]}-{GEIST_MONO_WEIGHT_RANGE[1]}.woff2",
@@ -97,11 +101,13 @@ GEIST_MONO_SOURCE = FontSource(
 # own static source file rather than one variable font instanced into a range.
 INSTRUMENT_SERIF_WEIGHT = 400
 INSTRUMENT_SERIF_LICENSE = "OFL-instrument-serif.txt"
+INSTRUMENT_SERIF_LICENSE_SHA256 = "129ed7618959716959f2941fdd5b49e0ad6e6c1d78726761786a00253d865521"
 INSTRUMENT_SERIF_SOURCE = FontSource(
     family_dir="instrumentserif",
     source_commit=WEBFONT_SOURCE_COMMIT,
     source_file="InstrumentSerif-Regular.ttf",
     source_sha256="498efd461f6ddfcb7a111bf9a565709d2085d48201d501ead960d93e84ffbb88",
+    license_sha256=INSTRUMENT_SERIF_LICENSE_SHA256,
     license_name=INSTRUMENT_SERIF_LICENSE,
     axis_limits={},
     output_name=f"instrumentserif-latin-wght{INSTRUMENT_SERIF_WEIGHT}.woff2",
@@ -111,6 +117,7 @@ INSTRUMENT_SERIF_ITALIC_SOURCE = FontSource(
     source_commit=WEBFONT_SOURCE_COMMIT,
     source_file="InstrumentSerif-Italic.ttf",
     source_sha256="08939b8bdf534afec24ae0ef5e03f948940cd9a8fe08e7fecbad040e62327385",
+    license_sha256=INSTRUMENT_SERIF_LICENSE_SHA256,
     license_name=INSTRUMENT_SERIF_LICENSE,
     axis_limits={},
     output_name=f"instrumentserif-italic-latin-wght{INSTRUMENT_SERIF_WEIGHT}.woff2",
@@ -225,7 +232,7 @@ def animated_logo(path: str, paint: LogoPaint) -> str:
     angle, cx, cy = WORDMARK_ROTATION
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="{STACKED_VIEW_BOX}" role="img" aria-label="{WORDMARK_TEXT}">
   <g transform="translate(110 0) scale(1.5)" fill="none">
-    <g class="card card-back"><g transform="rotate(-14 36 56)"><rect x="10" y="36" width="52" height="40" rx="9" fill="{paint.peach}" stroke="{paint.outline}" stroke-width="4"/></g></g>
+    <g class="card card-back" data-testid="start-logo-back-card"><g transform="rotate(-14 36 56)"><rect x="10" y="36" width="52" height="40" rx="9" fill="{paint.peach}" stroke="{paint.outline}" stroke-width="4"/></g></g>
     <g class="card card-middle"><g transform="rotate(-2 56 44)"><rect x="30" y="24" width="52" height="40" rx="9" fill="{paint.mint}" stroke="{paint.outline}" stroke-width="4"/></g></g>
     <g class="card card-front"><g transform="rotate(10 78 32)">
       <rect x="52" y="12" width="52" height="40" rx="9" fill="{paint.lemon}" stroke="{paint.outline}" stroke-width="4"/>

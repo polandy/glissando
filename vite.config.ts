@@ -1,3 +1,4 @@
+import { env } from "node:process";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
@@ -11,8 +12,10 @@ import { remotePagePlugin } from "./build/remote-page-plugin.ts";
 import { sampleMusicConfigPlugin } from "./build/sample-music-config.ts";
 import { serviceWorkerPlugin } from "./build/service-worker-plugin.ts";
 import { sharePagePlugin } from "./build/share-page-plugin.ts";
-import { tvStreamPlugin } from "./e2e/support/tv-stream-plugin.ts";
+import { tvStreamPluginsFor } from "./e2e/support/tv-stream-plugin.ts";
 // Every module this config loads imports with explicit file extensions (ADR-0026).
+import { setCoarsePointer } from "./src/app/testing/coarse-pointer-command.ts";
+import { dispatchTouch, endTouchInput } from "./src/app/testing/touch-input-command.ts";
 import {
   fakeRemoteStreamPlugin,
   nextFakeRemoteCommand,
@@ -34,6 +37,20 @@ import {
 import { THIRD_PARTY_LICENSES_FILE } from "./src/app/settings/third-party-licenses.ts";
 
 const BROWSER_TESTS = "src/**/*.browser.test.ts";
+/**
+ * The files that turn on Chromium's touch emulation (a coarse pointer, real touch input).
+ * Chromium keeps the page at `(hover: none)` and `(pointer: coarse)` for the rest of its life
+ * once that has run, so these get a Chromium page of their own and no other file lands on it.
+ */
+const TOUCH_EMULATION_TESTS = [
+  "src/styles/touch-targets.browser.test.ts",
+  "src/app/screens/slideshow-screen-touch-targets.browser.test.ts",
+  "src/app/editors-touch-targets.browser.test.ts",
+  "src/app/surfaces-touch-targets.browser.test.ts",
+  "src/app/sheets-touch-targets.browser.test.ts",
+  "src/app/screens/slideshow/PictureStrip.touch.browser.test.ts",
+  "src/app/import/music-step-title.touch.browser.test.ts",
+];
 
 export default defineConfig({
   // Relative, so the same build runs from any static host path (ADR-0005).
@@ -52,8 +69,8 @@ export default defineConfig({
     sampleMusicConfigPlugin(),
     committedLicensesPlugin(),
     serviceWorkerPlugin(),
-    // Only its configurePreviewServer hook does anything; e2e/support/fake-tv-api.ts needs it.
-    tvStreamPlugin(),
+    // Only the Playwright web servers turn this on; e2e/support/fake-tv-api.ts needs it.
+    ...tvStreamPluginsFor(env),
   ],
   test: {
     // e2e/ belongs to Playwright.
@@ -62,7 +79,12 @@ export default defineConfig({
         extends: true,
         test: {
           name: "unit",
-          include: ["src/**/*.test.ts", "build/**/*.test.ts", "server/**/*.test.ts"],
+          include: [
+            "src/**/*.test.ts",
+            "build/**/*.test.ts",
+            "scripts/**/*.test.ts",
+            "server/**/*.test.ts",
+          ],
           exclude: [BROWSER_TESTS],
         },
       },
@@ -78,6 +100,9 @@ export default defineConfig({
             headless: true,
             provider: playwright(),
             commands: {
+              setCoarsePointer,
+              dispatchTouch,
+              endTouchInput,
               serveFakeShareApi,
               stopFakeShareApi,
               releaseFakeSharePicture,
@@ -91,7 +116,12 @@ export default defineConfig({
               stopFakeRemoteApi,
             },
             instances: [
-              { browser: "chromium" },
+              { browser: "chromium", exclude: TOUCH_EMULATION_TESTS },
+              {
+                browser: "chromium",
+                name: "browser (chromium-touch)",
+                include: TOUCH_EMULATION_TESTS,
+              },
               // Headless Firefox in the CI image has no WebGL at all, whatever its prefs; it
               // tests the DOM fallback, Chromium and WebKit test the WebGL renderer. Nor has it
               // an audio output, so its AudioContext never runs. The video export needs WebGL2.
@@ -101,6 +131,7 @@ export default defineConfig({
                   "src/player/webgl/**",
                   "src/player/browser/web-audio-unlock.browser.test.ts",
                   "src/video-export/browser/run-video-export.browser.test.ts",
+                  "src/video-export/browser/run-video-export-failure.browser.test.ts",
                   "src/video-export/browser/clip-decode.browser.test.ts",
                   "src/video-export/browser/decode-clip-sound.browser.test.ts",
                   "src/app/clip-editor/clip-scrub.browser.test.ts",

@@ -2,7 +2,7 @@ import { MAX_VIDEO_EXCERPT_MS, MIN_VIDEO_EXCERPT_MS } from "../../library/own-vi
 
 /** What a handle moves by on an arrow key, and what it snaps to when dragged. */
 export const HANDLE_STEP_MS = 100;
-export const HANDLE_FAST_STEP_MS = 1000;
+const HANDLE_FAST_STEP_MS = 1000;
 
 export interface Excerpt {
   readonly startMs: number;

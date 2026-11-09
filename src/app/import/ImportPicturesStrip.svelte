@@ -25,7 +25,7 @@
   /**
    * The pictures step's strip while an import runs: the editor's own picture strip and selection
    * bar, reused on stored pictures (IMPORT_ARRANGING.md, Arranging). `arrangement` is null in
-   * "Add media", which has no arranging: no Earlier, Later, drag, Shift+arrows or Shuffle.
+   * "Add media", which has no arranging: no Earlier, Later, drag, Shift+arrows, Shuffle or Sort by date.
    */
   let {
     pictures,
@@ -125,6 +125,7 @@
     onToggleSelect={() =>
       (selection = selection.several ? endSelecting() : startSelecting(selection))}
     onShuffle={() => arrangement?.shuffle()}
+    onSortByDate={() => arrangement?.sortByDate()}
     variant="import"
     {busy}
     add={showAddMenu ? headAdd : undefined}
@@ -138,14 +139,12 @@
     onSelectionChange={(next) => (selection = next)}
     onOpen={onView}
     {onView}
-    {onRemove}
     onRemoveGroup={removeGroup}
     onShiftGroup={shiftGroup}
     onMoveGroup={moveGroup}
     arranging={arrangement !== null}
     suppressCards
     {placeholderCount}
-    lastRemovable
     {holdScheduler}
     {frameScheduler}
   />

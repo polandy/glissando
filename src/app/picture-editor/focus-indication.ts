@@ -33,7 +33,7 @@ const CHIP_ROOM_ABOVE = 0.14;
 /** A box ending this far right leaves no room for the chip to run on from its left. */
 const CHIP_ROOM_RIGHT = 0.82;
 
-/** An own motion aims where its frames say: the focus is not shown then. */
+/** A chosen motion aims where its frames say: the focus is not shown then. */
 export function focusIndication(focus: PictureFocusStatus, ownMotion: boolean): FocusIndication {
   if (ownMotion) {
     return { kind: "nothing" };
@@ -59,7 +59,7 @@ export function focusIndication(focus: PictureFocusStatus, ownMotion: boolean): 
   }
 }
 
-/** What a found focus is, for the per-kind outdated and own-motion sentences of the focus line. */
+/** What a found focus is, for the per-kind outdated and chosen-motion sentences of the focus line. */
 export type FocusResultKind = "face" | "subject" | "immich" | "scenery" | "none";
 
 export function focusResultKind(found: PictureFocus): FocusResultKind {
@@ -121,16 +121,7 @@ const OUTDATED_TEXT: Record<FocusResultKind, MessageKey> = {
   none: "editor.focusOutdatedNone",
 };
 
-/** Own motion ignores whatever is found (ADR-0041), so its sentence never mentions staleness. */
-const OWN_MOTION_TEXT: Record<FocusResultKind, MessageKey> = {
-  face: "editor.ownMotionFace",
-  subject: "editor.ownMotionSubject",
-  immich: "editor.ownMotionImmich",
-  scenery: "editor.ownMotionScenery",
-  none: "editor.ownMotionNone",
-};
-
-/** The action a status offers, regardless of own motion: a done result offers to look again. */
+/** The action a status offers, regardless of chosen motion: a done result offers to look again. */
 const ACTION_KEY: Record<FocusDisplayStatus, MessageKey | null> = {
   face: "editor.lookAgain",
   subject: "editor.lookAgain",
@@ -145,15 +136,15 @@ const ACTION_KEY: Record<FocusDisplayStatus, MessageKey | null> = {
 };
 
 /**
- * Resolves a `FocusLineView` into the message to show. A found result's own motion replaces the
- * result sentence (ADR-0041: own motion ignores whatever the pass finds); a status with no result
- * yet (waiting, looking, failed, waiting for the server) is unaffected by own motion, as it has no
+ * Resolves a `FocusLineView` into the message to show. A found result's chosen motion replaces the
+ * result sentence (ADR-0041: chosen motion ignores whatever the pass finds); a status with no result
+ * yet (waiting, looking, failed, waiting for the server) is unaffected by chosen motion, as it has no
  * result to replace.
  */
 export function focusLineText({ status, ownMotion, resultKind }: FocusLineView): FocusLineText {
   const actionKey = ACTION_KEY[status];
   if (ownMotion && resultKind !== null) {
-    return { textKey: OWN_MOTION_TEXT[resultKind], actionKey, pending: false };
+    return { textKey: "editor.ownMotion", actionKey, pending: false };
   }
   if (status === "outdated") {
     // `resultKind` is always set alongside "outdated" (pictureFocusDisplay only returns it once a

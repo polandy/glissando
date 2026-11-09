@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
   import { SvelteMap } from "svelte/reactivity";
-  import type { ImmichAvailability } from "../../immich/immich-availability";
   import type { ImmichClient } from "../../immich/immich-client";
   import { FrameAlbumDeck } from "../../frame/frame-album-deck";
   import { RoundHandover, type RoundHandoverState } from "../../frame/round-handover";
@@ -9,9 +8,12 @@
   import { keepScreenAwake } from "../video-export/screen-awake";
   import { getTranslator } from "../i18n/context";
   import BlockingOverlay from "../components/BlockingOverlay.svelte";
+  import FrameCaption from "./FrameCaption.svelte";
+  import FrameControls from "./FrameControls.svelte";
   import Notice from "../components/Notice.svelte";
   import type { FrameDevice } from "./browser-frame-device";
   import { fetchAlbumPictures } from "../../frame/frame-album-pictures";
+  import type { RoundPicture } from "../../frame/round-composition";
   import { createFrameRoundHandoverPorts } from "./frame-round-handover-ports";
   import type { FrameRoundPlayer } from "../../frame/round-handover";
   import type { FramePreferences } from "./frame-preferences";
@@ -24,13 +26,16 @@
     preferences,
     device,
     onExit,
+    random,
     log,
   }: {
     albumId: string;
-    immich: { readonly client: ImmichClient; readonly availability: ImmichAvailability };
+    immich: { readonly client: ImmichClient };
     preferences: Pick<FramePreferences, "state">;
     device: FrameDevice;
     onExit: () => void;
+    /** Uniform in [0, 1); what a shuffled album's order is drawn from. */
+    random: () => number;
     log: (error: unknown) => void;
   } = $props();
 
@@ -42,6 +47,8 @@
   let stage: HTMLDivElement | undefined = $state();
   let failure = $state<"unavailable" | "notFound" | null>(null);
   let albumName = $state<string | null>(null);
+  // The picture each live round's player shows now; the caption follows the shown round's.
+  const shownPictures = new SvelteMap<FrameRoundPlayer, RoundPicture>();
   let handover: RoundHandover | null = null;
   let handoverState = $state.raw<RoundHandoverState>({
     player: null,
@@ -82,7 +89,7 @@
         return fetchAlbumPictures(immich.client, albumId).then((pictures) => {
           const deck = new FrameAlbumDeck(pictures, {
             order,
-            random: Math.random,
+            random,
             refresh: () => fetchAlbumPictures(immich.client, albumId),
             onRefreshFailed: log,
           });
@@ -107,6 +114,7 @@
               },
               onPhotoFailed: log,
               onRoundReady: (player, container) => containers.set(player, container),
+              onPictureShown: (player, picture) => shownPictures.set(player, picture),
             }),
           );
           const stopHandover = handover.subscribe((next) => {
@@ -118,6 +126,7 @@
               }
               if (shownPlayer !== null) {
                 containers.delete(shownPlayer);
+                shownPictures.delete(shownPlayer);
               }
               shownPlayer = next.player;
             }
@@ -151,7 +160,9 @@
   const clockText = $derived(
     now.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }),
   );
-  const currentPictureCaption = $derived(showDate && albumName !== null ? albumName : null);
+  const currentPicture = $derived(
+    handoverState.player === null ? undefined : shownPictures.get(handoverState.player),
+  );
 </script>
 
 <svelte:window onkeydown={exitKey} />
@@ -181,6 +192,7 @@
   {:else}
     <div
       class="stage"
+      data-testid="frame-stage"
       class:idle={!controlsVisible}
       bind:this={stage}
       onclick={() => controls.tap()}
@@ -189,21 +201,16 @@
     {#if showClock}
       <div class="clock mono" aria-hidden="true">{clockText}</div>
     {/if}
-    {#if currentPictureCaption !== null}
-      <div class="stamp">
-        <b>{currentPictureCaption}</b>
-      </div>
+    {#if showDate && currentPicture !== undefined}
+      <FrameCaption picture={currentPicture} />
     {/if}
-    <button class="exit" type="button" onclick={onExit}>{t("frame.exit")}</button>
-    <div class="bar">
-      <button
-        type="button"
-        onclick={() => (handoverState.paused ? handover?.resume() : handover?.pause())}
-      >
-        {handoverState.paused ? t("frame.resume") : t("frame.pause")}
-      </button>
-      <button type="button" onclick={() => handover?.skip()}>{t("frame.next")}</button>
-    </div>
+    <FrameControls
+      idle={!controlsVisible}
+      paused={handoverState.paused}
+      {onExit}
+      onTogglePause={() => (handoverState.paused ? handover?.resume() : handover?.pause())}
+      onSkip={() => handover?.skip()}
+    />
   {/if}
 </div>
 
@@ -233,63 +240,14 @@
     position: absolute;
     inset: 0;
   }
-  .clock,
-  .stamp,
-  .exit,
-  .bar {
+  .clock {
     position: absolute;
     z-index: 1;
     color: var(--gl-player-text);
-    transition: opacity 0.2s;
-  }
-  .idle ~ .exit,
-  .idle ~ .bar {
-    opacity: 0;
-    pointer-events: none;
-  }
-  .clock {
     top: 20px;
     right: 24px;
     font-size: 2.2rem;
     font-weight: var(--gl-weight-semibold);
     text-shadow: 0 1px 6px rgb(0 0 0 / 0.5);
-  }
-  .stamp {
-    bottom: 20px;
-    left: 24px;
-    text-shadow: 0 1px 6px rgb(0 0 0 / 0.5);
-  }
-  .exit {
-    top: 16px;
-    left: 16px;
-    padding: 8px 14px;
-    border: 0;
-    border-radius: var(--gl-radius-pill);
-    background: var(--gl-photo-badge);
-    color: var(--gl-player-text);
-    font: inherit;
-    cursor: pointer;
-  }
-  .bar {
-    bottom: 20px;
-    left: 50%;
-    display: flex;
-    gap: 6px;
-    padding: 8px;
-    border-radius: var(--gl-radius-pill);
-    background: var(--gl-photo-badge);
-    transform: translateX(-50%);
-  }
-  .bar button {
-    padding: 8px 14px;
-    border: 0;
-    border-radius: var(--gl-radius-pill);
-    background: transparent;
-    color: var(--gl-player-text);
-    font: inherit;
-    cursor: pointer;
-  }
-  .bar button:hover {
-    background: var(--gl-player-glass);
   }
 </style>

@@ -2,7 +2,7 @@ import { de } from "./catalogue-de";
 import { en } from "./catalogue-en";
 import type { Catalogue, Message, MessageArgs, MessageKey, ParamValue } from "./messages";
 
-export const LANGUAGES = ["de", "en"] as const;
+const LANGUAGES = ["de", "en"] as const;
 export type Language = (typeof LANGUAGES)[number];
 
 const FALLBACK_LANGUAGE: Language = "en";
@@ -62,6 +62,8 @@ export interface Translator {
   formatDay(day: string): string;
   /** The days between two date-times, read in UTC, as compact as the locale allows. */
   formatDayRange(fromIsoDateTime: string, toIsoDateTime: string): string;
+  /** A moment's day and month in the local time zone: "2 Nov"; with the year unless it is `relativeTo`'s. */
+  formatShortDate(isoDateTime: string, relativeTo: string): string;
   /** A Ken Burns zoom with two decimals in the locale: "1,20×". */
   formatZoom(zoom: number): string;
   /** `m:ss` and the tenth, cut off, with the locale's decimal sign: "0:02,4". */
@@ -122,6 +124,13 @@ export function createTranslator(language: Language): Translator {
     year: "numeric",
     timeZone: "UTC",
   });
+  // A moment such as a creation time, unlike a capture date, is read in the viewer's time zone.
+  const shortDates = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" });
+  const shortDatesWithYear = new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
   const dayRanges = new Intl.DateTimeFormat(locale, {
     day: "numeric",
     month: "long",
@@ -142,7 +151,11 @@ export function createTranslator(language: Language): Translator {
 
   function t<Key extends MessageKey>(key: Key, ...args: MessageArgs<Key>): string {
     const params: Readonly<Record<string, ParamValue>> = args[0] ?? {};
-    return pick(key, catalogue[key], params).replace(PLACEHOLDER, (_, name: string) => {
+    const message = catalogue[key] as Message | undefined;
+    if (message === undefined) {
+      throw new Error(`unknown message "${key}"`);
+    }
+    return pick(key, message, params).replace(PLACEHOLDER, (_, name: string) => {
       const value = params[name];
       if (value === undefined) {
         throw new Error(`message "${key}" needs the parameter "${name}"`);
@@ -181,6 +194,11 @@ export function createTranslator(language: Language): Translator {
     },
     formatTime(isoDateTime) {
       return times.format(parseDate(isoDateTime));
+    },
+    formatShortDate(isoDateTime, relativeTo) {
+      const date = parseDate(isoDateTime);
+      const sameYear = date.getFullYear() === parseDate(relativeTo).getFullYear();
+      return (sameYear ? shortDates : shortDatesWithYear).format(date);
     },
     formatMinuteRange(fromIsoDateTime, toIsoDateTime) {
       const from = minutes.format(parseDate(fromIsoDateTime));

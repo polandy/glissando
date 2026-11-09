@@ -1,4 +1,4 @@
-import type { BitmapPicture } from "../../browser/bitmap-loader";
+import type { PixelPicture } from "../../browser/pixel-loader";
 import type { CardItemLayouts } from "../../card-item-layouts";
 import type { Fonts } from "../../fonts";
 import type { CardVisual, GroundSlideLayer, RenderFrame } from "../../ports";
@@ -13,11 +13,11 @@ export const VIEWPORT = { width: 200, height: 200 };
 export const WHOLE_PICTURE = { zoom: 1, centerX: 0.5, centerY: 0.5 } as const;
 /** `#101010`. */
 export const GROUND_COLOUR: Rgb = [16, 16, 16];
-export const GROUND_HEX = "#101010";
-export const COLOUR_TOLERANCE = 8;
+const GROUND_HEX = "#101010";
+const COLOUR_TOLERANCE = 8;
 
 /** Fonts the test lets load when it wants (`webgl-captions.browser.test.ts`'s pattern). */
-export class ControlledFonts implements Fonts {
+class ControlledFonts implements Fonts {
   #resolve: () => void = () => undefined;
   readonly #loaded = new Promise<void>((resolve) => (this.#resolve = resolve));
   load(): Promise<unknown> {
@@ -59,8 +59,11 @@ export function groundLayer(card: CardVisual): GroundSlideLayer {
 export function setUpCardRenderer({
   fontsLoaded = true,
   cardItemLayouts,
+  onResize = () => undefined,
 }: {
   readonly fontsLoaded?: boolean;
+  /** Called when the renderer asks the player to redraw, e.g. after a context restore. */
+  readonly onResize?: () => void;
   /** A test's own instance, e.g. to count the measure factory's calls; the renderer's default
    * otherwise. */
   readonly cardItemLayouts?: CardItemLayouts;
@@ -68,8 +71,10 @@ export function setUpCardRenderer({
   readonly renderer: WebGlRenderer;
   readonly fonts: ControlledFonts;
   readonly box: HTMLElement;
-  readPixel(frame: RenderFrame<BitmapPicture>, point: readonly [number, number]): Rgb;
-  readAllPixels(frame: RenderFrame<BitmapPicture>): Uint8Array;
+  readonly canvas: HTMLCanvasElement;
+  readonly gl: WebGL2RenderingContext;
+  readPixel(frame: RenderFrame<PixelPicture>, point: readonly [number, number]): Rgb;
+  readAllPixels(frame: RenderFrame<PixelPicture>): Uint8Array;
 } {
   const box = viewportBox(VIEWPORT);
   const canvas = document.createElement("canvas");
@@ -83,7 +88,7 @@ export function setUpCardRenderer({
   // functions below, which close over this variable rather than being called immediately.
   const gl: WebGL2RenderingContext = context;
   const fonts = new ControlledFonts();
-  const renderer = new WebGlRenderer(canvas, gl, () => undefined, {
+  const renderer = new WebGlRenderer(canvas, gl, onResize, {
     pixelRatio: () => 1,
     fonts,
     ...(cardItemLayouts === undefined ? {} : { cardItemLayouts }),
@@ -92,7 +97,7 @@ export function setUpCardRenderer({
     fonts.finishLoading();
   }
   /** Reads one pixel straight after drawing, before the browser presents and clears the frame. */
-  function readPixel(frame: RenderFrame<BitmapPicture>, [x, y]: readonly [number, number]): Rgb {
+  function readPixel(frame: RenderFrame<PixelPicture>, [x, y]: readonly [number, number]): Rgb {
     renderer.render(frame);
     const pixel = new Uint8Array(4);
     gl.readPixels(
@@ -107,13 +112,13 @@ export function setUpCardRenderer({
     return [pixel[0] ?? 0, pixel[1] ?? 0, pixel[2] ?? 0];
   }
   /** Every pixel of the frame, as `[r, g, b, a, r, g, b, a, ...]`. */
-  function readAllPixels(frame: RenderFrame<BitmapPicture>): Uint8Array {
+  function readAllPixels(frame: RenderFrame<PixelPicture>): Uint8Array {
     renderer.render(frame);
     const pixels = new Uint8Array(canvas.width * canvas.height * 4);
     gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
     return pixels;
   }
-  return { renderer, fonts, box, readPixel, readAllPixels };
+  return { renderer, fonts, box, canvas, gl, readPixel, readAllPixels };
 }
 
 export function isColour(actual: Rgb, expected: Rgb): boolean {

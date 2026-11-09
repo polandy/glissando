@@ -51,4 +51,6 @@ export const enCards: Pick<Catalogue, keyof typeof deCards> = {
   "cards.hintOpeningStill": "About 4 s, on the beat.",
   "cards.hintClosingMotion": "About 4 s, on the beat. With Fade in, the picture appears gradually.",
   "cards.hintClosingStill": "About 4 s, on the beat.",
+  "cards.openingRemoved": "Title slide removed",
+  "cards.closingRemoved": "Closing slide removed",
 };

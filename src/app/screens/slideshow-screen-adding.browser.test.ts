@@ -7,7 +7,7 @@ describe("SlideshowScreen, adding pictures", () => {
   it("offers Add media beside the picture count", () => {
     const { calls } = mountScreen();
 
-    byLabel("Medien hinzufügen").click();
+    byLabel("Bilder hinzufügen").click();
 
     expect(calls.adds).toBe(1);
   });
@@ -16,7 +16,7 @@ describe("SlideshowScreen, adding pictures", () => {
     const { calls, target } = mountScreen(details(["a", "b"]));
 
     const head = target.querySelector(".strip-head");
-    expect(head?.querySelector('button[aria-label="Medien hinzufügen"]')).not.toBeNull();
+    expect(head?.querySelector('button[aria-label="Bilder hinzufügen"]')).not.toBeNull();
     const tiles = [...target.querySelectorAll(".strip > li")];
     expect(tiles.filter((tile) => tile.querySelector(".pick") !== null)).toHaveLength(2);
     expect(tiles.some((tile) => tile.textContent?.includes("Hinzufügen"))).toBe(false);

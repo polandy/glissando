@@ -3,9 +3,7 @@
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowDetails } from "../view-models";
   import { lookSwatchColour } from "./look-swatch-colour";
-  import type { MoodEnergyPacing } from "./mood-energy-pacing";
-  import { moodName } from "./mood-text";
-  import { moodTileSummaryText } from "./mood-tile-summary";
+  import { moodName, moodSubtitle } from "./mood-text";
   import { musicTileValue } from "./music-tile-summary";
   import PanelTile from "./PanelTile.svelte";
 
@@ -13,17 +11,11 @@
    * every width. */
   let {
     slideshow,
-    moodBpm,
-    moodEnergyPacing,
     onEditMusic,
     onEditMood,
     onEditLook,
   }: {
     slideshow: SlideshowDetails;
-    /** The slideshow's tempo under its mood (ADR-0045); undefined without one. */
-    moodBpm: number | undefined;
-    /** The Mood tile's picture-times range under the energy pacing (ADR-0046); null without one. */
-    moodEnergyPacing: MoodEnergyPacing | null;
     onEditMusic: () => void;
     onEditMood: () => void;
     onEditLook: () => void;
@@ -46,19 +38,6 @@
   const { t } = translator;
 
   const music = $derived(musicTileValue(t, translator.formatDuration, slideshow));
-  const moodSummary = $derived(
-    moodTileSummaryText(
-      translator,
-      {
-        mood: slideshow.mood,
-        ownDurationCount: slideshow.ownDurationCount,
-        energyPacing: slideshow.energyPacing,
-        hasMusic: slideshow.songCount > 0,
-      },
-      moodBpm,
-      moodEnergyPacing,
-    ),
-  );
   const lookSummary = $derived(
     slideshow.look === DEFAULT_SLIDESHOW_LOOK ? t("slideshow.lookDefault") : "",
   );
@@ -68,6 +47,7 @@
 <div class="tiles">
   <PanelTile
     name="music"
+    icon="music"
     label={t("slideshow.music")}
     value={music.value}
     summary={music.summary}
@@ -76,14 +56,16 @@
   <PanelTile
     bind:this={moodTile}
     name="mood"
+    icon="mood"
     label={t("slideshow.mood")}
     value={moodName(t, slideshow.mood)}
-    summary={moodSummary}
+    summary={moodSubtitle(t, slideshow.mood)}
     onclick={onEditMood}
   />
   <PanelTile
     bind:this={lookTile}
     name="look"
+    icon="look"
     label={t("slideshow.look")}
     value={t(`look.${slideshow.look}`)}
     summary={lookSummary}

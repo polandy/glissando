@@ -18,6 +18,18 @@ export default tseslint.config(
   ...tseslint.configs.strict,
   ...svelte.configs.recommended,
   {
+    // Type information is what lets these two rules see a promise that is dropped or passed
+    // where a void callback is expected; the strict preset runs without it.
+    files: ["**/*.ts", "**/*.svelte"],
+    languageOptions: {
+      parserOptions: { projectService: true, extraFileExtensions: [".svelte"] },
+    },
+    rules: {
+      "@typescript-eslint/no-floating-promises": "error",
+      "@typescript-eslint/no-misused-promises": "error",
+    },
+  },
+  {
     files: ["**/*.svelte", "**/*.svelte.ts"],
     languageOptions: { parserOptions: { parser: tseslint.parser } },
     // TypeScript resolves globals (svelte-check); no-undef only knows a fixed list.
@@ -26,6 +38,39 @@ export default tseslint.config(
   {
     rules: {
       "@typescript-eslint/no-explicit-any": "error",
+    },
+  },
+  {
+    // share.html is built without the app (RECIPIENTS_PAGE.md); its code must not pull app modules in.
+    files: ["src/share-page/**/*.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            { group: ["**/app/**"], message: "The share page must not import from src/app/." },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // The UX screenshot tour is a Node script whose page.evaluate callbacks run in the browser;
+    // no-undef only knows a fixed list, so both sides' globals are named here.
+    files: ["scripts/ux-tour/*.mjs"],
+    languageOptions: {
+      globals: {
+        process: "readonly",
+        Buffer: "readonly",
+        console: "readonly",
+        URL: "readonly",
+        document: "readonly",
+        Element: "readonly",
+        Event: "readonly",
+        StorageManager: "readonly",
+        getComputedStyle: "readonly",
+        innerHeight: "readonly",
+      },
     },
   },
   {

@@ -1,20 +1,14 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { createSlideshow, editsStored, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
+import { DRAG_STEPS } from "./support/pointer";
+import { tile } from "./support/strip";
 
 test.use(GERMAN_BROWSER);
 
-/** Pointer travel split into steps, so a drag passes the strip's 8 px threshold as a hand does. */
-const DRAG_STEPS = 8;
-
-/** A tile of the picture strip, named by its position and capture date. */
-function tile(page: Page, number: number, date: string) {
-  return page.getByRole("button", { name: `Bild ${number}, aufgenommen am ${date}`, exact: true });
-}
-
 /** The tile's row, which carries the dashed drop mark (`StripTile.svelte`, `.tile`). */
 function tileRow(page: Page, number: number, date: string): Locator {
-  return tile(page, number, date).locator("xpath=..");
+  return page.getByRole("listitem").filter({ has: tile(page, number, date) });
 }
 
 /**
@@ -99,7 +93,7 @@ test("E2E-035 several pictures are selected and gathered by the bar, moved toget
 });
 
 // A touch hold-then-drag of a group (ADR-0019) is not run here: `playwright.config.ts` configures
-// no touch or mobile project, so there is no engine to drive `hasTouch` events against, and the
-// 450 ms hold would need a real wait without one. The gesture's logic (hold, lift, carry the
-// selection, auto-scroll) is covered by `src/app/screens/slideshow/tile-drag-*.test.ts`, which
-// drives it with an injected scheduler instead of real time.
+// no touch or mobile project. Real CDP touch input drives the gesture in
+// `src/app/screens/slideshow/PictureStrip.touch.browser.test.ts` (Chromium), and synthetic touch
+// pointers in `PictureStrip.drag.browser.test.ts` (every engine); both inject the hold and frame
+// schedulers instead of waiting on real time.

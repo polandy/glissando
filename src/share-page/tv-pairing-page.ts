@@ -28,7 +28,7 @@ import { createTvParts } from "./tv-parts";
 import { openTvSession, type TvPageEvent, type TvPorts, type TvSession } from "./tv-session";
 
 /** How long the page waits before it asks a server that isn't answering again. */
-export const TV_RETRY_MS = 5000;
+const TV_RETRY_MS = 5000;
 
 export interface TvPagePorts extends TvPorts {
   readonly fetch: FetchPort;

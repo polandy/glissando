@@ -34,7 +34,8 @@ finds the choices kept. Fields and their defaults, all device-persisted
 - **Order** — Shuffled, Newest first or Oldest first; default Shuffled — the mockup calls the
   third choice "By date, then repeat"; "Oldest first" says the same thing more plainly and matches
   "Newest first"'s phrasing.
-- **Clock** and **date** — shown over the running frame; both on by default.
+- **Clock** and **date and place** — shown over the running frame; both on by default. The
+  switch reads "Show date and place", "When and where each picture was taken, bottom left".
 
 A footer carries "Copy frame link" (`#frame=<albumId>`, below) and "Start frame", disabled until
 an album is chosen. Waiting and errors follow `dev-docs/app/WAITING_AND_ERRORS.md`: the album
@@ -46,16 +47,21 @@ albums".
 
 Fullscreen, no chrome by default. A tap reveals, for `CONTROLS_VISIBLE_MS` (4 s,
 `src/frame/tap-controls.ts`): an exit pill (also Esc) and a bottom bar with pause/resume and
-next; a further tap hides them again at once. The mockup's bottom bar also carries a "Settings"
+next; a further tap hides them again at once. A round that ends or is skipped while paused hands
+over to the next one, which shows its first picture and stays paused until resume. The mockup's bottom bar also carries a "Settings"
 button back to the set-up screen; this build omits it; exiting the frame (back to the set-up
 screen) covers the same need until a dedicated in-frame settings path is worth its own screen.
 The frame's `role="application"` is `aria-busy` while it has no picture to show: until the first
 round plays, while a round waits for a picture, and while an ended round waits for the next one
 (`src/frame/round-handover.ts`).
-The clock (if on) sits top-right, the date and album name (if the date is on) bottom-left — the
-mockup's copy says "date and place", but place comes from Immich's reverse geocoding, which this
-screen does not read, so only the date and the album's own name are shown; a future iteration may
-add place once Immich exposes it to the client. The screen is kept awake for as long as the frame
+The clock (if on) sits top-right. The caption (if date and place are on) sits bottom-left and
+describes the picture on screen: its place as the bold title and its capture date below it, in
+the translator's day format ("Sat, 12 July 2025"). The place is the city Immich's reverse
+geocoding gave the picture (`exifInfo.city`, read with the album's picture list), without the
+country — on a frame at home the country rarely tells anything. A picture without a city shows its
+date as the title and nothing below (E2E-117). The album's name is not shown: the frame shows one album, so
+it would never change. Mockup: https://polandy.github.io/glissando-assets/mockups/frame-place/
+(variant B, "City"). The screen is kept awake for as long as the frame
 runs
 (`keepScreenAwake`, `src/app/video-export/screen-awake.ts` — despite its path, generic). Ken
 Burns and transitions are the player's usual automatic choices (`src/compose`); there is no
@@ -84,6 +90,7 @@ the next — the design and the rejected alternatives are ADR-0030. In short:
   row across a reshuffle) or capture-date order (oldest/newest first), cycling forever.
   `composeRound` turns one round's ids into a finite `Slideshow`.
 - `RoundHandover` keeps exactly one round playing: as soon as a round starts, the next is
-  created and started hidden, so it is usually already showing its first picture by the time the
-  current one ends; only then is the old round torn down. An album with nothing to compose a
+  created hidden and loads its first picture ahead, so it is usually ready to show by the time
+  the current one ends; it starts playing at the hand-over, so every round plays from its first
+  picture; only then is the old round torn down. An album with nothing to compose a
   round from (e.g. every photo removed in Immich) ends the frame with `endOfPictures`.

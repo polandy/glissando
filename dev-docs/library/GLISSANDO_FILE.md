@@ -24,15 +24,15 @@ app/SCREENS.md).
 
 `slideshow` is the stored record without device ids: `title`, `createdAt`, `secondsPerPicture`,
 `pictureLength` (only when set), `ownOrder` (only when true), `transition` (only when not the crossfade), `portraitPictures` (only when set, ADR-0028), `look` (only when not None, ADR-0044, [LOOK](../app/slideshow-editing/LOOK.md)), `mood` (only when set, ADR-0045, [MOOD](../app/slideshow-editing/MOOD.md)), `energyPacing` (only when true, ADR-0046, [ENERGY_PACING](../app/slideshow-editing/ENERGY_PACING.md)), `openingCard` and `closingCard` (only when set, ADR-0032, [TITLE_SLIDES](../app/slideshow-editing/TITLE_SLIDES.md); a card picture is named by its index in `pictures`), `automaticChaptersOff` (when true), `chapterEdits`, `addedChapters` (when set, [TRIP_CHAPTERS](../player/TRIP_CHAPTERS.md)), `pictures` (`file`, `thumbnail`, `capturedAt`, `width`, `height`,
-`fileName`, `colours` (`veil` and `accent`, ADR-0033), `kenBurns` for a picture with an own motion, `caption` for one with a caption,
-`durationMs` and `transition` for one with an own duration or transition, `immichAssetId` or
-`fileBytes` where known, `alone` for one never composed into a pair, `video` for a video slide: the clip's `file` and `mimeType`, its `sourceMs`, the excerpt `startMs` and `endMs`, and `volume` and `duckMusic: false` where set, ADR-0034; slides playing one clip name one file, which is stored once), `place` for a picture whose GPS resolved to a bundled place (`name`, `latitude`, `longitude`: the place's own coordinates, not the picture's, ADR-0043), `songs` (in play order, empty without music; each `file`, `fileName`, `durationMs` in whole ms, `mimeType`, and `trim`, `fadeInMs`, `fadeOutMs`, `pictureChanges`, `volumeDb` (whole dB off the levelled
+`fileName`, `colours` (`veil` and `accent`, ADR-0033), `kenBurns` for a picture with a chosen motion, `caption` for one with a caption,
+`durationMs` and `transition` for one with a chosen duration or transition, `immichAssetId` or
+`fileBytes` where known, `alone` for one never composed into a pair, `video` for a video slide: the clip's `file` and `mimeType` (lowercase `video/<subtype>` or `application/octet-stream`), its `sourceMs`, the excerpt `startMs` and `endMs`, and `volume` and `duckMusic: false` where set, ADR-0034; slides playing one clip name one file, which is stored once), `place` for a picture whose GPS resolved to a bundled place (`name`, `latitude`, `longitude`: the place's own coordinates, not the picture's, ADR-0043), `songs` (in play order, empty without music; each `file`, `fileName`, `durationMs` in whole ms, `mimeType` (lowercase `audio/<subtype>` or `video/<subtype>`, or `application/octet-stream`), and `trim`, `fadeInMs`, `fadeOutMs`, `pictureChanges`, `volumeDb` (whole dB off the levelled
 default, -12 to 6, ADR-0040) and `sampleTrack` (the id of one of Glissando's sample tracks, lowercase
 letters, digits and hyphens, which credits it as "Music: Glissando, CC BY-NC 4.0", ADR-0042) where set) and `betweenSongs` (only when set), and `repeatMusic` (only when true, ADR-0047: the playlist repeats from its first song for as long as the slideshow lasts). Picture types follow
 the extension (`jpg`, `png`, `webp`). No picture's focus travels in the file: the receiving
 device looks for it itself (ADR-0012). The manifest is read strictly: an unknown key or a value
-out of range makes the file damaged. Versions 13 to 21 are read (version 13 has no `video`; version 14 added it with the `videos/` entries, ADR-0034; version 15 added a song's own `volumeDb`, ADR-0040; version 16 a song's `sampleTrack`, ADR-0042; version 17 a picture's `place`, ADR-0043, and trip chapters, [TRIP_CHAPTERS](../player/TRIP_CHAPTERS.md); version 18 the slideshow's `look`, ADR-0044; version 19 the slideshow's `mood`, ADR-0045; version 20 the slideshow's `energyPacing`, ADR-0046; version 21 the slideshow's `repeatMusic`, ADR-0047); a file
-of an older version is damaged. An own duration, transition, default transition, excerpt, fade or picture changes is checked as on the edit; the reason
+out of range makes the file damaged. So does a `mimeType` outside the forms above (a parameter, an uppercase letter, `text/html`); the export writes `application/octet-stream` for a stored type outside them. Versions 13 to 21 are read (version 13 has no `video`; version 14 added it with the `videos/` entries, ADR-0034; version 15 added a song's own `volumeDb`, ADR-0040; version 16 a song's `sampleTrack`, ADR-0042; version 17 a picture's `place`, ADR-0043, and trip chapters, [TRIP_CHAPTERS](../player/TRIP_CHAPTERS.md); version 18 the slideshow's `look`, ADR-0044; version 19 the slideshow's `mood`, ADR-0045; version 20 the slideshow's `energyPacing`, ADR-0046; version 21 the slideshow's `repeatMusic`, ADR-0047); a file
+of an older version is damaged. A chosen duration, transition, default transition, excerpt, fade or picture changes is checked as on the edit; the reason
 names its path and value. A caption must be what `normalizeCaption` leaves (1 to 80 characters counted in graphemes, one line, no
 leading, trailing or repeated whitespace); the reason names its path and value.
 
@@ -40,11 +40,16 @@ leading, trailing or repeated whitespace); the reason names its path and value.
 `readManifest` checks against, so the two cannot drift apart; `manifest-schema.test.ts` and its
 siblings keep them in sync by running both over one table of manifests. A few rules it cannot
 express stay reader-only, and are named in the schema's own `description` and proved by
-`manifest-schema-reader-only.test.ts`: a repeated song path, a card background's `pictureIndex`
+`manifest-schema-reader-only.test.ts`: a repeated song path, a repeated picture or thumbnail path, a card background's `pictureIndex`
 past the picture count, two clips sharing a file but not a `mimeType`, a date-time that matches
 the pattern but not a real calendar time, a caption, card or chapter text over 80 graphemes
 (their whitespace rule is in the schema), a music trim past its track's `durationMs`, a video
 excerpt under 500 ms, and a chapter's picture index past the picture count or repeated.
+
+No stored field may be lost between export and open: `round-trip-every-field.test.ts` exports a
+slideshow with every optional field set, nested ones included, and opens it as an equal copy
+but for its ids and title. Its fixture (`testing/every-field-fixture.ts`) is typed so that a
+field added to a stored type does not compile until the fixture sets it.
 
 Export, the check before a file is stored, write, and `index.html`:
 [GLISSANDO_FILE_IO](GLISSANDO_FILE_IO.md).

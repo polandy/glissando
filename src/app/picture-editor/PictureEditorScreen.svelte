@@ -6,20 +6,19 @@
   import { normalizeCaption, type Framing } from "../../player";
   import Header from "../components/Header.svelte";
   import { getTranslator } from "../i18n/context";
-  import FocusLine from "./FocusLine.svelte";
   import { focusIndication } from "./focus-indication";
-  import FrameWell from "./FrameWell.svelte";
   import { playheadRect } from "./frame-geometry";
-  import DurationSection from "./DurationSection.svelte";
-  import LayoutSection from "./LayoutSection.svelte";
   import MotionPanel from "./MotionPanel.svelte";
   import MotionPreviewScreen from "./MotionPreviewScreen.svelte";
   import PictureNavigation from "./PictureNavigation.svelte";
-  import TransitionSection from "./TransitionSection.svelte";
+  import PictureEditorTiming from "./PictureEditorTiming.svelte";
+  import PictureEditorWell from "./PictureEditorWell.svelte";
   import ViewSwitch, { type PhoneView } from "./ViewSwitch.svelte";
-  import { EditorPreview } from "./editor-preview";
-  import { MotionPreview, type MotionPreviewPorts } from "./motion-preview";
+  import { EditorPreviewSession } from "./editor-preview-session.svelte";
+  import type { MotionPreviewPorts } from "./motion-preview";
   import { FRAME_KEYS, type FrameKey } from "./frame-keys";
+  import { WHEEL_REST_MS, type FramingStep } from "./framing-step";
+  import type { Scheduler } from "../../ui-kit/scheduler";
   import type { PictureEditorView } from "./picture-editor-view";
 
   /**
@@ -34,17 +33,19 @@
     slideshowTitle,
     onBack,
     onOpen,
+    onPlayFrom,
     onChange,
     onSwap,
     onReset,
     onCaption,
+    onClearCaption,
     onDuration,
-    onResetDuration,
     onTransition,
-    onResetTransition,
+    onResetTiming,
     onAlone,
     onLookAgain,
     previewPorts,
+    scheduler,
     reducedMotion,
     saving,
   }: {
@@ -57,21 +58,29 @@
     onBack: () => void;
     /** Opens another picture of the slideshow in the editor. */
     onOpen: (pictureId: string) => void;
-    onChange: (motion: OwnKenBurns) => void;
+    /** Plays the slideshow from this picture. */
+    onPlayFrom: (pictureId: string) => void;
+    /** Carries the screen's own picture: a waiting wheel zoom is stored on leaving, when the
+     * route may already show the next picture. */
+    onChange: (pictureId: string, motion: OwnKenBurns) => void;
     onSwap: () => void;
     onReset: () => void;
     /** The caption as typed, on every keystroke. */
     onCaption: (typed: string) => void;
-    /** An own duration in whole milliseconds. */
+    /** The caption's clear button was pressed; its undo is offered by the caller. */
+    onClearCaption: () => void;
+    /** A chosen duration in whole milliseconds. */
     onDuration: (durationMs: number) => void;
-    onResetDuration: () => void;
     onTransition: (choice: TransitionChoice) => void;
-    onResetTransition: () => void;
+    /** Duration and transition back to automatic, together. */
+    onResetTiming: () => void;
     /** "Always alone" was toggled (ADR-0028). */
     onAlone: (alone: boolean) => void;
     /** Looks at this picture's focus again; never touches its Ken Burns motion (ADR-0041). */
     onLookAgain: () => void;
     previewPorts: MotionPreviewPorts;
+    /** Times the wheel's rest before its zoom is stored. */
+    scheduler: Scheduler;
     /** The preview starts paused. */
     reducedMotion: boolean;
     /** An edit is being stored. */
@@ -82,7 +91,10 @@
 
   let active = $state<FrameKey>(FRAME_KEYS[0]);
   let phoneView = $state<PhoneView>("frame");
-  /** The motion while a drag is under way; stored on release. */
+  // The screen is keyed by picture: its id is fixed for its lifetime.
+  // svelte-ignore state_referenced_locally
+  const pictureId = picture.id;
+  /** The motion while a drag or a wheel zoom is under way; stored when it ends. */
   let draft = $state.raw<OwnKenBurns | null>(null);
   const motion = $derived(draft ?? picture.motion);
   const focus = $derived(focusIndication(picture.focus, picture.ownMotion));
@@ -92,30 +104,17 @@
 
   // The screen is keyed by picture: the start state is fixed for its lifetime.
   // svelte-ignore state_referenced_locally
-  const previewClock = new MotionPreview(
-    { durationMs: picture.durationMs, playing: !reducedMotion },
-    previewPorts,
-  );
-  let previewState = $state.raw(previewClock.state);
-  previewClock.subscribe((state) => (previewState = state));
-  onDestroy(() => previewClock.dispose());
-  // svelte-ignore state_referenced_locally
-  const editorPreview = new EditorPreview(previewClock, reducedMotion);
-
-  // svelte-ignore state_referenced_locally
-  let previewedDurationMs = picture.durationMs;
-  $effect(() => {
-    if (picture.durationMs !== previewedDurationMs) {
-      previewedDurationMs = picture.durationMs;
-      editorPreview.retime(picture.durationMs);
-    }
-  });
+  const previewSession = new EditorPreviewSession(picture.durationMs, reducedMotion, previewPorts);
+  const previewClock = previewSession.clock;
+  const editorPreview = previewSession.answers;
+  onDestroy(() => previewSession.dispose());
+  $effect(() => previewSession.retimeTo(picture.durationMs));
 
   const previewPlayhead = $derived(
     playheadRect(
       {
         kenBurns: { ...motion, easing: KEN_BURNS_EASING },
-        progress: Math.min(1, previewState.elapsedMs / picture.durationMs),
+        progress: Math.min(1, previewSession.state.elapsedMs / picture.durationMs),
       },
       picture.size,
     ),
@@ -141,64 +140,85 @@
     }
   }
 
-  function frameChanged(key: FrameKey, framing: Framing, final: boolean): void {
+  let cancelWheelRest = (): void => {};
+
+  function store(changed: OwnKenBurns): void {
+    cancelWheelRest();
+    draft = null;
+    onChange(pictureId, changed);
+  }
+
+  /** Stores what a wheel zoom or a drag left waiting, before another edit or on leaving. */
+  function storeDraft(): void {
+    if (draft !== null) {
+      store(draft);
+    }
+  }
+  onDestroy(storeDraft);
+
+  function frameChanged(key: FrameKey, framing: Framing, step: FramingStep): void {
     const changed = { ...motion, [key]: framing };
     editorPreview.showFrame(key);
-    if (final) {
-      draft = null;
-      onChange(changed);
-    } else {
-      draft = changed;
+    if (step === "done") {
+      store(changed);
+      return;
+    }
+    draft = changed;
+    // A drag takes over a zoom the wheel left waiting and stores it with its own release.
+    cancelWheelRest();
+    if (step === "wheeling") {
+      cancelWheelRest = scheduler.after(WHEEL_REST_MS, storeDraft);
     }
   }
 </script>
 
-<div class="screen" aria-busy={saving}>
+<div class="screen" data-testid="editing-screen" aria-busy={saving}>
   <Header
     crumbs={[t("start.library"), slideshowTitle, t("editor.crumb", { number: picture.number })]}
     {onBack}
   >
     {#snippet actions()}
-      <PictureNavigation {picture} {onOpen} />
+      <PictureNavigation {picture} {onOpen} {onPlayFrom} />
     {/snippet}
   </Header>
   <main class="edit">
-    <div class="well-column" class:off-phone={phoneView !== "frame"}>
-      <FrameWell
-        size={picture.size}
-        {pictureUrl}
-        alt={t("editor.crumb", { number: picture.number })}
-        {motion}
-        {active}
-        playhead={previewState.playing ? previewPlayhead : null}
-        {focus}
-        {reducedMotion}
-        onActivate={activate}
-        onFraming={frameChanged}
-      />
-      <FocusLine line={picture.focusLine} {onLookAgain} />
-      <p class="hint wide-hint">{t("editor.hintWide")}</p>
-      <ViewSwitch view={phoneView} onView={switchView} />
-    </div>
+    <PictureEditorWell
+      size={picture.size}
+      {pictureUrl}
+      alt={t("editor.crumb", { number: picture.number })}
+      {motion}
+      {active}
+      playhead={previewSession.state.playing ? previewPlayhead : null}
+      {focus}
+      {reducedMotion}
+      {phoneView}
+      onActivate={activate}
+      onFraming={frameChanged}
+      onView={switchView}
+    />
     <MotionPanel
       {picture}
       {active}
       previewOnPhone={phoneView === "play"}
       onActivate={activate}
       onSwap={() => {
+        storeDraft();
         onSwap();
         showPreview();
         editorPreview.replay();
       }}
       onReset={() => {
         if (picture.ownMotion) {
+          storeDraft();
           onReset();
           showPreview();
           editorPreview.replay();
         }
       }}
+      {onLookAgain}
       bind:caption
       {onCaption}
+      {onClearCaption}
     >
       {#snippet preview()}
         <MotionPreviewScreen
@@ -207,42 +227,26 @@
           {pictureUrl}
           {nextPictureUrl}
           caption={normalizeCaption(caption)}
-          playback={previewState}
+          playback={previewSession.state}
           onPlay={() => previewClock.play()}
           onPause={() => previewClock.pause()}
         />
         <ViewSwitch view={phoneView} onView={switchView} />
       {/snippet}
       {#snippet timing()}
-        <DurationSection
-          {picture}
-          onDuration={(durationMs) => {
-            onDuration(durationMs);
-            showPreview();
-          }}
-          onReset={() => {
-            onResetDuration();
-            showPreview();
-          }}
-        />
-        <TransitionSection
+        <PictureEditorTiming
           {picture}
           {pictureUrl}
           {nextPictureUrl}
-          ports={previewPorts}
+          {previewPorts}
           {reducedMotion}
-          onTransition={(choice) => {
-            onTransition(choice);
-            showPreview();
-            editorPreview.showTransition(choice, picture);
-          }}
-          onReset={() => {
-            onResetTransition();
-            showPreview();
-            editorPreview.showTransition(picture.transition.automatic, picture);
-          }}
+          {editorPreview}
+          {showPreview}
+          {onDuration}
+          {onTransition}
+          {onResetTiming}
+          {onAlone}
         />
-        <LayoutSection {picture} {onAlone} />
       {/snippet}
     </MotionPanel>
   </main>
@@ -256,43 +260,11 @@
     grid-template-columns: minmax(0, 1fr) 340px;
     min-height: 0;
   }
-  .well-column {
-    display: grid;
-    grid-template-rows: minmax(0, 1fr) auto auto;
-    gap: 10px;
-    min-height: 0;
-    padding: 18px;
-  }
-  .hint {
-    margin: 0;
-    color: var(--gl-muted);
-    font-size: var(--gl-size-meta);
-    text-align: center;
-  }
   @container (max-width: 720px) {
     /* The phone layout scrolls as one: the picture on top, the panel below. */
     .edit {
       flex: none;
       grid-template-columns: 1fr;
-    }
-    /* The picture or the preview, never both: the shown one stays in view as the page scrolls. */
-    .well-column {
-      position: sticky;
-      top: 0;
-      z-index: 3;
-      gap: 0;
-      padding: 0 0 12px;
-      border-bottom: 1px solid var(--gl-line);
-      background: var(--gl-surface);
-    }
-    .well-column.off-phone {
-      display: none;
-    }
-    .well-column > :global(.view-switch) {
-      margin: 10px 16px 0;
-    }
-    .wide-hint {
-      display: none;
     }
   }
 </style>

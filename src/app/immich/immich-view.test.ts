@@ -93,7 +93,7 @@ describe("selectionSummary, the browser footer", () => {
 
 describe("alreadyInAmong", () => {
   const isIn = alreadyInAmong([
-    { fileName: "beach.jpg", capturedAt: "2025-07-12T14:30:00.000Z", fileBytes: 1000 },
+    { fileName: "beach.jpg", capturedAt: "2025-07-12T14:30:00Z", fileBytes: 1000 },
     { fileName: "x.jpg", capturedAt: "2020-01-01T00:00:00Z", immichAssetId: "asset-1" },
   ]);
 
@@ -103,7 +103,7 @@ describe("alreadyInAmong", () => {
       isIn({
         id: "asset-9",
         fileName: "beach.jpg",
-        takenAt: "2025-07-12T14:30:00.000Z",
+        takenAt: "2025-07-12T14:30:00Z",
         size: null,
       }),
     ).toBe(true);

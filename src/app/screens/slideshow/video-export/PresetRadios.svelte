@@ -1,6 +1,7 @@
 <script lang="ts">
   import { VIDEO_PRESETS, type PresetId } from "../../../../video-export";
   import { getTranslator } from "../../../i18n/context";
+  import { PRESET_NAME_KEY } from "../../../video-export/size-scale";
   import SizeRadios from "../export-sheet/SizeRadios.svelte";
 
   /** The three video sizes; one this device cannot encode is greyed out. */
@@ -29,13 +30,15 @@
       const usable = available.includes(id);
       return {
         id,
-        name: t(`videoExport.preset-${id}`),
-        detail: t("videoExport.resolution", {
-          width: String(size.width),
-          height: String(size.height),
-        }),
+        name: t(PRESET_NAME_KEY[id]),
         size: usable ? t("videoExport.about", { size: formatBytes(estimate(id)) }) : "",
-        use: usable ? t(`videoExport.use-${id}`) : t("videoExport.cannotEncode"),
+        use: t("videoExport.sizeLine", {
+          resolution: t("videoExport.resolution", {
+            width: String(size.width),
+            height: String(size.height),
+          }),
+          use: usable ? t(`videoExport.use-${id}`) : t("videoExport.cannotEncode"),
+        }),
         usable,
       };
     }),

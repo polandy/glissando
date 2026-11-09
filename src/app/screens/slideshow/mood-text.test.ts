@@ -6,7 +6,7 @@ const en = createTranslator("en");
 
 describe("moodName", () => {
   it("names Custom and every mood", () => {
-    expect(moodName(en.t, undefined)).toBe("Custom");
+    expect(moodName(en.t, undefined)).toBe("No mood");
     expect(moodName(en.t, "calm")).toBe("Calm");
     expect(moodName(en.t, "lively")).toBe("Lively");
   });
@@ -42,7 +42,7 @@ describe("moodKenBurnsText", () => {
 
 describe("moodTransitionText", () => {
   it("is standard, with no mood to name, while Custom", () => {
-    expect(moodTransitionText(en.t, undefined)).toBe("standard");
+    expect(moodTransitionText(en.t, undefined)).toBe("automatic");
   });
 
   it("names calm's crossfade as long, lively's mix as short", () => {

@@ -28,7 +28,6 @@ export class VideoClips {
   readonly #open = new Map<number, OpenClip>();
   readonly #readyChecks = new Set<() => void>();
   #playing = false;
-  #failed = false;
 
   constructor(
     slides: readonly Slide[],
@@ -51,7 +50,7 @@ export class VideoClips {
       }
     }
     for (const target of targets) {
-      this.#placeClip(this.#clipFor(target), target);
+      this.#placeClip(target.index, this.#clipFor(target), target);
     }
   }
 
@@ -117,12 +116,17 @@ export class VideoClips {
     this.#readyChecks.clear();
   }
 
-  /** A failed clip is reported once, however many paths notice it. */
-  #report(error: Error): void {
-    if (!this.#failed) {
-      this.#failed = true;
-      this.#listeners.onError(error);
+  /**
+   * A failed clip is closed and reported once, however many paths notice it; the next `place`
+   * opens it afresh. A late signal from a clip already closed is ignored.
+   */
+  #fail(index: number, clip: OpenClip, error: Error): void {
+    if (this.#open.get(index) !== clip) {
+      return;
     }
+    this.#open.delete(index);
+    clip.playback.dispose();
+    this.#listeners.onError(error);
   }
 
   #clipFor({ index, video }: ClipTarget): OpenClip {
@@ -135,13 +139,13 @@ export class VideoClips {
       this.#listeners.onFrameReady();
       [...this.#readyChecks].forEach((check) => check());
     });
-    playback.onFailure((error) => this.#report(error));
-    const clip = { playback, started: false, placedAtMs: null };
+    const clip: OpenClip = { playback, started: false, placedAtMs: null };
+    playback.onFailure((error) => this.#fail(index, clip, error));
     this.#open.set(index, clip);
     return clip;
   }
 
-  #placeClip(clip: OpenClip, target: ClipTarget): void {
+  #placeClip(index: number, clip: OpenClip, target: ClipTarget): void {
     const { playback } = clip;
     if (!this.#playing || target.phase !== "playing") {
       if (clip.placedAtMs !== target.clipMs) {
@@ -152,7 +156,7 @@ export class VideoClips {
     } else {
       clip.started = true;
       playback.play(target.clipMs).catch((cause: unknown) => {
-        this.#report(new VideoPlaybackError(cause));
+        this.#fail(index, clip, new VideoPlaybackError(cause));
       });
     }
     clip.placedAtMs = target.clipMs;

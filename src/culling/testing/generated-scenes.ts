@@ -32,16 +32,6 @@ export async function sceneThumbnail(options: SceneOptions): Promise<Blob> {
   }
 }
 
-/** The scene as a full-size picture file, as a camera would give it. */
-export async function sceneFile(name: string, options: SceneOptions): Promise<File> {
-  const canvas = drawScene(options);
-  const blob = await new Promise<Blob | null>((resolve) =>
-    canvas.toBlob(resolve, "image/jpeg", THUMBNAIL_QUALITY),
-  );
-  if (blob === null) throw new Error(`the scene ${name} could not be encoded`);
-  return new File([blob], name, { type: "image/jpeg" });
-}
-
 function drawScene({
   softness = 1,
   width = FULL_WIDTH,

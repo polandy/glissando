@@ -9,20 +9,24 @@
   import { subscribeAppState } from "./app-subscriptions";
   import AppOverlays from "./AppOverlays.svelte";
   import type { ExportProgress } from "./glissando-file/export-job";
-  import { setExportStatus } from "./glissando-file/export-status";
+  import { runningInHeader, setExportStatus } from "./glissando-file/export-status";
   import { setFocusSearchStatus } from "./focus-search-status";
   import type { OpenFlowState, OpenOrigin } from "./glissando-file/open-flow";
   import { getTranslator } from "./i18n/context";
   import ImportRoute from "./import/ImportRoute.svelte";
   import type { ImportSession } from "./import/import-session";
   import type { Route } from "./navigation/route";
-  import type { PwaSheetContent } from "./pwa/PwaSheet.svelte";
+  import { startPlaying } from "./navigation/start-playing";
+  import type { PwaSheetContent } from "./pwa/pwa-sheet-content";
   import StatusBar from "./pwa/StatusBar.svelte";
   import HomeRoutes from "./routes/HomeRoutes.svelte";
   import IntakeRoutes from "./routes/IntakeRoutes.svelte";
   import SlideshowRoute from "./routes/SlideshowRoute.svelte";
   import { leaveWithToast } from "./routes/slideshow-exits";
-  import { findSlideshowHome, serverRouteStore, type RouteStore } from "./routes/slideshow-home";
+  import { existingSlideshowsOf } from "./import/existing-slideshows";
+  import { openedSlideshowOf } from "./routes/opened-slideshow";
+  import RouteSkeleton from "./routes/RouteSkeleton.svelte";
+  import { serverRouteStore, type RouteStore } from "./routes/slideshow-home";
   import type { SlideshowHome } from "./routes/slideshow-storage";
   import type { AppServices } from "./services";
   import type { SettingsState } from "./settings/app-settings";
@@ -37,7 +41,8 @@
 
   // The services are wired once, by the composition root.
   // svelte-ignore state_referenced_locally
-  const { store, navigator, toaster, reportError, settings, newId, now, pwa, immich } = services;
+  const { store, navigator, toaster, reportError, settings, newId, now, random, pwa, immich } =
+    services;
   const translator = getTranslator();
   const { t } = translator;
   // svelte-ignore state_referenced_locally
@@ -56,19 +61,12 @@
   });
   // svelte-ignore state_referenced_locally
   const serverRoute = serverRouteStore(services.serverLibrary.store);
-
-  /** A slideshow opened by id, with the store of where it lives. */
-  async function openedSlideshow(
-    slideshowId: string,
-  ): Promise<{ home: SlideshowHome; store: RouteStore }> {
-    try {
-      const home = await findSlideshowHome(slideshowId, store);
-      return { home, store: home === "device" ? store : serverRoute };
-    } catch (error) {
-      reportError(error);
-      throw error;
-    }
-  }
+  const openedSlideshow = openedSlideshowOf({
+    device: store,
+    server: serverRoute,
+    reportError,
+    leave: () => navigator.back(),
+  });
   // svelte-ignore state_referenced_locally
   let serverState = $state.raw<ServerLibraryState>(services.serverLibrary.availability.state);
   // svelte-ignore state_referenced_locally
@@ -76,10 +74,11 @@
 
   let route = $state.raw<Route>(navigator.route);
   let exportProgress = $state.raw<ExportProgress | null>(null);
+  let serverCopyProgress = $state.raw<readonly ExportProgress[]>([]);
   let openState = $state.raw<OpenFlowState>(openFlow.state);
   setExportStatus({
-    get current() {
-      return exportProgress;
+    get running() {
+      return runningInHeader(exportProgress, serverCopyProgress);
     },
   });
   let focusSearch = $state.raw<RunningSearch | null>(null);
@@ -104,13 +103,14 @@
   onMount(() =>
     subscribeAppState(
       services,
-      { importFlow, addFlow, exportJob, openFlow },
+      { importFlow, addFlow, exportJob, openFlow, serverCopies },
       {
         setRoute: (next) => (route = next),
         stopLogoPlaying: () => (logoPlays = false),
         setToast: (next) => (toast = next),
         setSettingsState: (next) => (settingsState = next),
         setExportProgress: (next) => (exportProgress = next),
+        setServerCopies: (next) => (serverCopyProgress = next),
         setFocusSearch: (next) => (focusSearch = next),
         setOpenState: (next) => (openState = next),
         setImportSession: (session, refused) => {
@@ -147,6 +147,12 @@
   /** A server slideshow's pictures in the making are linked: their media is Immich's. */
   const importStore = (): RouteStore =>
     importSession?.choices.current().home === "server" ? serverRoute : store;
+
+  const existingSlideshows = () =>
+    existingSlideshowsOf(
+      { device: store, server: serverRoute },
+      importSession?.choices.current().home === "server",
+    );
 </script>
 
 {#snippet statusBar()}
@@ -179,6 +185,7 @@
   <ImportRoute
     step={route.step}
     session={importSession}
+    loadExistingSlideshows={existingSlideshows}
     loadThumbnail={(id) => importStore().thumbnailBlob(id)}
     loadPicture={(id) => importStore().playbackPictureBlob(id)}
     onError={reportError}
@@ -188,6 +195,7 @@
     onCreateFailed={actions.createFailed}
     onToMusic={() => navigator.open({ screen: "import", step: "music" })}
     onBack={() => navigator.back()}
+    guardLeave={(guard) => navigator.guardLeave(guard)}
     onDiscard={(leave) => void importFlow.discard(leave)}
     onCreated={(slideshow) => void importFlow.created(slideshow.id)}
     onOpenFile={(file) => void openFlow.open(file, "pictures")}
@@ -213,22 +221,26 @@
 {:else if route.screen === "slideshow" || route.screen === "player" || route.screen === "picture" || route.screen === "music"}
   {@const slideshowId = route.slideshowId}
   {#key slideshowId}
-    {#await openedSlideshow(slideshowId) then opened}
+    {#await openedSlideshow(slideshowId)}
+      <RouteSkeleton variant="strip" />
+    {:then opened}
       {@const onDevice = opened.home === "device"}
+      {@const pulsePlay = importFlow.takePlayPulse(slideshowId)}
       <SlideshowRoute
         store={opened.store}
         focusPass={onDevice ? services.focusPass : services.serverFocusPass}
-        beatPass={onDevice ? services.beatPass : services.serverBeatPass}
-        loudnessPass={onDevice ? services.loudnessPass : services.serverLoudnessPass}
+        analysisPass={onDevice ? services.analysisPass : services.serverAnalysisPass}
         {toaster}
         {newId}
         {now}
+        {random}
         {slideshowId}
         {exportProgress}
         onExport={() => exportJob.start(slideshowId, opened.store)}
         videoExport={services.videoExport}
         htmlExport={services.htmlExport}
-        playing={route.screen === "player"}
+        playing={route.screen === "player" ? { pictureId: route.pictureId ?? null } : null}
+        {pulsePlay}
         playbackQuality={effectivePlaybackQuality(
           settingsState.playbackQuality,
           services.screenShortEdge(),
@@ -244,11 +256,8 @@
         fineSettingsFold={services.fineSettingsFold}
         musicEditorDetails={services.musicEditorDetails}
         onBack={() => navigator.back()}
-        onPlay={() => {
-          // Within the Play gesture: the player starts the music only after its pictures load.
-          services.musicOutput.unlock();
-          navigator.open({ screen: "player", slideshowId });
-        }}
+        onPlay={() => startPlaying(services, slideshowId)}
+        onPlayFrom={(pictureId) => startPlaying(services, slideshowId, pictureId)}
         onAddPictures={(slideshow) => addFlow.open(slideshow, opened.home)}
         addedPictureIds={added?.slideshowId === slideshowId ? added.pictureIds : []}
         onEdit={(pictureId) => navigator.open({ screen: "picture", slideshowId, pictureId })}
@@ -263,6 +272,8 @@
         onSaveOnServer={(slideshow) => void serverCopies.saveOnServer(slideshow)}
         serverSessions={services}
       />
+    {:catch}
+      <!-- A failed lookup has already left for the parent screen. -->
     {/await}
   {/key}
 {/if}

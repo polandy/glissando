@@ -1,13 +1,13 @@
-import { afterEach, describe, expect, it } from "vitest";
-import type { BitmapPicture } from "../browser/bitmap-loader";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import type { PixelPicture } from "../browser/pixel-loader";
 import type { RenderFrame } from "../ports";
 import { TRANSITION_EFFECTS, type Framing } from "../slideshow";
 import {
   BLUE,
   GREEN,
-  quadrantBitmap,
+  quadrantPixels,
   RED,
-  solidBitmap,
+  solidPixels,
   viewportBox,
   standingStill,
   WHITE,
@@ -36,11 +36,7 @@ function setUp(onResize: () => void = () => undefined) {
   }
   const renderer = new WebGlRenderer(canvas, gl, onResize, { pixelRatio: () => 1 });
   /** Reads straight after drawing, before the browser presents and clears the frame. */
-  function drawAndRead(
-    frame: RenderFrame<BitmapPicture>,
-    xFromLeft: number,
-    yFromTop: number,
-  ): Rgb {
+  function drawAndRead(frame: RenderFrame<PixelPicture>, xFromLeft: number, yFromTop: number): Rgb {
     renderer.render(frame);
     const pixel = new Uint8Array(4);
     const x = Math.floor(xFromLeft * canvas.width);
@@ -71,13 +67,16 @@ function isColour(actual: Rgb, expected: Rgb): boolean {
   );
 }
 
-afterEach(() => box.remove());
+afterEach(() => {
+  box.remove();
+  vi.restoreAllMocks();
+});
 
 describe("WebGlRenderer", () => {
   it("draws the whole picture upright at zoom 1", async () => {
     const { drawAndRead } = setUp();
-    const picture = await quadrantBitmap();
-    const frame: RenderFrame<BitmapPicture> = {
+    const picture = quadrantPixels();
+    const frame: RenderFrame<PixelPicture> = {
       kind: "slide",
       slide: { kind: "picture", picture, motion: standingStill(WHOLE_PICTURE) },
       endFade: 0,
@@ -92,9 +91,9 @@ describe("WebGlRenderer", () => {
 
   it("shows only the Ken Burns crop: zoom 2 on the top-left quadrant fills the screen red", async () => {
     const { drawAndRead } = setUp();
-    const picture = await quadrantBitmap();
+    const picture = quadrantPixels();
     const framing = { zoom: 2, centerX: 0.25, centerY: 0.25 };
-    const frame: RenderFrame<BitmapPicture> = {
+    const frame: RenderFrame<PixelPicture> = {
       kind: "slide",
       slide: { kind: "picture", picture, motion: standingStill(framing) },
       endFade: 0,
@@ -107,19 +106,19 @@ describe("WebGlRenderer", () => {
   });
 
   describe.each(TRANSITION_EFFECTS)("the %s transition", (effect) => {
-    async function transitionAt(progress: number): Promise<RenderFrame<BitmapPicture>> {
+    async function transitionAt(progress: number): Promise<RenderFrame<PixelPicture>> {
       return {
         kind: "transition",
         effect,
         progress,
         from: {
           kind: "picture",
-          picture: await solidBitmap(RED),
+          picture: solidPixels(RED),
           motion: standingStill(WHOLE_PICTURE),
         },
         to: {
           kind: "picture",
-          picture: await solidBitmap(BLUE),
+          picture: solidPixels(BLUE),
           motion: standingStill(WHOLE_PICTURE),
         },
         endFade: 0,
@@ -168,8 +167,8 @@ describe("WebGlRenderer", () => {
     it("does nothing and never throws from render() while the context is lost", async () => {
       const { renderer, drawAndRead, canvas, gl } = setUp();
       const lose = loseContextExtension(gl);
-      const picture = await solidBitmap(RED);
-      const frame: RenderFrame<BitmapPicture> = {
+      const picture = solidPixels(RED);
+      const frame: RenderFrame<PixelPicture> = {
         kind: "slide",
         slide: { kind: "picture", picture, motion: standingStill(WHOLE_PICTURE) },
         endFade: 0,
@@ -190,8 +189,8 @@ describe("WebGlRenderer", () => {
       const resized = new Promise<void>((resolve) => (resolveResize = resolve));
       const { drawAndRead, canvas, gl } = setUp(() => resolveResize?.());
       const lose = loseContextExtension(gl);
-      const picture = await solidBitmap(RED);
-      const frame: RenderFrame<BitmapPicture> = {
+      const picture = solidPixels(RED);
+      const frame: RenderFrame<PixelPicture> = {
         kind: "slide",
         slide: { kind: "picture", picture, motion: standingStill(WHOLE_PICTURE) },
         endFade: 0,
@@ -218,8 +217,8 @@ describe("WebGlRenderer", () => {
     it("leaves dispose() safe to call while the context is lost", async () => {
       const { renderer, drawAndRead, canvas, gl } = setUp();
       const lose = loseContextExtension(gl);
-      const picture = await solidBitmap(RED);
-      const frame: RenderFrame<BitmapPicture> = {
+      const picture = solidPixels(RED);
+      const frame: RenderFrame<PixelPicture> = {
         kind: "slide",
         slide: { kind: "picture", picture, motion: standingStill(WHOLE_PICTURE) },
         endFade: 0,
@@ -242,5 +241,32 @@ describe("WebGlRenderer", () => {
     renderer.dispose();
 
     expect(gl.isContextLost()).toBe(true);
+  });
+
+  it("deletes every WebGL buffer it created on dispose", () => {
+    const created: WebGLBuffer[] = [];
+    const deleted: WebGLBuffer[] = [];
+    const { createBuffer, deleteBuffer } = WebGL2RenderingContext.prototype;
+    vi.spyOn(WebGL2RenderingContext.prototype, "createBuffer").mockImplementation(function (
+      this: WebGL2RenderingContext,
+    ) {
+      const buffer = createBuffer.call(this);
+      created.push(buffer);
+      return buffer;
+    });
+    vi.spyOn(WebGL2RenderingContext.prototype, "deleteBuffer").mockImplementation(function (
+      this: WebGL2RenderingContext,
+      buffer: WebGLBuffer | null,
+    ) {
+      deleted.push(buffer as WebGLBuffer);
+      deleteBuffer.call(this, buffer);
+    });
+    const { renderer } = setUp();
+    expect(created.length).toBeGreaterThan(0);
+
+    renderer.dispose();
+
+    // Opaque GL handles compare equal under toEqual, so check identity.
+    expect(created.filter((buffer) => !deleted.includes(buffer))).toHaveLength(0);
   });
 });

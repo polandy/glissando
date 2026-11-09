@@ -2,8 +2,9 @@
   import { onMount } from "svelte";
   import { MILLISECONDS_PER_SECOND } from "../../../player";
   import { presetById } from "../../../video-export";
-  import Notice from "../../components/Notice.svelte";
+  import { describeExportProblem } from "../../export-errors/describe-export-failure";
   import { getTranslator } from "../../i18n/context";
+  import { PRESET_NAME_KEY } from "../../video-export/size-scale";
   import type { ExportPreview } from "../../video-export/slideshow-video-export";
   import type { ExportSheetState } from "../../video-export/export-sheet-state";
   import type { VideoExportSession } from "../../video-export/video-export-session";
@@ -11,6 +12,7 @@
   import ExportDone from "./video-export/ExportDone.svelte";
   import ExportRunning from "./video-export/ExportRunning.svelte";
   import ExportDialog from "./export-sheet/ExportDialog.svelte";
+  import ExportFailure from "./export-sheet/ExportFailure.svelte";
 
   /**
    * "Save as video" (dev-docs/video_export/SHEET.md): a dialog on desktop, a bottom sheet on a
@@ -30,7 +32,7 @@
     onBack?: () => void;
   } = $props();
 
-  const { t, formatDuration, formatBytes } = getTranslator();
+  const { t, formatDuration } = getTranslator();
 
   // The session is fixed for the sheet's lifetime.
   // svelte-ignore state_referenced_locally
@@ -69,7 +71,7 @@
         return {
           title: t("videoExport.runningTitle"),
           subtitle: t("videoExport.runningSubtitle", {
-            preset: t(`videoExport.preset-${view.preset}`),
+            preset: t(PRESET_NAME_KEY[view.preset]),
             resolution: t("videoExport.resolution", {
               width: String(size.width),
               height: String(size.height),
@@ -126,40 +128,11 @@
       onClose={close}
     />
   {:else}
-    {#if view.kind === "unsupported"}
-      <Notice tone="warn">
-        <b>{t("videoExport.unsupportedTitle")}</b>
-        {t("videoExport.unsupportedText")}
-      </Notice>
-    {:else if view.kind === "clip-unsupported"}
-      <Notice tone="warn">
-        <b>{t("videoExport.clipUnsupportedTitle", { clip: view.clip })}</b>
-        {t("videoExport.clipUnsupportedText")}
-      </Notice>
-    {:else if view.kind === "storage-full"}
-      <Notice tone="error">
-        <b>{t("videoExport.storageFullTitle")}</b>
-        {t("videoExport.storageFullText", {
-          frame: view.frameReached,
-          total: view.framesTotal,
-          missing: formatBytes(view.missingBytes),
-        })}
-      </Notice>
-    {:else}
-      <Notice tone="error">
-        {t("videoExport.failedText")}
-        <small class="error-detail">{view.error.message}</small>
-      </Notice>
-    {/if}
-    <footer>
-      <button class="btn" class:ghost={view.kind === "storage-full"} type="button" onclick={close}>
-        {t("common.close")}
-      </button>
-      {#if view.kind === "storage-full"}
-        <button class="btn primary" type="button" onclick={() => session.backToChoose()}>
-          {t("videoExport.otherSize")}
-        </button>
-      {/if}
-    </footer>
+    <ExportFailure
+      description={describeExportProblem(view, "video")}
+      onClose={close}
+      onRetry={() => void session.retry()}
+      onChooseSize={() => session.backToChoose()}
+    />
   {/if}
 </ExportDialog>

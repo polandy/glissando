@@ -2,7 +2,9 @@
 
 `main.ts` is the composition root: it reads the settings ([THEMES.md](THEMES.md), [LANGUAGES.md](LANGUAGES.md)), opens the
 IndexedDB library, and builds the `Navigator` over `window.history` and the `Toaster`
-over real timers.
+over real timers. The server wiring (`wire-server.ts`: the server library, its share and TV
+sessions, its focus pass) and the music wiring (`wire-music.ts`: the shared `MusicOutput`, the
+background analysis passes) live beside it, each handed its ports by `main.ts`.
 
 - **Shared UI helpers**: `src/ui-kit/` holds the framework-free pieces that both the app and the
   exported web page's script (`src/export-player/`, HTML_EXPORT.md) use: the icon table, the
@@ -11,7 +13,13 @@ over real timers.
 - **App shell** (ADR-0011): `index.html` paints the header bar with the brand, the logo where the
   start screen has its mark, and the status strip before any script runs. Once the app has
   mounted, `main.ts` hands over (`shell/app-shell.ts`): the shell fades out over the app in
-  0.18 s and is removed, at once with reduced motion. The app's stylesheets are linked by
+  0.18 s and is removed, at once with reduced motion. When the library store cannot open
+  (IndexedDB blocked or refused), the app never mounts: the shell stops its breath and shows the
+  `common.storageUnavailable` message under the logo as an alert, and the error is reported. A `VersionError` (another tab runs a newer schema) shows
+  `common.newerVersionOpen` with a Reload button instead. A `versionchange` on the open library
+  closes the connection and reloads the tab at once; while the player or the frame runs, the app is
+  unmounted for the same message and button, and only the button reloads. A blocked upgrade is
+  logged. The app's stylesheets are linked by
   `index.html`, not imported by `main.ts`, so the shell is styled from the first paint.
 
 - **Server library** (server_library/IN_THE_APP.md): `createServerLibrary` wires the
@@ -26,12 +34,15 @@ over real timers.
   still-undoable removal claims, in any tab, so a picture stored before its slideshow record is
   never lost and an Undo always finds its media.
 - **Video exports** left in the origin private file system by a crash or a closed tab are
-  deleted at startup (`sweepPrivateExports`, dev-docs/VIDEO_EXPORT.md).
+  deleted at startup; one another tab or the installed app still holds the lock for is kept
+  (`sweepPrivateExports`, dev-docs/video_export/WRITING_THE_FILE.md).
 - **Persistent storage** is requested after the first slideshow a tab creates; a refusal shows
   the dialog "Glissando may not store anything permanently" ("Understood", and "Install as
   app" while installing is possible), once per device. Installing and offline: [INSTALLING_AND_OFFLINE.md](INSTALLING_AND_OFFLINE.md).
 - **Unexpected errors**, including uncaught ones, are logged and shown as a coral toast;
   none is swallowed.
+- **Opening a slideshow by id** shows the strip skeleton while it is looked up; a failed lookup
+  is reported and leaves to the parent screen (`routes/opened-slideshow.ts`).
 - **Object URLs**: thumbnails and covers exist while their screen shows them; a screen left
   before its data arrived drops the late result (`routes/route-loading.ts`). The player reads
   each display picture by media id only when it buffers it (`openPicture`), and every song when
@@ -46,7 +57,8 @@ over real timers.
   it while shown: the picture editor's view carries the
   picture's focus status (`subject`, `none`, `searching`, `not-looked-at`), and its motion and
   the swap aim at what is known now. The player reads the stored focus as it opens; a focus that
-  cannot be read is logged and the automatic motions aim at the middle, play goes on.
+  cannot be read is logged and the automatic motions aim at the middle, play goes on. Music that
+  cannot be read is logged and stops the player with the failure card and its "Close".
 - **Export and open** (`glissando-file/`): `App.svelte` owns the `ExportJob` (the header reads
   its progress through a context, and likewise the focus passes' `runningSearch`) and the `OpenFlow` (its overlay and notices); the composition
   root supplies the download (an object URL on a clicked link, revoked a minute later), the free

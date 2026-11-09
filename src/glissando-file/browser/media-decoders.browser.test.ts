@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { THUMBNAIL_BOUND } from "../../import/downscale";
+import { MAX_MUSIC_DURATION_MS } from "../../import/music-limits";
+import { turnedByExif } from "../../import/testing/turned-by-exif";
+import { silentWav } from "../../import/testing/silent-wav";
 import { browserMediaDecoders } from "./media-decoders";
 
 /** A canvas filled with a flat colour, encoded as `type`; null where the browser cannot encode it. */
@@ -48,7 +51,10 @@ function tinyWav(sampleRate = 8000, samples = 16): Blob {
 }
 
 describe("browserMediaDecoders", () => {
-  const decoders = browserMediaDecoders();
+  // Nothing here should log, so a logged error fails the test.
+  const decoders = browserMediaDecoders((error) => {
+    throw error;
+  });
 
   it.each(["image/png", "image/jpeg"])("accepts a canvas-generated %s picture", async (type) => {
     const blob = await canvasBlob(type, 5, 4);
@@ -64,6 +70,15 @@ describe("browserMediaDecoders", () => {
       return;
     }
     expect(await decoders.picture(blob)).toEqual({ width: 5, height: 4 });
+  });
+
+  it("decodes a picture an EXIF orientation turns to its turned size, as an <img> shows it", async () => {
+    const blob = await canvasBlob("image/jpeg", 32, 16);
+    if (blob === null) {
+      throw new Error("this browser could not encode image/jpeg");
+    }
+
+    expect(await decoders.picture(await turnedByExif(blob))).toEqual({ width: 16, height: 32 });
   });
 
   it("makes a JPEG thumbnail within the thumbnail bound, keeping the picture's aspect", async () => {
@@ -95,6 +110,12 @@ describe("browserMediaDecoders", () => {
 
   it("accepts a generated PCM WAV song", async () => {
     expect(await decoders.music(tinyWav())).toBe(true);
+  });
+
+  it("refuses a song longer than the duration cap without decoding it", async () => {
+    const tooLong = new Blob([silentWav(MAX_MUSIC_DURATION_MS + 1000, 8000)]);
+
+    expect(await decoders.music(tooLong)).toBe(false);
   });
 
   it("refuses a WAV that does not decode", async () => {

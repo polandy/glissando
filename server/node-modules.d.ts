@@ -32,9 +32,15 @@ declare module "node:http" {
   export interface ServerResponse {
     writeHead(status: number, headers: Readonly<Record<string, string>>): void;
     write(chunk: string): boolean;
+    /** `finished`: the answer was handed to the operating system. */
+    end(body: Uint8Array | string | undefined, finished: () => void): void;
     end(body?: Uint8Array | string): void;
     /** "close": the response ended, or the client went away before. */
     once(event: "close", listener: () => void): void;
+    /** True once the client went away; its "close" has then already fired. */
+    readonly destroyed: boolean;
+    /** Closes the connection without finishing the answer. */
+    destroy(): void;
   }
 
   export interface Server {

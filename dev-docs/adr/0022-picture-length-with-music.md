@@ -16,7 +16,7 @@ Three questions need an answer: where the choice is stored, what existing slides
 ## Decision
 
 - **A choice of the slideshow**: `StoredSlideshow.pictureLength` `"seconds"` has the pictures
-  without an own duration last `secondsPerPicture` each with music too; absent, they fill the
+  without a chosen duration last `secondsPerPicture` each with music too; absent, they fill the
   music as before. It sits beside `secondsPerPicture`, which the music editor can now change
   too (half seconds, 2 to 15 s).
 - **New slideshows last their seconds**: the import writes `"seconds"` unless the user picks
@@ -24,7 +24,7 @@ Three questions need an answer: where the choice is stored, what existing slides
   before — fill the music, so nothing changes under them and nothing is migrated.
 - **About N s, on the beat**: each boundary aims where it would fall without beats and moves to
   the nearest beat that leaves both neighbours at least the minimum (`snapToBeats`, as for
-  filling), an own duration only within its own slack above the minimum; so the shifts never add
+  filling), a chosen duration only within its own slack above the minimum; so the shifts never add
   up. The last slide's end moves too, the same bounded way; so the slideshow ends on a beat, about
   as long as its pictures. Without a beat, or with picture changes "Evenly", every picture stays
   exactly N s.

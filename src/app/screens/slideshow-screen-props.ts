@@ -3,20 +3,15 @@ import type { ExportPreview } from "../video-export/slideshow-video-export";
 import type { VideoExportSession } from "../video-export/video-export-session";
 import type { SlideshowDetails, SlideshowStorage, StorageAction } from "./view-models";
 import type { ServerSlideshowRows } from "../server-library/server-slideshow-sessions";
-import type { StoredCard } from "../../library/stored-slideshow";
-import type { CardInput } from "../../library/stored-card";
-import type { SlideshowTransition } from "../../library/own-timing";
-import type { PortraitPictures } from "../../library/portrait-pictures";
 import type { MotionPreviewPorts } from "../picture-editor/motion-preview";
-import type { SlideshowMood } from "../../library/slideshow-mood";
 import type { SongBeats } from "../../compose/playlist";
-import type { MoodEnergyPacing } from "./slideshow/mood-energy-pacing";
 import type { MoodPreviewPorts } from "./slideshow/mood-preview-ports";
+import type { SlideshowEditCommands } from "./slideshow/slideshow-edit-commands";
 import type { ExportOutcome } from "../glissando-file/export-job";
 import type { ExportMenuState } from "../glissando-file/export-menu";
 import type { StripSelection } from "./slideshow/strip-selection";
 import type { Scheduler } from "../../ui-kit/scheduler";
-import type { FrameScheduler, SlideshowLook } from "../../player";
+import type { FrameScheduler } from "../../player";
 import type { SlideshowSearch } from "../../library/focus-pass";
 import type { PicturesFocus } from "../focus/pictures-focus";
 import type { ChapterSettingsEditor } from "../editing/chapter-settings-editor";
@@ -28,6 +23,10 @@ export interface SlideshowScreenProps {
   slideshow: SlideshowDetails;
   onBack: () => void;
   onPlay: () => void;
+  /** Plays from a picture: the selection bar and the viewer offer it. */
+  onPlayFrom: (pictureId: string) => void;
+  /** The slideshow was just created: its Play button pulses once on arrival. */
+  pulsePlay?: boolean;
   /** "Add media" in the strip header. */
   onAddPictures: () => void;
   /** The pictures just added, marked as new while the screen is shown. */
@@ -40,6 +39,8 @@ export interface SlideshowScreenProps {
   onRemoveGroup: (pictureIds: readonly string[]) => void;
   /** "Shuffle" in the strip header: puts the pictures in a new random order. */
   onShuffle: () => void;
+  /** "Sort by date" in the strip header, offered while the order is the user's own. */
+  onSortByDate: () => void;
   /** A drop: moves the group to the slot before the tile at `insertion`. */
   onMoveGroup: (pictureIds: readonly string[], insertion: number) => void;
   onRename: (typed: string) => void;
@@ -50,43 +51,16 @@ export interface SlideshowScreenProps {
   onError: (error: unknown) => void;
   /** Opens the music editor; only offered with music. */
   onEditMusic: () => void;
-  /** The slideshow's default transition was picked in its sheet. */
-  onTransition: (transition: SlideshowTransition) => void;
-  /** "Back to crossfade" in the transitions sheet. */
-  onResetTransition: () => void;
-  /** The slideshow's colour grade was picked in its sheet (ADR-0044). */
-  onLook: (look: SlideshowLook) => void;
-  /** "Back to None" in the look sheet. */
-  onResetLook: () => void;
-  /** The slideshow's tempo under its mood, for the info panel and the Mood sheet's "What it
+  /** The slideshow's tempo under its mood, for the Mood sheet's "What it
    * sets" (ADR-0045); undefined without a mood, or without a clear beat to pace to. */
   moodBpm: number | undefined;
   /** The pass-aware beats the Mood sheet's live preview composes and paces to (MOOD.md); a new
    * map once the background pass finds a song's beats restarts the preview on them. */
   moodBeats: SongBeats;
-  /** The info panel's "Picture times" range under the energy pacing (ADR-0046); null until
-   * loaded or without any songs. */
-  moodEnergyPacing: MoodEnergyPacing | null;
   /** The Mood sheet's live preview data ports; left out while it has no pictures. */
   moodPreviewPorts: MoodPreviewPorts;
-  /** A mood tile was tapped: stores at once. */
-  onMood: (mood: SlideshowMood | undefined) => void;
-  /** "Back to Custom" in the Mood sheet. */
-  onResetMood: () => void;
-  /** The Mood sheet's "Follow the music's energy" switch (ADR-0046): stores at once. */
-  onEnergyPacing: (on: boolean) => void;
-  /** A choice was picked in the portrait pictures sheet. */
-  onPortraitPictures: (choice: PortraitPictures) => void;
-  /** "Back to automatic" in the portrait pictures sheet. */
-  onResetPortraitPictures: () => void;
-  /** Creates the title slide with its defaults, storing it at once. */
-  onEnsureOpeningCard: () => StoredCard;
-  onOpeningCard: (card: CardInput) => void;
-  onRemoveOpeningCard: () => void;
-  /** Creates the closing slide with its defaults, storing it at once. */
-  onEnsureClosingCard: () => StoredCard;
-  onClosingCard: (card: CardInput) => void;
-  onRemoveClosingCard: () => void;
+  /** The slideshow-level edits its setting sheets store, provided to them as context. */
+  editCommands: SlideshowEditCommands;
   /** The trip chapters editor (TRIP_CHAPTERS.md); null while importing. */
   chapterEditor: ChapterSettingsEditor | null;
   /** The transitions sheet's tiles loop on these. */

@@ -2,10 +2,10 @@
   import { MUSIC_FADE_CHOICES_MS } from "../../library/own-music";
   import { MILLISECONDS_PER_SECOND } from "../../player";
   import ResetButton from "../components/ResetButton.svelte";
-  import SectionHead from "../components/SectionHead.svelte";
   import { radioIndexForKey } from "../components/radio-keys";
   import { getTranslator } from "../i18n/context";
   import type { MessageKey } from "../i18n/messages";
+  import InfoHead from "./InfoHead.svelte";
   import type { FadeInReason, FadeOutReason, FadeView } from "./music-editor-view";
 
   /** A fade's three steps: off, short, long. Automatic until one is picked. */
@@ -31,6 +31,7 @@
     "music.fadeLong",
   ];
   const TITLES = { in: "music.fadeIn", out: "music.fadeOut" } as const;
+  const INFO_LABELS = { in: "music.infoFadeIn", out: "music.infoFadeOut" } as const;
   const ICONS = { in: "fadeIn", out: "fadeOut" } as const;
 
   const radios: HTMLButtonElement[] = $state([]);
@@ -48,6 +49,14 @@
     radios[next]?.focus();
   }
 
+  /** "Automatic · short": the automatic choice stays visible without a paragraph. */
+  const stateText = $derived(
+    fade.own
+      ? t("music.fadeOwn")
+      : t("music.fadeAutomaticChoice", {
+          choice: t(CHOICE_LABELS[Math.max(selected, 0)] as MessageKey).toLocaleLowerCase(),
+        }),
+  );
   const reason = $derived(
     fade.reason === "slideshow-ends"
       ? t("music.reason-slideshow-ends", {
@@ -58,13 +67,16 @@
 </script>
 
 <section class="section" aria-labelledby={headId}>
-  <SectionHead
+  <InfoHead
     id={headId}
     icon={ICONS[direction]}
     title={t(TITLES[direction])}
-    stateText={fade.own ? t("music.fadeOwn") : t("music.fadeAutomatic")}
+    {stateText}
     own={fade.own}
-  />
+    infoLabel={t(INFO_LABELS[direction])}
+  >
+    <p>{t("music.automaticBecause", { reason })}</p>
+  </InfoHead>
   <div class="choices" class:automatic={!fade.own} role="radiogroup" aria-labelledby={headId}>
     {#each MUSIC_FADE_CHOICES_MS as ms, index (ms)}
       {@const checked = index === selected}
@@ -86,8 +98,6 @@
   </div>
   {#if fade.own}
     <div><ResetButton automatic={false} alreadyAutomatic="" {onReset} /></div>
-  {:else}
-    <p class="hint">{t("music.automaticBecause", { reason })}</p>
   {/if}
 </section>
 
@@ -132,10 +142,5 @@
     outline: 1.5px dashed var(--gl-faint);
     outline-offset: -1.5px;
     box-shadow: none;
-  }
-  .hint {
-    margin: 0;
-    color: var(--gl-muted);
-    font-size: var(--gl-size-meta);
   }
 </style>

@@ -40,9 +40,9 @@ version is outdated: the pass looks at it again in the background and the old re
 until the new one is stored; the server never replaces a result by one of a lower version.
 Someone can also ask to look again at one picture or one slideshow.
 
-A re-run only ever writes the focus. A picture's own motion (start and end set by hand,
+A re-run only ever writes the focus. A picture's chosen motion (start and end set by hand,
 ADR-0006) is never changed by it, on any path: the pass's store port cannot write a slideshow,
-the server's focus route never touches the document, and an own motion wins over any focus.
+the server's focus route never touches the document, and a chosen motion wins over any focus.
 
 ## Consequences
 

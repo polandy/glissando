@@ -8,17 +8,19 @@ import {
   type PresetId,
   type VideoExportResult,
 } from "../../video-export";
-import type {
-  Delivery,
-  ExportSheetState,
-  ExportSubject,
-  VideoExportPorts,
-} from "./export-sheet-state";
-import { spaceShortage } from "./space-shortage";
+import type { ExportSheetState, ExportSubject, VideoExportPorts } from "./export-sheet-state";
+import { deliverFile } from "./deliver-file";
+import {
+  type BrowserProbe,
+  chooseState,
+  deliveryOf,
+  failedState,
+  outcomeState,
+  probeBrowser,
+} from "./sheet-states";
 
 /** The preset "Andere Größe wählen" offers after the storage ran out: the smallest. */
 const SMALLEST_PRESET: PresetId = "720p";
-const SHARE_DISMISSED = "AbortError";
 
 type ChooseState = Extract<ExportSheetState, { readonly kind: "choose" }>;
 
@@ -36,6 +38,7 @@ export class VideoExportSession<Preview> {
   #state: ExportSheetState = { kind: "probing" };
   #capabilities: Extract<ExportCapabilities, { readonly supported: true }> | null = null;
   #freeBytes: number | null = null;
+  #preset: PresetId | null = null;
   #target: ExportTarget | null = null;
   #awake: { release(): void } | null = null;
 
@@ -65,33 +68,20 @@ export class VideoExportSession<Preview> {
   }
 
   async open(): Promise<void> {
-    const ports = this.#ports;
-    let capabilities: ExportCapabilities;
+    let probe: BrowserProbe;
     try {
-      [capabilities, this.#freeBytes] = await Promise.all([
-        ports.probe(this.#subject.withAudio),
-        // A picked file is not the browser's storage, so only a private one is measured.
-        ports.canPickSaveFile() ? null : ports.freeBytes(),
-      ]);
+      probe = await probeBrowser(this.#ports, this.#subject.withAudio);
     } catch (error: unknown) {
       this.#fail(error);
       return;
     }
-    if (!capabilities.supported) {
-      this.#set({ kind: "unsupported", reason: capabilities.reason });
+    if (probe.kind === "ended") {
+      this.#set(probe.state);
       return;
     }
-    const clip = await ports.undecodableClip().catch((error: unknown) => {
-      // An unreadable clip is no verdict on the browser; the run itself fails loud if it must.
-      ports.log(error);
-      return null;
-    });
-    if (clip !== null) {
-      this.#set({ kind: "clip-unsupported", clip });
-      return;
-    }
-    this.#capabilities = capabilities;
-    this.#choose(capabilities.defaultPreset);
+    this.#freeBytes = probe.freeBytes;
+    this.#capabilities = probe.capabilities;
+    this.#choose(probe.capabilities.defaultPreset);
   }
 
   select(preset: PresetId): void {
@@ -131,13 +121,22 @@ export class VideoExportSession<Preview> {
 
   /** After the storage ran out: choose again, the smallest preset selected. */
   backToChoose(): void {
-    if (this.#state.kind === "storage-full" && this.#capabilities !== null) {
-      this.#choose(
-        this.#capabilities.available.includes(SMALLEST_PRESET)
-          ? SMALLEST_PRESET
-          : this.#capabilities.defaultPreset,
-      );
+    const capabilities = this.#capabilities;
+    if (this.#state.kind !== "storage-full" || capabilities === null) return;
+    const smallest = capabilities.available.includes(SMALLEST_PRESET);
+    this.#choose(smallest ? SMALLEST_PRESET : capabilities.defaultPreset);
+  }
+
+  /** "Try again": probes again if the browser was never probed, else choose with the preset kept. */
+  async retry(): Promise<void> {
+    const { kind } = this.#state;
+    if (kind !== "failed" && kind !== "clip-unsupported") return;
+    if (this.#capabilities === null) {
+      this.#set({ kind: "probing" });
+      await this.open();
+      return;
     }
+    this.#choose(this.#preset ?? this.#capabilities.defaultPreset);
   }
 
   /** "Teilen …" or "Herunterladen" for a finished private file. */
@@ -146,15 +145,7 @@ export class VideoExportSession<Preview> {
     if (state.kind !== "done") {
       return;
     }
-    if (state.delivery === "download") {
-      this.#ports.download(state.file);
-    } else if (state.delivery === "share") {
-      await this.#ports.share(state.file).catch((error: unknown) => {
-        if (!(error instanceof DOMException && error.name === SHARE_DISMISSED)) {
-          this.#ports.log(error);
-        }
-      });
-    }
+    await deliverFile(this.#ports, state.delivery, state.file);
   }
 
   /** Cancels a running export at once; a finished private file is discarded. */
@@ -216,40 +207,16 @@ export class VideoExportSession<Preview> {
     target: ExportTarget,
     result: VideoExportResult,
   ): void {
-    switch (result.kind) {
-      case "done":
-        this.#set({
-          kind: "done",
-          preset,
-          file: result.file,
-          delivery: this.#delivery(target, result.file),
-        });
-        return;
-      case "storage-full": {
-        const estimate = this.estimate(preset);
-        this.#set({
-          kind: "storage-full",
-          preset,
-          frameReached: result.frameReached,
-          framesTotal,
-          missingBytes: estimate * (1 - result.frameReached / framesTotal),
-        });
-        return;
-      }
-      case "failed":
-        this.#fail(result.error);
-        return;
-      case "cancelled":
-        // Only closing the sheet cancels, and a closed sheet shows nothing.
-        return;
-    }
-  }
-
-  #delivery(target: ExportTarget, file: File): Delivery {
-    if (target.kind === "picked") {
-      return "saved";
-    }
-    return this.#ports.canShare(file) ? "share" : "download";
+    const state = outcomeState({
+      preset,
+      framesTotal,
+      estimate: this.estimate(preset),
+      delivery: (file) => deliveryOf(target, this.#ports.canShare(file)),
+      result,
+    });
+    if (state === null) return;
+    if (state.kind === "failed") this.#ports.log(state.error);
+    this.#set(state);
   }
 
   #choose(preset: PresetId): void {
@@ -257,21 +224,13 @@ export class VideoExportSession<Preview> {
     if (capabilities === null) {
       throw new Error("the sheet chooses a preset only once the browser was probed");
     }
-    this.#set({
-      kind: "choose",
-      available: capabilities.available,
-      preset,
-      audioCodec: capabilities.audioCodec,
-      spaceShortage: spaceShortage(preset, capabilities.available, this.#freeBytes, (id) =>
-        this.estimate(id),
-      ),
-      starting: false,
-    });
+    this.#preset = preset;
+    this.#set(chooseState(capabilities, preset, this.#freeBytes, (id) => this.estimate(id)));
   }
 
   #fail(error: unknown): void {
     this.#ports.log(error);
-    this.#set({ kind: "failed", error: error instanceof Error ? error : new Error(String(error)) });
+    this.#set(failedState(error));
   }
 
   #releaseScreen(): void {

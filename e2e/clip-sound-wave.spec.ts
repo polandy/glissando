@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { chooseFiles, CREATED_TOAST, GERMAN_BROWSER, openImport } from "./support/app";
+import { chooseFiles, expectSlideshowScreen, GERMAN_BROWSER, openImport } from "./support/app";
 import { openApp } from "./support/browser";
 import { generatedClip } from "./support/clip";
 import type { TestFile } from "./support/media";
@@ -20,12 +20,12 @@ const CLEARLY_TALLER_MARGIN = 20;
 
 /** The track inside the clip editor's excerpt strip. */
 function excerptTrack(page: Page): Locator {
-  return page.locator('[aria-label="Ausschnitt wählen"] .track');
+  return page.getByRole("group", { name: "Ausschnitt wählen" }).getByTestId("excerpt-track");
 }
 
 /** Each wave bar's drawn height (the SVG's own view-box units) and whether it is "inside". */
 function waveformBars(track: Locator): Promise<{ height: number; inside: boolean }[]> {
-  return track.locator("svg.bars rect").evaluateAll((rects) =>
+  return track.getByTestId("wave-bar").evaluateAll((rects) =>
     rects.map((rect) => ({
       height: Number(rect.getAttribute("height")),
       inside: rect.classList.contains("inside"),
@@ -48,11 +48,11 @@ async function openClipEditor(
   beforeOpening: () => Promise<void> = async () => {},
 ): Promise<void> {
   await openImport(page);
-  await chooseFiles(page, page.getByRole("button", { name: "Medien auswählen" }), [clip]);
+  await chooseFiles(page, page.getByRole("button", { name: "Bilder auswählen" }), [clip]);
   await expect(page.getByText("1 Bilder", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
   await beforeOpening();
 
   const tile = page
@@ -83,7 +83,7 @@ test("E2E-064 the clip editor's strip shows the clip's sound as bars, faint with
 
   const track = excerptTrack(page);
   // The excerpt starts as the whole clip, so every bar is inside it from the start.
-  await expect(track.locator("svg.bars rect.inside").first()).toBeAttached();
+  await expect.poll(async () => (await waveformBars(track)).some((bar) => bar.inside)).toBe(true);
 
   // The sound is read left to right; once it is, the tone's half towers over the silent one.
   await expect
@@ -96,7 +96,7 @@ test("E2E-064 the clip editor's strip shows the clip's sound as bars, faint with
 
   // Sound off keeps the bars but drops the "inside" style from every one of them.
   await page.getByRole("radio", { name: "Aus" }).click();
-  await expect(track.locator("svg.bars rect").first()).toBeAttached();
+  await expect(track.getByTestId("wave-bar").first()).toBeAttached();
   await expect.poll(async () => (await waveformBars(track)).some((bar) => bar.inside)).toBe(false);
 
   await page.getByRole("button", { name: "Fertig", exact: true }).click();
@@ -133,5 +133,5 @@ test("E2E-065 the clip editor's strip says so, instead of drawing a flat line, w
 
   const track = excerptTrack(page);
   await expect(track.getByText("Ton kann hier nicht gelesen werden")).toBeVisible();
-  await expect(track.locator("svg.bars")).toHaveCount(0);
+  await expect(track.getByTestId("wave-bars")).toHaveCount(0);
 });

@@ -38,7 +38,7 @@ describe("AfterAddingBox", () => {
 
     expect(rows(target)).toEqual([
       `Bilder ${beforeAfter("24", "32")}`,
-      `Dauer ${beforeAfter(de.formatDuration(340), de.formatDuration(340))}`,
+      `Länge ${beforeAfter(de.formatDuration(340), de.formatDuration(340))}`,
       `Pro Bild ${beforeAfter(de.formatTenthSeconds(14.2), de.formatTenthSeconds(10.6))}`,
     ]);
   });
@@ -46,7 +46,7 @@ describe("AfterAddingBox", () => {
   it("leaves the per-picture row out when there is no share to compare", () => {
     const target = mountBox({ ...SHARING, perPictureSeconds: null });
 
-    expect(rows(target).map((row) => row.split(" ")[0])).toEqual(["Bilder", "Dauer"]);
+    expect(rows(target).map((row) => row.split(" ")[0])).toEqual(["Bilder", "Länge"]);
   });
 
   it.each([

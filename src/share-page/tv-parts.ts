@@ -5,7 +5,7 @@ import { fill } from "./share-page-words";
 import type { TvPageWords } from "./tv-page-words";
 
 /** How long a command's note stays on screen. */
-export const NOTE_SHOWN_MS = 1800;
+const NOTE_SHOWN_MS = 1800;
 
 /** The TV's own cards (dev-docs/tv_remote/TV_PAGE.md); at most one shows at a time. */
 export type TvCard =
@@ -42,6 +42,11 @@ export function createTvParts(
     node.append(...children);
     return node;
   };
+  const codeBox = (code: string) => {
+    const box = make("div", "tv-code", code);
+    box.dataset["testid"] = "tv-code";
+    return box;
+  };
   const qr = (link: string) => make("div", "qr-frame", qrSvg(document, link, words.tvQrCode));
 
   const allowSound = make("button", "again allow-sound", words.tvAllowSound);
@@ -65,7 +70,7 @@ export function createTvParts(
     switch (shown.kind) {
       case "pairing":
         return [
-          body(words.tvPairTitle, words.tvPairText, make("div", "tv-code", shown.code), allowSound),
+          body(words.tvPairTitle, words.tvPairText, codeBox(shown.code), allowSound),
           qr(shown.link),
         ];
       case "connected":

@@ -59,8 +59,8 @@ describe("composeSlideshow", () => {
   });
 });
 
-describe("composeSlideshow with an own motion", () => {
-  it("plays a picture's own motion and the automatic one for the others", () => {
+describe("composeSlideshow with a chosen motion", () => {
+  it("plays a picture's chosen motion and the automatic one for the others", () => {
     const own = {
       from: { zoom: 3, centerX: 0.2, centerY: 0.8 },
       to: { zoom: 1.5, centerX: 0.6, centerY: 0.4 },
@@ -94,7 +94,7 @@ describe("composeSlideshow with an own motion", () => {
 });
 
 describe("composeSlideshow with the pictures' focus", () => {
-  it("aims an automatic motion at the picture's focus and leaves an own motion as it is", () => {
+  it("aims an automatic motion at the picture's focus and leaves a chosen motion as it is", () => {
     const own = {
       from: { zoom: 3, centerX: 0.2, centerY: 0.8 },
       to: { zoom: 1.5, centerX: 0.6, centerY: 0.4 },

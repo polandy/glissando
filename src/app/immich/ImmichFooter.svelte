@@ -13,7 +13,7 @@
   const { t } = getTranslator();
 </script>
 
-<div class="actions" use:keepToastsClear>
+<div class="actions" role="group" aria-label={t("slideshow.selection")} use:keepToastsClear>
   <span class="summary">
     {#if summary.kind === "hint"}
       {t("immich.pickHint")}

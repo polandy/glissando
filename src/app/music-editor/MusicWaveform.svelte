@@ -27,7 +27,7 @@
     onGrab,
   }: {
     music: MusicEditorView;
-    /** Fine peaks of the whole track, 0..1; null while the track is decoded. */
+    /** Fine peaks of the whole track, 0..1; null until the song's loudness is measured. */
     peaks: Float32Array | null;
     /** Shows the volume line, the fade-shrunk bars and the beat ticks. */
     details: boolean;

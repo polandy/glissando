@@ -29,19 +29,21 @@ function switchInput(target: HTMLElement): HTMLInputElement {
 }
 
 describe("RepeatMusicSection", () => {
-  it("explains it plays the songs again while it is on, the switch always enabled", () => {
-    const target = mount(true, () => {});
+  it("keeps the switch always enabled, on or off", () => {
+    expect(switchInput(mount(true, () => {})).checked).toBe(true);
+    const off = mount(false, () => {});
 
-    expect(switchInput(target).checked).toBe(true);
-    expect(switchInput(target).disabled).toBe(false);
-    expect(target.textContent).toContain("Plays the songs again");
+    expect(switchInput(off).checked).toBe(false);
+    expect(switchInput(off).disabled).toBe(false);
   });
 
-  it("explains a shorter music fits instead while it is off, the switch always enabled", () => {
+  it("moves the mechanics behind an info button, leaving no visible paragraph", () => {
     const target = mount(false, () => {});
 
-    expect(switchInput(target).disabled).toBe(false);
-    expect(target.textContent).toContain("a shorter music is fitted or offers a fix instead");
+    const info = target.querySelector<HTMLButtonElement>("button.info");
+    expect(info?.getAttribute("aria-label")).toBe("About repeating the music");
+    expect(target.querySelector(".pop")?.textContent).toContain("play again from the first song");
+    expect(target.querySelectorAll("p:not(.pop p)")).toHaveLength(0);
   });
 
   it("turns the switch on and off through onRepeatMusic, true or undefined", () => {

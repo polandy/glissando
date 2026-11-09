@@ -1,6 +1,6 @@
-import { FINE_PEAK_COUNT } from "../music-editor/decode-peaks";
+import { MILLISECONDS_PER_SECOND } from "../../player";
+import { FINE_PEAK_COUNT } from "../music-editor/waveform-peaks";
 
-const MS_PER_SECOND = 1000;
 /** Report once filled by this many slices (1 % of `FINE_PEAK_COUNT`), so the bars visibly grow. */
 const REPORT_STEP_SLICES = FINE_PEAK_COUNT / 100;
 
@@ -18,7 +18,7 @@ export class FinePeaks {
   #lastReportedSlice = 0;
 
   constructor(sourceMs: number) {
-    this.#sourceSeconds = sourceMs / MS_PER_SECOND;
+    this.#sourceSeconds = sourceMs / MILLISECONDS_PER_SECOND;
     this.#sliceSeconds = this.#sourceSeconds / FINE_PEAK_COUNT;
   }
 

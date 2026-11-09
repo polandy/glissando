@@ -6,7 +6,7 @@
   import StripTileCheck from "./StripTileCheck.svelte";
   import StripTileMarks from "./StripTileMarks.svelte";
 
-  /** One picture of the strip: its order number and date, and the marks a pointer reveals. */
+  /** One picture of the strip: its order number and date, and the grab handle a mouse reveals. */
   let {
     picture,
     number,
@@ -17,11 +17,9 @@
     mousePointer,
     dragging,
     drop,
-    removable,
     onPick,
     onOpen,
     onKeydown,
-    onRemove,
   }: {
     picture: PictureTile;
     /** The position in play order, from 1. */
@@ -39,13 +37,10 @@
     dragging: boolean;
     /** Where a dragged group would land, beside this one. */
     drop: "before" | "after" | null;
-    /** False for the last picture, which stays. */
-    removable: boolean;
     onPick: (event: MouseEvent) => void;
     /** A double-click with a mouse: opens the picture editor. */
     onOpen: () => void;
     onKeydown: (event: KeyboardEvent) => void;
-    onRemove: () => void;
   } = $props();
 
   const { t, formatDate, formatSeconds } = getTranslator();
@@ -114,7 +109,7 @@
     <span class="date mono" aria-hidden="true">{date}</span>
   </button>
   <StripTileCheck {selecting} {selected} />
-  <StripTileMarks {number} {removable} {onRemove} />
+  <StripTileMarks />
 </li>
 
 <style>

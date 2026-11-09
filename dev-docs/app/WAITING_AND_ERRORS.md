@@ -11,3 +11,6 @@
   A toast about one screen (`route`) ends once the app leaves that screen; one saying why the app
   moved, such as "Slideshow deleted", stays.
 - **Dialog** (`Dialog`): a native modal dialog, only when the user must decide.
+- **Export failures**: a video or web page that cannot be created shows a mapped sentence with a way out
+  (`export-errors/describe-export-failure.ts`), never the error's own message; that goes to the console
+  and a "Show details" fold (`scripts/no-raw-error-text.sh` guards it).

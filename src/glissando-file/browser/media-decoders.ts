@@ -1,7 +1,11 @@
-import { DETECTION_SAMPLE_RATE } from "../../beats/decode-music";
+import { assertMusicWithinLimits, MusicOverLimitError } from "../../import/music-limits";
+import { probeMusicDurationMs, UnreadableMusicError } from "../../import/music-probe";
 import { openClipInVideoElement } from "../../import/browser/video-clip";
 import { encodeThumbnail } from "../../import/downscale";
 import type { MediaDecoders } from "../media-decoders";
+
+/** Any rate proves a song decodes; a low one keeps the decoded copy small. */
+const DECODE_PROBE_SAMPLE_RATE = 8000;
 
 /** The name given a clip's blob to open it in a `<video>` element; never shown to anyone. */
 const CLIP_PLACEHOLDER_NAME = "clip";
@@ -9,9 +13,9 @@ const CLIP_PLACEHOLDER_NAME = "clip";
 /**
  * Decodes a .glissando file's media with the browser's own codecs (ADR-0038). A picture decodes
  * on the main thread: WebKit's worker cannot read a `file://` blob, which is where an opened
- * .glissando file's media sit.
+ * .glissando file's media sit. `log` takes a clip's length-reading error (`openClipInVideoElement`).
  */
-export function browserMediaDecoders(): MediaDecoders {
+export function browserMediaDecoders(log: (error: unknown) => void): MediaDecoders {
   return {
     // Each medium is read before the decode's try, so a read failure stays an error and is not
     // taken for a damaged file.
@@ -28,9 +32,18 @@ export function browserMediaDecoders(): MediaDecoders {
       return { width, height };
     },
 
+    // A song over a limit, or one the browser cannot play, is undecodable and never decoded.
     async music(song) {
       const bytes = await song.arrayBuffer();
-      const context = new OfflineAudioContext(1, 1, DETECTION_SAMPLE_RATE);
+      try {
+        await assertMusicWithinLimits(new Blob([bytes]), probeMusicDurationMs);
+      } catch (error) {
+        if (error instanceof MusicOverLimitError || error instanceof UnreadableMusicError) {
+          return false;
+        }
+        throw error;
+      }
+      const context = new OfflineAudioContext(1, 1, DECODE_PROBE_SAMPLE_RATE);
       try {
         await context.decodeAudioData(bytes);
         return true;
@@ -41,7 +54,7 @@ export function browserMediaDecoders(): MediaDecoders {
 
     async clip(clip) {
       const file = new File([clip], CLIP_PLACEHOLDER_NAME);
-      const opened = await openClipInVideoElement(file);
+      const opened = await openClipInVideoElement(file, log);
       if (opened === null) {
         return false;
       }

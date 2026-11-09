@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { server } from "vitest/browser";
 import type { Slideshow } from "../../player";
+import { FINE_PEAK_COUNT } from "../music-editor/waveform-peaks";
 import { probeVideoExport, runVideoExport } from "../../video-export";
 import { generatedClip, solidPicture } from "../../video-export/testing/generated-clip";
 import { memoryExportTarget } from "../../video-export/testing/memory-target";
@@ -11,6 +12,11 @@ import { readClipPeaksWithMediabunny } from "./read-clip-peaks";
 const GENERATION_CEILING_MS = 60_000;
 const CLIP_MS = 1500;
 const TONE_AMPLITUDE = 0.5;
+/**
+ * The Opus encoder's priming (RFC 7845 pre-skip: 312 samples at 48 kHz), which the reader drops,
+ * so the clip's first few milliseconds carry no sound.
+ */
+const ENCODER_PRIMING_MS = 6.5;
 const CAPTURED_AT = "2026-07-01T10:00:00Z";
 const STILL_MOTION = {
   from: { zoom: 1, centerX: 0.5, centerY: 0.5 },
@@ -62,7 +68,7 @@ function collectWaves(): { reports: ClipSoundWave[]; onWave: (wave: ClipSoundWav
 describe("readClipPeaksWithMediabunny", () => {
   // WebKit's AAC encoder stamps every packet 0, so a clip it wrote has no sound to place in time.
   it.skipIf(server.browser === "webkit")(
-    "reports a tone's peaks across the clip, all zero first and nonzero throughout by the last",
+    "reports a tone's peaks across the clip, all zero first and nonzero from the end of the encoder's priming by the last",
     async () => {
       const { reports, onWave } = collectWaves();
 
@@ -74,7 +80,8 @@ describe("readClipPeaksWithMediabunny", () => {
       expect(first.peaks.every((peak) => peak === 0)).toBe(true);
       const last = reports[reports.length - 1];
       if (last?.kind !== "peaks") throw new Error("the last report must carry peaks");
-      expect(Math.min(...last.peaks)).toBeGreaterThan(0);
+      const firstSoundingSlice = Math.floor(ENCODER_PRIMING_MS / (CLIP_MS / FINE_PEAK_COUNT));
+      expect(Math.min(...last.peaks.subarray(firstSoundingSlice))).toBeGreaterThan(0);
     },
     GENERATION_CEILING_MS,
   );

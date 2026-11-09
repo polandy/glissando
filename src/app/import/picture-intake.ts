@@ -74,8 +74,12 @@ export class PictureIntake {
   #known: readonly PictureIdentity[];
   #reporting: Promise<void> = Promise.resolve();
   #reportedDrain: Promise<void> | null = null;
-  /** The Immich photos being linked now, their colours not yet read; `settled()` awaits it too. */
-  #linking: Promise<void> = Promise.resolve();
+  /** The end of the last queued link, failed or not; each link waits for it, `settled()` too. */
+  #linkQueue: Promise<void> = Promise.resolve();
+  #pendingLinks = 0;
+  /** Counts `discard`s, so a link started before one can tell its result is no longer wanted. */
+  #generation = 0;
+  readonly #linkListeners = new Set<(linking: boolean) => void>();
   #claimId: string;
   /** Set by the first claim; a claim that covers nothing is never recorded. */
   #startedAt: Date | null = null;
@@ -149,23 +153,56 @@ export class PictureIntake {
     this.#watchDrain();
   }
 
+  /** The Svelte store contract over whether Immich photos are being linked. */
+  readonly linking = {
+    current: (): boolean => this.#pendingLinks > 0,
+    subscribe: (listener: (linking: boolean) => void): (() => void) => {
+      this.#linkListeners.add(listener);
+      listener(this.#pendingLinks > 0);
+      return () => this.#linkListeners.delete(listener);
+    },
+  };
+
+  #setPendingLinks(count: number): void {
+    const was = this.#pendingLinks > 0;
+    this.#pendingLinks = count;
+    if (was !== count > 0) {
+      for (const listener of this.#linkListeners) listener(count > 0);
+    }
+  }
+
   /**
    * Links Immich photos for a server slideshow: listed at once, their media not downloaded, only
-   * each one's colours read off a thumbnail (ADR-0033).
+   * each one's colours read off a thumbnail (ADR-0033). Links run one after another, each
+   * comparing its photos with what the ones before it landed, so a photo is never taken twice.
    */
   linkImmichPhotos(photos: readonly ImmichPhoto[]): Promise<void> {
     this.#removals.end();
-    const linking = linkImmichPhotos(
-      photos,
-      this.#known,
-      { colours: this.#ports.immichColours },
-      this.pictures.state.pictures,
-    ).then(({ pictures, skipped }) => {
-      this.pictures.link(pictures, skipped);
+    const generation = this.#generation;
+    this.#setPendingLinks(this.#pendingLinks + 1);
+    const linking = this.#linkQueue.then(async () => {
+      if (generation !== this.#generation) return;
+      const { pictures, skipped } = await linkImmichPhotos(
+        photos,
+        this.#known,
+        { colours: this.#ports.immichColours, log: this.#ports.log },
+        this.pictures.state.pictures,
+      );
+      if (generation === this.#generation) this.pictures.link(pictures, skipped);
     });
-    // settled() only waits for the linking to finish; its failure is the caller's to handle.
-    this.#linking = linking.catch(() => undefined);
+    // The queue only waits for the end; a failure is the caller's to handle.
+    const ended = linking
+      .catch(() => undefined)
+      .then(() => {
+        if (generation === this.#generation) this.#setPendingLinks(this.#pendingLinks - 1);
+      });
+    this.#linkQueue = ended;
     return linking;
+  }
+
+  /** Resolves once every link queued so far has landed or failed; a failure is its caller's. */
+  linked(): Promise<void> {
+    return this.#linkQueue;
   }
 
   /** Takes the pictures skipped as duplicates for `reason` in after all. */
@@ -207,7 +244,7 @@ export class PictureIntake {
    * rejects as `PictureImport.settled` does.
    */
   async settled(): Promise<void> {
-    await this.#linking;
+    await this.linked();
     await this.pictures.settled();
     await this.culling.settled();
   }
@@ -237,6 +274,8 @@ export class PictureIntake {
    */
   discard(): Promise<void> {
     this.#removals.end();
+    this.#generation += 1;
+    this.#setPendingLinks(0);
     this.pictures.cancel();
     this.culling.reset();
     return this.endClaim();

@@ -16,13 +16,8 @@ import {
   type ManifestChapterEdit,
 } from "./manifest-chapters";
 import { cardToManifest, type ManifestCard } from "./manifest-card";
-import {
-  clipMimeType,
-  clipPath,
-  distinctClipIds,
-  videoToManifest,
-  type ManifestVideo,
-} from "./manifest-video";
+import { clipMediaType, songMediaType } from "./document-values";
+import { clipPath, distinctClipIds, videoToManifest, type ManifestVideo } from "./manifest-video";
 import { picturePaths, songPath, typesAt, type PictureTypes } from "./manifest-paths";
 
 export {
@@ -43,7 +38,7 @@ export {
 export const GLISSANDO_FORMAT_ID = "glissando";
 /**
  * Version 2 added a picture's own Ken Burns motion (ADR-0006), version 3 its caption, version 4
- * its own duration and transition (ADR-0008), version 5 the music's excerpt and fades
+ * its chosen duration and transition (ADR-0008), version 5 the music's excerpt and fades
  * (ADR-0009), version 6 the slideshow's default transition (ADR-0010), version 7 a picture's
  * origin, `immichAssetId` or `fileBytes` (ADR-0016), version 8 the music's picture changes
  * (ADR-0021), version 9 the slideshow's picture length (ADR-0022), version 10 the playlist,
@@ -68,22 +63,6 @@ export const GLISSANDO_FORMAT_ID = "glissando";
  */
 export const GLISSANDO_FORMAT_VERSION = 21;
 export const OLDEST_READABLE_FORMAT_VERSION = 13;
-/** The first version that carries a picture's own motion. */
-export const OWN_KEN_BURNS_FROM_VERSION = 2;
-/** The first version that carries a picture's caption. */
-export const CAPTION_FROM_VERSION = 3;
-/** The first version that carries a picture's own duration and transition. */
-export const OWN_TIMING_FROM_VERSION = 4;
-/** The first version that carries the music's excerpt and fades. */
-export const MUSIC_TRIM_FROM_VERSION = 5;
-/** The first version that carries the slideshow's default transition. */
-export const DEFAULT_TRANSITION_FROM_VERSION = 6;
-/** The first version that carries a picture's origin, `immichAssetId` or `fileBytes`. */
-export const ORIGIN_FROM_VERSION = 7;
-/** The first version that carries the music's picture changes. */
-export const PICTURE_CHANGES_FROM_VERSION = 8;
-/** The first version that carries the slideshow's picture length. */
-export const PICTURE_LENGTH_FROM_VERSION = 9;
 /** The first version that carries a song's own volume. */
 export const MUSIC_VOLUME_FROM_VERSION = 15;
 /** The first version that carries a song's sample-track id. */
@@ -196,7 +175,7 @@ export function manifestFor(
 ): GlissandoManifest {
   const clipFiles = new Map(
     distinctClipIds(slideshow.pictures).map((mediaId, index) => {
-      const mimeType = clipMimeType(clipTypes.get(mediaId) ?? "");
+      const mimeType = clipMediaType(clipTypes.get(mediaId) ?? "");
       return [mediaId, { file: clipPath(index, mimeType), mimeType }] as const;
     }),
   );
@@ -221,7 +200,7 @@ export function manifestFor(
     file: songPath(index, song.fileName),
     fileName: song.fileName,
     durationMs: song.durationMs,
-    mimeType: song.mimeType,
+    mimeType: songMediaType(song.mimeType),
     ...ownMusicFields(song),
   }));
   const pictureIds = slideshow.pictures.map((picture) => picture.id);

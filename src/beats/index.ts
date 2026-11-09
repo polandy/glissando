@@ -3,5 +3,6 @@
  * I/O.
  */
 
+export { DETECTION_SAMPLE_RATE } from "./detection-sample-rate";
 export { detectBeats } from "./detect-beats";
 export { NO_BEATS, type MusicBeats } from "./music-beats";

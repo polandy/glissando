@@ -11,6 +11,8 @@ into the display rendition on the device. Device slideshows start at once, as be
 renders `player/PreparePictures.svelte` while it measures or prepares, and the player once it
 plays.
 
+The flow starts at the slide of the chosen picture when the player route carries one (`startPicture` option, `setSlides(slides, startSlide)`): measuring, the plan (`planPreload(…, fromSlide)`, starts rebased to the start slide) and preparing all begin there; earlier pictures are fetched on demand if the viewer goes back.
+
 1. **Measuring**: the first two pictures (one for a one-picture slideshow) are prepared and timed.
 2. **The plan**: from the time per picture (moving average of the last four) and the played
    slides' start times, `planPreload` says how many must be ready before playing (formula in
@@ -40,9 +42,8 @@ middle, at most 420 px wide: a 3:2 frame with the quality ("1440" or "4K") as a 
 - **Measuring**: "Checking the connection …", "Loading the first 2 pictures in 4K to measure how
   long one takes.", an indeterminate mint bar (a static, dimmed one with reduced motion), and
   "Measuring" · "1 of 2".
-- **Preparing**: "Preparing pictures", "4K · a picture takes ~6 s here and is shown for 5 s. So
-  the slideshow plays without stopping, Glissando prepares 7 of 30 pictures first." (the slide
-  length is the slides' average), a mint bar (`role="progressbar"`, "Prepared pictures", values
+- **Preparing**: "Preparing pictures", "4K · So the
+  slideshow plays without stopping, Glissando prepares 7 of 30 pictures first.", a mint bar (`role="progressbar"`, "Prepared pictures", values
   ready of target), "3 of 7 pictures" and "starts in ~0:24" in mono tabular figures, and a row of
   small squares, one per picture up to 40: ready ones mint, the ones to prepare first outlined.
 

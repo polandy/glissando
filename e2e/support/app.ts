@@ -6,7 +6,10 @@ import { pictureTakenOn, type TestFile } from "./media";
 /** A German browser, so the copy a case asserts is the German catalogue's. */
 export const GERMAN_BROWSER = { locale: "de-DE" } as const;
 
-export const CREATED_TOAST = "Diashow erstellt — tippe auf Abspielen";
+/** The slideshow screen is shown, as right after creating a slideshow: its Play button is there. */
+export async function expectSlideshowScreen(page: Page): Promise<void> {
+  await expect(page.getByRole("button", { name: "Abspielen" }).first()).toBeVisible();
+}
 
 const PICTURE_COLOURS = ["#ff8a65", "#4db6ac", "#ffd54f", "#9575cd"] as const;
 
@@ -57,10 +60,7 @@ export async function chooseFiles(page: Page, button: Locator, files: TestFile[]
 
 /** The value a description list gives `term` (a <dt> and the <dd> after it). */
 export function definitionOf(scope: Page | Locator, term: string): Locator {
-  return scope
-    .getByRole("term")
-    .filter({ hasText: new RegExp(`^${term}$`) })
-    .locator("xpath=following-sibling::dd[1]");
+  return scope.locator(`dt:text-is(${JSON.stringify(term)}) + dd`);
 }
 
 export function openImport(page: Page): Promise<void> {
@@ -73,7 +73,7 @@ export async function choosePictures(
   files: TestFile[],
   storedCount: number,
 ): Promise<void> {
-  await chooseFiles(page, page.getByRole("button", { name: "Medien auswählen" }), files);
+  await chooseFiles(page, page.getByRole("button", { name: "Bilder auswählen" }), files);
   await expect(page.getByText(`${storedCount} Bilder`, { exact: true })).toBeVisible();
 }
 
@@ -99,9 +99,7 @@ function pictureLengthSection(page: Page): Locator {
 async function leaveMoodForOwnPictureTimes(page: Page): Promise<Locator> {
   const lengthSection = pictureLengthSection(page);
   await lengthSection.getByRole("button", { name: "Selbst festlegen" }).click();
-  await expect(
-    page.getByRole("status").filter({ hasText: "Stimmung ist jetzt Eigene" }),
-  ).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Keine Stimmung ist an" })).toBeVisible();
   return lengthSection;
 }
 
@@ -152,7 +150,7 @@ export async function createSlideshowFromFiles(
   await choosePictures(page, files, files.length);
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
   if (secondsPerPicture !== undefined) {
     await setPictureLengthWithoutMusic(page, secondsPerPicture);
   }
@@ -175,7 +173,7 @@ export async function createSlideshow(
  * own result is asserted first, so the busy mark has been set by the time this checks it.
  */
 export async function editsStored(page: Page): Promise<void> {
-  await expect(page.locator(".screen")).toHaveAttribute("aria-busy", "false");
+  await expect(page.getByTestId("editing-screen")).toHaveAttribute("aria-busy", "false");
 }
 
 /** The picture editor's caption field. */
@@ -224,32 +222,31 @@ export async function captionPicture(page: Page, tile: string, caption: string):
 export async function chooseCustomMood(page: Page): Promise<void> {
   await page.getByRole("button", { name: /^Stimmung/ }).click();
   const sheet = page.getByRole("dialog", { name: "Stimmung" });
-  await sheet.getByRole("radio", { name: "Eigene" }).click();
+  await sheet.getByRole("radio", { name: "Keine Stimmung" }).click();
   await sheet.getByRole("button", { name: "Fertig" }).click();
   await expect(sheet).toBeHidden();
 }
 
+/** The capture days `createSlideshowWithMusic` imports unless told otherwise. */
+const THREE_JULY_DAYS = ["2025-07-12", "2025-07-14", "2025-07-20"] as const;
+
 /**
- * Imports three pictures with `track` and waits on the created slideshow's screen, left on Calm
- * (ADR-0050); with `fill`, afterwards leaves the mood in the music editor and sets the pictures
- * to fill the music there.
+ * Imports pictures taken on `days` (three July days by default) with `track` and waits on the
+ * created slideshow's screen, left on Calm (ADR-0050); with `fill`, afterwards leaves the mood in
+ * the music editor and sets the pictures to fill the music there.
  */
 export async function createSlideshowWithMusic(
   page: Page,
   track: TestFile,
-  { fill = false } = {},
+  { days = THREE_JULY_DAYS, fill = false }: { days?: readonly string[]; fill?: boolean } = {},
 ): Promise<void> {
   await openImport(page);
-  await choosePictures(
-    page,
-    await picturesTakenOn(page, ["2025-07-12", "2025-07-14", "2025-07-20"]),
-    3,
-  );
+  await choosePictures(page, await picturesTakenOn(page, days), days.length);
   await page.getByRole("button", { name: "Weiter" }).click();
   await chooseFiles(page, page.getByRole("button", { name: "Dateien wählen" }), [track]);
   await expect(page.getByText(track.name, { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Diashow erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
   if (fill) {
     await openMusicEditor(page);
     const lengthSection = await leaveMoodForOwnPictureTimes(page);

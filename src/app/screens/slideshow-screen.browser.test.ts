@@ -32,12 +32,12 @@ describe("SlideshowScreen, playing", () => {
 });
 
 describe("SlideshowScreen editing", () => {
-  it("removes a picture with its ✕ at once, without asking", () => {
+  it("removes a picture with Delete on its tile at once, without asking", () => {
     const { calls } = mountScreen();
 
-    byLabel("Bild 2 entfernen").click();
+    press(tile(2, "02.07.2025"), "Delete");
 
-    expect(calls.removed).toEqual(["b"]);
+    expect(calls.removedGroup).toEqual([["b"]]);
     expect(document.querySelector("dialog")).toBeNull();
   });
 
@@ -52,14 +52,25 @@ describe("SlideshowScreen editing", () => {
     expect(byLabel("Mischen").disabled).toBe(true);
   });
 
-  it("keeps the last picture: its ✕ is off; Remove and Delete look off but ask, keeping the selection", () => {
+  it("offers Sort by date only in an own order, and asks for the capture-date order with it", () => {
+    mountScreen(details(["a", "b"]));
+    expect(byLabel("Mischen")).toBeTruthy();
+    expect(document.querySelector('[aria-label="Nach Aufnahmedatum sortieren"]')).toBeNull();
+    unmountScreen();
+
+    const { calls } = mountScreen(details(["a", "b"], { ownOrder: true }));
+    byLabel("Nach Aufnahmedatum sortieren").click();
+
+    expect(calls.sortsByDate).toBe(1);
+  });
+
+  it("keeps the last picture: Remove and Delete look off but ask, keeping the selection", () => {
     const { calls } = mountScreen(details(["a"]));
     const only = tile(1, "01.07.2025");
     only.click();
     flushSync();
-    const remove = buttonNamed("Bild entfernen");
+    const remove = buttonNamed("Entfernen");
 
-    expect(byLabel("Bild 1 entfernen").disabled).toBe(true);
     expect(remove.disabled).toBe(false);
     expect(remove.getAttribute("aria-disabled")).toBe("true");
     remove.click();
@@ -84,6 +95,18 @@ describe("SlideshowScreen editing", () => {
     second.click();
     flushSync();
     expect(second.getAttribute("aria-pressed")).toBe("false");
+    expect(selectionBar()).toBeNull();
+  });
+
+  it("drops the selection when its picture leaves the slideshow for another reason", () => {
+    const { props } = mountScreen();
+    tile(2, "02.07.2025").click();
+    flushSync();
+    expect(selectionBar()?.textContent).toContain("Bild 2 von 3");
+
+    props.slideshow = details(["a", "c"]);
+    flushSync();
+
     expect(selectionBar()).toBeNull();
   });
 
@@ -141,7 +164,7 @@ describe("SlideshowScreen editing", () => {
     tile(3, "03.07.2025").click();
     flushSync();
 
-    buttonNamed("Bild entfernen").click();
+    buttonNamed("Entfernen").click();
     flushSync();
 
     expect(calls.removedGroup).toEqual([["c"]]);
@@ -210,7 +233,7 @@ describe("SlideshowScreen editing", () => {
   it("calls the order the user's own once it was changed", () => {
     mountScreen(details(["a", "b"], { ownOrder: true }));
 
-    expect(document.body.textContent).toContain("Eigene Reihenfolge");
+    expect(document.body.textContent).toContain("Deine Reihenfolge");
     expect(document.body.textContent).not.toContain("Nach Aufnahmedatum sortiert");
   });
 

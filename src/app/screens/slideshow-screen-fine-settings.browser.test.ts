@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { createStorageFineSettingsFoldStore } from "./slideshow/fine-settings-fold";
 import { createMemoryStorage } from "../testing/memory-storage";
 import { details, mountScreen, unmountScreen } from "./slideshow-screen-harness";
-import type { KeyValueStorage } from "../start/first-launch";
+import type { KeyValueStorage } from "../storage/storage-port";
 
 afterEach(() => unmountScreen());
 

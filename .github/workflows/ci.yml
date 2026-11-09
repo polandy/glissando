@@ -17,6 +17,7 @@ jobs:
   # Whether a pull request touches anything besides documentation. Browsers, e2e and the image
   # cannot be affected by docs alone; when in doubt (main, an unreadable diff) everything runs.
   changes:
+    timeout-minutes: 5
     runs-on: ubuntu-24.04
     permissions:
       pull-requests: read
@@ -40,6 +41,7 @@ jobs:
           fi
 
   verify:
+    timeout-minutes: 15
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -53,6 +55,7 @@ jobs:
   image:
     needs: changes
     if: needs.changes.outputs.code == 'true'
+    timeout-minutes: 10
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -69,6 +72,7 @@ jobs:
         engine: [chromium, firefox, webkit]
         suite: [vitest, playwright]
     name: ${{ matrix.suite }} (${{ matrix.engine }})
+    timeout-minutes: 20
     runs-on: ubuntu-24.04
     container:
       image: mcr.microsoft.com/playwright@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27 # v1.63.0-noble, matches @playwright/test
@@ -86,7 +90,7 @@ jobs:
           cache: npm
       - run: npm ci --no-fund --no-audit
       - if: matrix.suite == 'vitest'
-        run: npx vitest run --project "browser (${{ matrix.engine }})"
+        run: npx vitest run --project "browser (${{ matrix.engine }}*)"
       - if: matrix.suite == 'playwright'
         run: npx playwright test --project ${{ matrix.engine }}
       - if: failure()

@@ -10,8 +10,8 @@ test.use({ ...GERMAN_BROWSER, viewport: PHONE });
 test("E2E-094 on a phone the picture editor shows the frames or the preview, switched with Frame | Play", async ({
   page,
 }) => {
-  const well = page.locator(".well");
-  const preview = page.locator(".preview");
+  const well = page.getByTestId("frame-well");
+  const preview = page.getByTestId("motion-preview");
   // Only the shown view's switch is in the accessibility tree.
   const views = page.getByRole("group", { name: "Ansicht" });
   const frameView = views.getByRole("button", { name: "Rahmen" });

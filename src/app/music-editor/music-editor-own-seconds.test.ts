@@ -4,6 +4,8 @@ import { OWN_SECONDS_PICTURE_LENGTH } from "../../library/picture-length";
 import { setPictureLength } from "../../library/slideshow-edits-timing";
 import type { StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import type { BeatsStatus } from "../beats/music-beats-known";
+import { pictureLengthNotice } from "./picture-length-notice";
+import { playlistView } from "./playlist-view";
 import { firstSongView } from "./testing/first-song-view";
 
 /** A beat every 400 ms (150 BPM) from 100 ms on, across a minute. */
@@ -14,6 +16,12 @@ const STEADY: MusicBeats = {
 };
 const FOUND: BeatsStatus = { kind: "known", beats: STEADY };
 const LISTENING: BeatsStatus = { kind: "listening" };
+
+/** The picture-length section's notice for the slideshow's first song, whose beats are `status`. */
+function noticeOf(stored: StoredSlideshow, status: BeatsStatus) {
+  const [first] = stored.songs;
+  return pictureLengthNotice(playlistView(stored, new Map([[first?.id ?? "", status]])));
+}
 
 function slideshow(trackMs: number, own: Partial<StoredSlideshow> = {}): StoredSlideshow {
   const pictures: StoredPicture[] = ["a", "b", "c", "d"].map((id) => ({
@@ -59,12 +67,6 @@ describe("musicEditorView, pictures lasting their own seconds with music", () =>
     expect(view.slideshowMs).toBe(20_100);
     expect(view.audibleEndMs).toBe(20_100);
     expect(view.fadeOut).toEqual({ ms: 5000, own: false, reason: "slideshow-ends" });
-    expect(view.note).toEqual({
-      kind: "own-seconds",
-      secondsPerPicture: 5,
-      onTheBeat: true,
-      slideshowMs: 20_100,
-    });
   });
 
   it("names the seconds in the picture changes' texts, which no longer speak of sharing", () => {
@@ -79,21 +81,15 @@ describe("musicEditorView, pictures lasting their own seconds with music", () =>
   });
 
   it("warns that a shorter song leaves the last pictures in silence, because of their seconds", () => {
-    const view = firstSongView(slideshow(12_000), LISTENING);
-
-    expect(view.note).toEqual({
-      kind: "outlasts",
+    expect(noticeOf(slideshow(12_000), LISTENING)).toMatchObject({
+      kind: "music-ends-early",
       overMs: 8000,
-      automaticCount: 4,
-      secondsPerPicture: 5,
     });
   });
 
   it("shrinks the pictures to end with a shorter song instead of outlasting it (ADR-0047)", () => {
     // 4 pictures at 5 s would outlast a 16 s song, but a 4 s share stays at or above the
     // floor (2/3 of 5 s), so they shrink to it instead of ending in silence.
-    const view = firstSongView(slideshow(16_000), FOUND);
-
-    expect(view.note).toEqual({ kind: "fitted", shareMs: 4000, onTheBeat: true });
+    expect(noticeOf(slideshow(16_000), FOUND)).toEqual({ kind: "fitted", shareMs: 4000 });
   });
 });

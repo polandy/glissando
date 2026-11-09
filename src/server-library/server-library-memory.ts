@@ -1,4 +1,4 @@
-import type { KeyValueStorage } from "../app/start/first-launch";
+import type { KeyValueStorage } from "../app/storage/storage-port";
 
 /** The store a slideshow lives in (`dev-docs/SERVER_LIBRARY.md`). */
 export type SlideshowHome = "device" | "server";

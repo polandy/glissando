@@ -1,10 +1,8 @@
 <script lang="ts">
   import {
-    CARD_FADE_STEP,
-    MAX_CARD_FADE,
-    MIN_CARD_FADE,
     DEFAULT_CARD_FADE,
     DEFAULT_CARD_TINT,
+    FALLBACK_CARD_SWATCH,
   } from "../../../../library/stored-card";
   import type {
     CardColour,
@@ -12,9 +10,11 @@
     StoredCardBackground,
   } from "../../../../library/stored-slideshow";
   import { CARD_SWATCHES, type CardSwatchId } from "../../../../player/card-palette";
+  import { radioGroupKeys } from "../../../components/radio-group-keys";
   import SectionHead from "../../../components/SectionHead.svelte";
   import { getTranslator } from "../../../i18n/context";
   import type { PictureTile } from "../../view-models";
+  import CardFadeSlider from "./CardFadeSlider.svelte";
   import CardTintPicker from "./CardTintPicker.svelte";
 
   /**
@@ -67,6 +67,16 @@
     }
   }
 
+  // One tab stop in the picture group: the chosen picture, or the first when none matches.
+  const tabStop = $derived(
+    background.kind === "picture"
+      ? Math.max(
+          0,
+          pictures.findIndex((picture) => picture.id === background.pictureId),
+        )
+      : 0,
+  );
+
   const motionLabel = $derived(
     kind === "opening" ? t("cards.revealLabel") : t("cards.fadeInLabel"),
   );
@@ -86,14 +96,21 @@
 
 <section class="background">
   <SectionHead id="card-background-title" title={t("cards.backgroundLabel")} own={false} />
-  <div class="kind-toggle" role="radiogroup" aria-labelledby="card-background-title">
+  <div
+    class="kind-toggle"
+    role="radiogroup"
+    aria-labelledby="card-background-title"
+    use:radioGroupKeys
+  >
     <button
       class="option"
       class:checked={background.kind === "colour"}
       type="button"
       role="radio"
       aria-checked={background.kind === "colour"}
-      onclick={() => pickColour(background.kind === "colour" ? background.colour : "plum")}
+      tabindex={background.kind === "colour" ? 0 : -1}
+      onclick={() =>
+        pickColour(background.kind === "colour" ? background.colour : FALLBACK_CARD_SWATCH)}
     >
       {t("cards.backgroundColour")}
     </button>
@@ -103,6 +120,7 @@
       type="button"
       role="radio"
       aria-checked={background.kind === "picture"}
+      tabindex={background.kind === "picture" ? 0 : -1}
       onclick={() => pickPicture(pictures[0]?.id ?? "")}
       disabled={pictures.length === 0}
     >
@@ -139,7 +157,12 @@
       {/each}
     </div>
   {:else}
-    <div class="pictures" role="radiogroup" aria-label={t("cards.backgroundPicture")}>
+    <div
+      class="pictures"
+      role="radiogroup"
+      aria-label={t("cards.backgroundPicture")}
+      use:radioGroupKeys
+    >
       {#each pictures as picture, index (picture.id)}
         <button
           class="picture"
@@ -148,6 +171,7 @@
           role="radio"
           aria-checked={background.pictureId === picture.id}
           aria-label={t("cards.pictureOption", { number: index + 1 })}
+          tabindex={index === tabStop ? 0 : -1}
           onclick={() => pickPicture(picture.id)}
         >
           <img src={picture.thumbnailUrl} alt="" draggable="false" />
@@ -155,22 +179,7 @@
       {/each}
     </div>
 
-    <div class="fade">
-      <label class="eyebrow" for="card-fade">{t("cards.fadeLabel")}</label>
-      <input
-        id="card-fade"
-        type="range"
-        min={MIN_CARD_FADE}
-        max={MAX_CARD_FADE}
-        step={CARD_FADE_STEP}
-        value={background.fade}
-        oninput={(event) => setFade(event.currentTarget.valueAsNumber)}
-      />
-      <div class="fade-ends">
-        <span>{t("cards.fadeSubtle")}</span>
-        <span>{t("cards.fadeStrong")}</span>
-      </div>
-    </div>
+    <CardFadeSlider fade={background.fade} onChange={setFade} />
 
     <CardTintPicker tint={background.tint} onChange={setTint} />
 
@@ -251,19 +260,24 @@
     height: 100%;
     object-fit: cover;
   }
-  .fade {
-    display: grid;
-    gap: 4px;
-  }
-  .fade-ends {
-    display: flex;
-    justify-content: space-between;
-    color: var(--gl-muted);
-    font-size: var(--gl-size-small);
-  }
   .motion {
     display: flex;
     align-items: center;
     gap: 8px;
+  }
+
+  @media (pointer: coarse) {
+    .option {
+      min-height: var(--gl-hit-min);
+    }
+    .swatch {
+      min-height: var(--gl-hit-min);
+    }
+    /* The label reaches half a hit square past the 13 px box, kept in place by the negative margin. */
+    .motion {
+      min-height: var(--gl-hit-min);
+      margin-inline: calc(var(--gl-hit-min) / -2);
+      padding-inline: calc(var(--gl-hit-min) / 2);
+    }
   }
 </style>

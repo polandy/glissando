@@ -12,8 +12,15 @@ here; this file is the full text.
   settled/completion signal) instead.
 - **An absence needs a positive signal** — assert what must still be there before what is gone.
 - **Prove it can fail**: break the behaviour and watch exactly that case go red.
+- **E2e finds elements as a user does**: `getByRole`, `getByLabel`, `getByText`, scoped with
+  `filter`; `data-testid` only for purely visual parts (wave bars, playhead, ghost) and for a
+  readout whose changing text is what the case asserts. Never a CSS class or an xpath walk — a
+  restyle must not break a test.
 - **A flake under load** is reproduced and its fix proven by repeated overloaded runs in each
   engine: `scripts/browser-stress.sh <engine> <runs> <cpus> <workers> <files…>`.
+- **Touch emulation** (`src/app/testing/coarse-pointer.ts`, `touch-input.ts`) leaves Chromium's
+  page at `(hover: none)` for good: a file that uses it goes into `TOUCH_EMULATION_TESTS` in
+  `vite.config.ts`, which runs on a Chromium page of its own.
 
 ## Working agreement
 
@@ -52,6 +59,8 @@ here; this file is the full text.
   watch-polling. Targeted checks (one failing test, a suspected flake, one e2e case) run locally
   first in the pinned image — the owner's machine is faster than the CI runners; rerun on GitHub
   only after the local run answered the question.
+- **Every workflow job sets `timeout-minutes`**, at about three times its slowest run, so a hung job
+  frees its runner instead of holding it for 6 h.
 - **English throughout** — code, comments, docs, commits, PR text. The owner's German is
   translated, never quoted. German only as content (UI copy, seed data).
 - **No attribution lines**: no `Co-Authored-By`, no "Generated with" — not in commits, squash

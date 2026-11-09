@@ -2,7 +2,7 @@ import { hideFrameCard } from "./frame/frame-card-actions";
 import type { FrameCardPreference } from "./frame/frame-card-preference";
 import type { InstallOffer, StatusBarAction } from "../pwa/status-bar-view";
 import type { Translator } from "./i18n/translator";
-import type { PwaSheetContent } from "./pwa/PwaSheet.svelte";
+import type { PwaSheetContent } from "./pwa/pwa-sheet-content";
 import type { AppServices } from "./services";
 import type { Toaster } from "./toast/toaster";
 

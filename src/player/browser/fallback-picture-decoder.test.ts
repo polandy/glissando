@@ -1,19 +1,20 @@
 import { describe, expect, it } from "vitest";
-import type { PictureDecoder } from "./bitmap-loader";
+import type { PictureDecoder, PixelPicture } from "./pixel-loader";
 import { FallbackPictureDecoder } from "./fallback-picture-decoder";
 import { PictureDecodeError } from "./worker-picture-decoder";
+import { settleMicrotasks } from "../../testing/settle-microtasks";
 
 /** A decoder whose decodes stay pending until the test settles them, in any order. */
 class FakeDecoder implements PictureDecoder {
   readonly decodes: {
     readonly bytes: Blob;
-    resolve(bitmap: ImageBitmap): void;
+    resolve(picture: PixelPicture): void;
     reject(error: Error): void;
   }[] = [];
   disposed = false;
 
-  decode(bytes: Blob): Promise<ImageBitmap> {
-    const { promise, resolve, reject } = Promise.withResolvers<ImageBitmap>();
+  decode(bytes: Blob): Promise<PixelPicture> {
+    const { promise, resolve, reject } = Promise.withResolvers<PixelPicture>();
     this.decodes.push({ bytes, resolve, reject });
     return promise;
   }
@@ -22,8 +23,8 @@ class FakeDecoder implements PictureDecoder {
     this.disposed = true;
   }
 
-  succeed(index: number, bitmap: ImageBitmap): void {
-    this.decodes[index]?.resolve(bitmap);
+  succeed(index: number, picture: PixelPicture): void {
+    this.decodes[index]?.resolve(picture);
   }
 
   fail(index: number, error: Error = new PictureDecodeError("unreadable")): void {
@@ -43,14 +44,11 @@ const throwingDecoder: PictureDecoder = {
 
 const FIRST = new Blob(["first"]);
 const SECOND = new Blob(["second"]);
-const BITMAP = { width: 4, height: 3 } as ImageBitmap;
-const OTHER_BITMAP = { width: 2, height: 1 } as ImageBitmap;
+const PICTURE: PixelPicture = { width: 1, height: 1, data: new Uint8ClampedArray(4) };
+const OTHER_PICTURE: PixelPicture = { width: 2, height: 1, data: new Uint8ClampedArray(8) };
 
-/** Lets every already-settled promise run its reactions. */
 async function settled(): Promise<void> {
-  await Promise.resolve();
-  await Promise.resolve();
-  await Promise.resolve();
+  await settleMicrotasks();
 }
 
 describe("FallbackPictureDecoder", () => {
@@ -60,9 +58,9 @@ describe("FallbackPictureDecoder", () => {
     const decoder = new FallbackPictureDecoder(primary, fallback);
 
     const decoded = decoder.decode(FIRST);
-    primary.succeed(0, BITMAP);
+    primary.succeed(0, PICTURE);
 
-    await expect(decoded).resolves.toBe(BITMAP);
+    await expect(decoded).resolves.toBe(PICTURE);
     expect(fallback.decodes).toHaveLength(0);
   });
 
@@ -74,12 +72,12 @@ describe("FallbackPictureDecoder", () => {
     const first = decoder.decode(FIRST);
     primary.fail(0);
     await settled();
-    fallback.succeed(0, BITMAP);
-    await expect(first).resolves.toBe(BITMAP);
+    fallback.succeed(0, PICTURE);
+    await expect(first).resolves.toBe(PICTURE);
     const second = decoder.decode(SECOND);
-    fallback.succeed(1, OTHER_BITMAP);
+    fallback.succeed(1, OTHER_PICTURE);
 
-    await expect(second).resolves.toBe(OTHER_BITMAP);
+    await expect(second).resolves.toBe(OTHER_PICTURE);
     expect(fallback.decodes.map(({ bytes }) => bytes)).toEqual([FIRST, SECOND]);
     expect(primary.decodes).toHaveLength(1);
     expect(primary.disposed).toBe(true);
@@ -94,13 +92,13 @@ describe("FallbackPictureDecoder", () => {
     const second = decoder.decode(SECOND);
     primary.fail(0);
     await settled();
-    fallback.succeed(0, BITMAP);
-    await expect(first).resolves.toBe(BITMAP);
+    fallback.succeed(0, PICTURE);
+    await expect(first).resolves.toBe(PICTURE);
     primary.fail(1);
     await settled();
-    fallback.succeed(1, OTHER_BITMAP);
+    fallback.succeed(1, OTHER_PICTURE);
 
-    await expect(second).resolves.toBe(OTHER_BITMAP);
+    await expect(second).resolves.toBe(OTHER_PICTURE);
   });
 
   it("decodes with the fallback when the primary throws instead of rejecting", async () => {
@@ -109,9 +107,9 @@ describe("FallbackPictureDecoder", () => {
 
     const decoded = decoder.decode(FIRST);
     await settled();
-    fallback.succeed(0, BITMAP);
+    fallback.succeed(0, PICTURE);
 
-    await expect(decoded).resolves.toBe(BITMAP);
+    await expect(decoded).resolves.toBe(PICTURE);
   });
 
   it("rejects a picture neither decoder can decode and keeps decoding with the primary", async () => {
@@ -125,9 +123,9 @@ describe("FallbackPictureDecoder", () => {
     fallback.fail(0);
     await expect(corrupt).rejects.toBeInstanceOf(AggregateError);
     const next = decoder.decode(SECOND);
-    primary.succeed(1, BITMAP);
+    primary.succeed(1, PICTURE);
 
-    await expect(next).resolves.toBe(BITMAP);
+    await expect(next).resolves.toBe(PICTURE);
     expect(primary.disposed).toBe(false);
   });
 
@@ -163,22 +161,19 @@ describe("FallbackPictureDecoder", () => {
     expect(fallback.decodes).toHaveLength(0);
   });
 
-  it("closes a bitmap the fallback decoded after disposal and rejects its decode", async () => {
+  it("rejects a decode the fallback finished after disposal", async () => {
     const primary = new FakeDecoder();
     const fallback = new FakeDecoder();
     const decoder = new FallbackPictureDecoder(primary, fallback);
-    let closed = false;
-    const bitmap = { width: 4, height: 3, close: () => (closed = true) } as unknown as ImageBitmap;
 
     const pending = decoder.decode(FIRST);
     primary.fail(0);
     await settled();
     decoder.dispose();
-    fallback.succeed(0, bitmap);
+    fallback.succeed(0, PICTURE);
 
     await expect(pending).rejects.toThrow(/disposed/);
     expect(fallback.decodes).toHaveLength(1);
-    expect(closed).toBe(true);
   });
 
   it("rejects a decode asked for after disposal without decoding", async () => {

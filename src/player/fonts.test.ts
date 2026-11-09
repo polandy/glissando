@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadFonts, type Fonts, type FontSpec } from "./fonts";
+import { settleMicrotasks } from "../testing/settle-microtasks";
 
 function fakeFonts(): { fonts: Fonts; requested: string[] } {
   const requested: string[] = [];
@@ -51,8 +52,8 @@ describe("loadFonts", () => {
       { family: "Second", weight: 400, style: "normal" },
     ]).then(() => order.push("loadFonts settled"));
 
-    await Promise.resolve();
-    expect(order).not.toContain("loadFonts settled");
+    await settleMicrotasks();
+    expect(order).toEqual(["first requested", "second requested", "first settled"]);
 
     resolveSecond?.();
     await settled;

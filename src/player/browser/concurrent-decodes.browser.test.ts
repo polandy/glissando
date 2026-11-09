@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
+import type { PixelPicture } from "./pixel-loader";
 import { startPictureDecodeWorker } from "./start-picture-decode-worker";
 import { WorkerPictureDecoder } from "./worker-picture-decoder";
 
@@ -27,31 +28,25 @@ async function jpegWithRed(red: number): Promise<Blob> {
   );
 }
 
-function redOf(bitmap: ImageBitmap): number {
-  const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
-  const context = canvas.getContext("2d");
-  if (context === null) {
-    throw new Error("no 2D canvas context to read a bitmap");
-  }
-  context.drawImage(bitmap, 0, 0);
-  return context.getImageData(bitmap.width / 2, bitmap.height / 2, 1, 1).data[0] ?? -1;
+function redOf({ width, height, data }: PixelPicture): number {
+  return data[(Math.floor(height / 2) * width + Math.floor(width / 2)) * 4] ?? -1;
 }
 
 let worker: Worker | null = null;
 afterEach(() => worker?.terminate());
 
 describe("WorkerPictureDecoder with equally sized pictures decoded at once", () => {
-  it("hands every picture its own bitmap", async () => {
+  it("hands every picture its own pixels", async () => {
     const decoder = new WorkerPictureDecoder(() => (worker = startPictureDecodeWorker()));
     const expectedReds = Array.from({ length: PICTURE_COUNT }, (_, index) => index * RED_STEP);
     const pictures = await Promise.all(expectedReds.map(jpegWithRed));
 
-    const bitmaps = await Promise.all(pictures.map((picture) => decoder.decode(picture)));
+    const decoded = await Promise.all(pictures.map((picture) => decoder.decode(picture)));
 
-    const reds = bitmaps.map(redOf);
+    const reds = decoded.map(redOf);
     const off = reds.flatMap((red, index) =>
       Math.abs(red - (expectedReds[index] ?? -1)) > COLOUR_TOLERANCE ? [index] : [],
     );
-    expect(off, "pictures that came back with another picture's bitmap").toEqual([]);
+    expect(off, "pictures that came back with another picture's pixels").toEqual([]);
   });
 });

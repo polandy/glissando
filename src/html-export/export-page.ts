@@ -130,6 +130,7 @@ async function writePage(job: PageExportJob): Promise<PageExportResult> {
       copy: copyWithSampleCredit(job.copy, songs),
       slideshow,
       style: bundle.style,
+      notices: bundle.notices,
       captionFontDataUrl: bundle.captionFontDataUrl,
       cardFontFaceRules: cardFontFaceRules(cardFontFilesUsedBy(slideshow), bundle.cardFontDataUrls),
     }),

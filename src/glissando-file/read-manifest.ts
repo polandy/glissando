@@ -3,9 +3,9 @@ import {
   GLISSANDO_FORMAT_VERSION,
   MANIFEST_ENTRY_NAME,
   OLDEST_READABLE_FORMAT_VERSION,
-  ORIGIN_FROM_VERSION,
   type GlissandoManifest,
   type ManifestMusic,
+  type ManifestPicture,
   type ManifestReading,
 } from "./glissando-manifest";
 import { withThumbnailPaths, type PictureAsRead } from "./made-thumbnail-paths";
@@ -85,6 +85,7 @@ function readValidManifest(input: JsonObject, entryNames: ReadonlySet<string>): 
     entryNames,
   );
   const songs = readSongs(show, path, (song, songPath) => readMusic(song, songPath, version));
+  refuseRepeatedPicturePaths(pictures, path);
   refuseRepeatedSongPaths(songs, path);
   refuseClipsOfTwoTypes(pictures, path);
   return {
@@ -96,6 +97,27 @@ function readValidManifest(input: JsonObject, entryNames: ReadonlySet<string>): 
       songs,
     },
   };
+}
+
+/**
+ * Refuses two pictures at the same file path, or at the same thumbnail path, in the container,
+ * naming the second and its path: each would otherwise stand in for the other's bytes.
+ */
+function refuseRepeatedPicturePaths(pictures: readonly ManifestPicture[], path: string): void {
+  const mediaAt = { file: "picture", thumbnail: "thumbnail" } as const;
+  for (const key of ["file", "thumbnail"] as const) {
+    const seen = new Set<string>();
+    for (const [index, picture] of pictures.entries()) {
+      if (seen.has(picture[key])) {
+        throw new DocumentFormatError(
+          `${path}.pictures[${index}].${key}`,
+          `a path no other ${mediaAt[key]} uses`,
+          picture[key],
+        );
+      }
+      seen.add(picture[key]);
+    }
+  }
 }
 
 /** Refuses two songs at the same path in the container, naming the second and its path. */
@@ -118,7 +140,8 @@ function readPicture(value: unknown, path: string, version: number): PictureAsRe
     "file",
     "thumbnail",
     ...pictureKeys(version),
-    ...(version >= ORIGIN_FROM_VERSION ? ["immichAssetId", "fileBytes"] : []),
+    "immichAssetId",
+    "fileBytes",
     ...(version >= VIDEO_FROM_VERSION ? ["video"] : []),
   ]);
   const { thumbnail, immichAssetId, fileBytes, video } = picture;

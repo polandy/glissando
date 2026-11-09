@@ -1,4 +1,5 @@
 import type { Clock } from "../player";
+import { isQuotaExceeded } from "../storage-quota/is-quota-exceeded";
 import {
   audioSegments,
   frameCount,
@@ -19,7 +20,6 @@ import type {
 
 /** More queued frames than this and the run waits for the encoder (VIDEO_EXPORT.md). */
 const MAX_ENCODE_QUEUE = 2;
-const QUOTA_EXCEEDED = "QuotaExceededError";
 
 export interface ExportProgress {
   readonly framesDone: number;
@@ -175,11 +175,4 @@ function abortable<T>(work: Promise<T>, signal: AbortSignal): Promise<T> {
 
 function isClosable(value: unknown): value is Closable {
   return typeof value === "object" && value !== null && "close" in value;
-}
-
-function isQuotaExceeded(error: unknown): boolean {
-  if (error instanceof DOMException && error.name === QUOTA_EXCEEDED) {
-    return true;
-  }
-  return error instanceof Error && error.cause !== undefined && isQuotaExceeded(error.cause);
 }

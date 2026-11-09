@@ -5,6 +5,8 @@ import searchAlbum from "./fixtures/search-album.json";
 import searchLastPage from "./fixtures/search-all-last-page.json";
 import searchPage1 from "./fixtures/search-all-page-1.json";
 import serverVersion from "./fixtures/server-version.json";
+import { readExifCaptureDate } from "../import/exif-capture-date";
+import { syntheticJpeg } from "../import/testing/synthetic-jpeg";
 import { PAGE_SIZE } from "./http-immich-client";
 import { BASE, clientWith, FakeFetch, json } from "./testing/fake-fetch";
 
@@ -51,16 +53,43 @@ describe("HttpImmichClient reading the library", () => {
       order: "desc",
       size: PAGE_SIZE,
       page: 1,
+      withExif: true,
     });
     expect(fake.requests[0]?.headers.get("content-type")).toBe("application/json");
     expect(page.photos[0]).toEqual({
       id: "3f16f3f8-e346-4991-a491-12c925a9d879",
       fileName: "face6_rotated.jpg",
-      takenAt: "2025-07-12T14:30:00.000Z",
+      takenAt: "2025-07-12T14:30:00Z",
       size: { width: 520, height: 671 },
+      place: "Annecy",
+      gps: null,
     });
     expect(page.photos).toHaveLength(3);
     expect(page.nextPage).toBe(2);
+  });
+
+  it("gives a photo the capture date its file's EXIF gives, without Immich's sub-seconds", async () => {
+    const [first] = searchPage1.assets.items;
+    const items = [{ ...first, localDateTime: "2025-07-12T14:30:00.250Z" }];
+    const page1 = json({ assets: { items, nextPage: null } });
+    const fake = new FakeFetch().answer("POST", "api/search/metadata", page1);
+    const sameFile = syntheticJpeg({
+      byteOrder: "little",
+      dateTimeOriginal: "2025:07:12 14:30:00",
+    });
+
+    const page = await clientWith(fake).photos({ page: 1 });
+
+    expect(page.photos[0]?.takenAt).toBe(readExifCaptureDate(sameFile.bytes.slice().buffer));
+  });
+
+  it("fails loud naming the field when a capture date is not an instant with a Z", async () => {
+    const [first] = searchPage1.assets.items;
+    const items = [{ ...first, localDateTime: "2025-07-12T14:30:00+02:00" }];
+    const broken = json({ assets: { items, nextPage: null } });
+    const fake = new FakeFetch().answer("POST", "api/search/metadata", broken);
+
+    await expect(clientWith(fake).photos({ page: 1 })).rejects.toThrow(/"localDateTime"/);
   });
 
   it("asks for one album's photos and ends at the last page", async () => {
@@ -73,10 +102,35 @@ describe("HttpImmichClient reading the library", () => {
       order: "desc",
       size: PAGE_SIZE,
       page: 1,
+      withExif: true,
       albumIds: ["album-1"],
     });
     expect(page.photos).toHaveLength(6);
     expect(page.nextPage).toBeNull();
+  });
+
+  it("reads a photo's place from its EXIF city, and none where Immich has no city", async () => {
+    const fake = new FakeFetch().answer("POST", "api/search/metadata", json(searchAlbum));
+
+    const page = await clientWith(fake).photos({ page: 1, albumId: "album-1" });
+
+    // Annecy and Lyon have a city; then a null city, no exifInfo at all, and so on.
+    expect(page.photos.map(({ place }) => place)).toEqual([
+      "Annecy",
+      "Lyon",
+      null,
+      null,
+      "Annecy",
+      null,
+    ]);
+  });
+
+  it("fails loud when an asset's EXIF city is not a string", async () => {
+    const broken = structuredClone(searchAlbum) as { assets: { items: object[] } };
+    broken.assets.items[0] = { ...broken.assets.items[0], exifInfo: { city: 7 } };
+    const fake = new FakeFetch().answer("POST", "api/search/metadata", json(broken));
+
+    await expect(clientWith(fake).photos({ page: 1 })).rejects.toThrow(/city/);
   });
 
   describe("with videos", () => {
@@ -145,7 +199,7 @@ describe("HttpImmichClient reading the library", () => {
       () => new Response(new Uint8Array([1, 2, 3, 4]), { status: 200 }),
     );
 
-    expect((await clientWith(fake).video("clip-1")).size).toBe(4);
+    expect((await clientWith(fake).video("clip-1", 4)).size).toBe(4);
   });
 
   it("reads an empty last page", async () => {

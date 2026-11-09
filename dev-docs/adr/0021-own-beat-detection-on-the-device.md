@@ -6,7 +6,7 @@
 
 Roadmap 6 (`dev-docs/SCOPE.md`; mockup:
 https://polandy.github.io/glissando-assets/mockups/beat-sync/): the automatic picture changes
-should land on the music's beats. Until now the pictures without an own duration share the
+should land on the music's beats. Until now the pictures without a chosen duration share the
 music's excerpt evenly (ADR-0008, ADR-0009), so a change falls wherever the division puts it.
 A transition runs in the last part of its slide (ADR-0002), so a slide boundary is where the
 transition ends. The beats have to be found offline, in the browser, on a phone, for any music
@@ -40,8 +40,9 @@ Decoding at 11 025 Hz takes about 0.14 s for 3 minutes and is native code.
 
 ## Decision
 
-- **An own detector**, about 200 lines in `src/beats/`, no dependency: the decoded track (mono,
-  11 025 Hz, decoded by `OfflineAudioContext` on the main thread) goes to a **Web Worker** that
+- **An own detector**, about 200 lines in `src/beats/`, no dependency: the decoded track goes to
+  a **Web Worker** (mixed to mono and resampled to 11 025 Hz there, from the song's one full-rate
+  decode, ADR-0051) that
   builds a spectral-flux onset curve (512-sample frames, 128-sample hop), finds the tempo by
   autocorrelation between 50 and 200 BPM (harmonics weighted in, a log-normal preference around
   120 BPM), and tracks the individual beats by dynamic programming (Ellis 2007), so a song that
@@ -62,11 +63,11 @@ Decoding at 11 025 Hz takes about 0.14 s for 3 minutes and is native code.
   to take up the difference: that one then moves too. A transition into a slide on the beat lasts
   the largest whole number of beats that fits its usual duration (30 % of the slide, at most 1 s),
   so it starts on a beat too; one beat longer than that keeps the usual duration.
-- **Own durations move to about their set length** (ADR-0008): a boundary after a picture with an
-  own duration moves the same way, but only within half its slack above `MIN_SECONDS_PER_PICTURE`
+- **Chosen durations move to about their set length** (ADR-0008): a boundary after a picture with an
+  chosen duration moves the same way, but only within half its slack above `MIN_SECONDS_PER_PICTURE`
   either way of its set length, so it keeps about that long rather than exactly it. With no
   automatic slide left after it to take up the difference — filling the music, with only own
-  durations the rest of the way — it keeps its own duration exactly instead, and the boundary
+  durations the rest of the way — it keeps its chosen duration exactly instead, and the boundary
   before it (automatic or own) does too.
 - **The same timing everywhere**: player, video export and web page export compose with the beats
   found so far; until a result exists the even share plays.
@@ -90,8 +91,8 @@ Decoding at 11 025 Hz takes about 0.14 s for 3 minutes and is native code.
 
 The beat list carries no bar or phrase information, so a boundary prefers every fourth beat of
 the list (`BEATS_PER_PHRASE`, counted from the playlist's first beat) over the nearest beat when
-that is at most half a beat further from where the even share puts it. A change then sits where
-the music turns more often, at the cost of up to half a beat of evenness. Counting from the
+that is at most half a beat (the local one, from the nearest beat to the next) further from
+where the even share puts it. A change then sits where the music turns more often, at the cost of up to half a beat of evenness. Counting from the
 playlist start is exact for the first song only; after a song change the phrase grid is a guess
 that still keeps within half a beat of the nearest beat. A full beat of tolerance was tried and
 rejected: slides of 5 s varied by 1.4 s.

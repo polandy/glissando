@@ -82,6 +82,7 @@ describe("SlideshowScreen, F opens the full-screen viewer", () => {
 
     press(tile(1, "01.07.2025"), "f");
 
+    expect(dialog().textContent).toContain("1 von 1");
     expect(document.querySelector(".pill.remove")).toBeNull();
   });
 });
@@ -91,15 +92,15 @@ describe("SlideshowScreen, View in the selection bar opens the same full-screen 
     mountScreen();
     click(tile(2, "02.07.2025"));
 
-    expect(selectionBar()?.textContent).toContain("Vollbild ansehen");
-    expect(selectionBar()?.textContent).toContain("Bild bearbeiten");
+    expect(selectionBar()?.textContent).toContain("Ansehen");
+    expect(selectionBar()?.textContent).toContain("Bearbeiten");
   });
 
   it("opens the selected picture full screen, the same viewer F opens", () => {
     mountScreen();
     click(tile(2, "02.07.2025"));
 
-    click(buttonNamed("Vollbild ansehen"));
+    click(buttonNamed("Ansehen"));
 
     expect(dialog().getAttribute("aria-label")).toBe("Bild vom 02.07.2025");
   });
@@ -110,6 +111,6 @@ describe("SlideshowScreen, View in the selection bar opens the same full-screen 
 
     click(tile(2, "02.07.2025"), { ctrlKey: true });
 
-    expect(() => buttonNamed("Vollbild ansehen")).toThrow();
+    expect(() => buttonNamed("Ansehen")).toThrow();
   });
 });

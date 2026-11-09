@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import { focusSlideshowSummary, type PicturesFocus } from "../../focus/pictures-focus";
   import Icon from "../../components/Icon.svelte";
+  import Sheet from "../../components/Sheet.svelte";
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowSearch } from "../../../library/focus-pass";
   import FocusSheetFooter from "./FocusSheetFooter.svelte";
@@ -48,97 +48,47 @@
   const status = $derived(focusSheetStatus(summary, passPaused));
   const allPictureIds = $derived(pictures.map((picture) => picture.id));
   const failedPictureIds = $derived([...focus.failed]);
-
-  let dialog: HTMLDialogElement;
-
-  // The native modal dialog traps focus and makes the page behind it inert.
-  onMount(() => {
-    dialog.showModal();
-    return () => dialog.close();
-  });
-
-  function cancel(event: Event): void {
-    event.preventDefault();
-    onClose();
-  }
-
-  // The sheet fills the dialog, so a click that lands on the dialog itself is on its backdrop.
-  function closeOnScrim(event: MouseEvent): void {
-    if (event.target === dialog) {
-      onClose();
-    }
-  }
 </script>
 
-<dialog
-  bind:this={dialog}
-  aria-labelledby="focus-sheet-title"
-  oncancel={cancel}
-  onclick={closeOnScrim}
->
-  <div class="sheet">
-    <div class="grab"></div>
-    <div class="shead">
-      <h2 id="focus-sheet-title">{t("focusSheet.title")}</h2>
-      <button
-        class="ib"
-        type="button"
-        title={t("common.close")}
-        aria-label={t("common.close")}
-        onclick={onClose}
-      >
-        <Icon name="close" />
-      </button>
-    </div>
-    <div class="sbody">
-      <FocusSheetStatus {summary} {passPaused} />
-      <FocusSheetLegend
-        counts={summary.counts}
-        ownMotionCount={summary.ownMotionCount}
-        {filter}
-        onFilter={(next) => (filter = next)}
-      />
-      <FocusSheetGrid {focus} {pictures} {passPaused} {filter} {onEdit} />
-      <div class="where">
-        <Icon name={onServer ? "server" : "device"} />
-        {t(onServer ? "focusSheet.sharedOnServer" : "focusSheet.storedOnDevice")}
-      </div>
-    </div>
-    <FocusSheetFooter
-      {status}
-      total={summary.total}
-      ownMotionCount={summary.ownMotionCount}
-      {failedPictureIds}
-      {allPictureIds}
-      {onLookAgain}
-    />
+<Sheet labelId="focus-sheet-title" placement="side" {onClose}>
+  <div class="grab"></div>
+  <div class="shead">
+    <h2 id="focus-sheet-title">{t("focusSheet.title")}</h2>
+    <button
+      class="ib"
+      type="button"
+      title={t("common.close")}
+      aria-label={t("common.close")}
+      onclick={onClose}
+    >
+      <Icon name="close" />
+    </button>
   </div>
-</dialog>
+  <div class="sbody">
+    <FocusSheetStatus {summary} {passPaused} />
+    <FocusSheetLegend
+      counts={summary.counts}
+      ownMotionCount={summary.ownMotionCount}
+      {filter}
+      onFilter={(next) => (filter = next)}
+    />
+    <FocusSheetGrid {focus} {pictures} {passPaused} {filter} {onEdit} />
+    <div class="where">
+      <Icon name={onServer ? "server" : "device"} />
+      {t(onServer ? "focusSheet.sharedOnServer" : "focusSheet.storedOnDevice")}
+    </div>
+  </div>
+  <FocusSheetFooter
+    {status}
+    total={summary.total}
+    ownMotionCount={summary.ownMotionCount}
+    {failedPictureIds}
+    {allPictureIds}
+    {onLookAgain}
+  />
+</Sheet>
 
 <style>
-  dialog {
-    position: fixed;
-    inset: 0 0 0 auto;
-    width: 440px;
-    max-width: 100%;
-    height: 100%;
-    max-height: none;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    border-left: 1px solid var(--gl-line);
-    background: var(--gl-surface);
-    color: var(--gl-ink);
-    box-shadow: var(--gl-shadow);
-  }
-  dialog::backdrop {
-    background: var(--gl-backdrop);
-  }
-  .sheet {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
   .grab {
     display: none;
   }
@@ -167,6 +117,21 @@
   .ib:hover {
     background: var(--gl-hover);
   }
+  @media (pointer: coarse) {
+    .ib {
+      position: relative;
+    }
+    /* The button keeps its look and grows an invisible pad to a 44 px square. */
+    .ib::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: max(100%, var(--gl-hit-min));
+      height: max(100%, var(--gl-hit-min));
+      transform: translate(-50%, -50%);
+    }
+  }
   .sbody {
     flex: 1;
     display: flex;
@@ -182,17 +147,7 @@
     color: var(--gl-muted);
     font-size: var(--gl-size-meta);
   }
-  /* The dialog sits in the top layer, outside the screen's container, so the viewport decides;
-     this matches the screens' 720 px container queries. */
   @media (max-width: 720px) {
-    dialog {
-      inset: auto 0 0;
-      top: 70px;
-      width: auto;
-      height: auto;
-      border-width: 1px 0 0;
-      border-radius: var(--gl-radius-large) var(--gl-radius-large) 0 0;
-    }
     .grab {
       display: block;
       width: 36px;

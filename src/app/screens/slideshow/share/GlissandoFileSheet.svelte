@@ -1,10 +1,11 @@
 <script lang="ts">
   import Notice from "../../../components/Notice.svelte";
+  import Separated from "../../../components/Separated.svelte";
   import { getTranslator } from "../../../i18n/context";
   import { glissandoFileName } from "../../../../glissando-file/export-slideshow";
   import type { ExportMenuState } from "../../../glissando-file/export-menu";
   import type { ExportOutcome } from "../../../glissando-file/export-job";
-  import type { ShareSubject } from "../../../share-link/ShareSheet.svelte";
+  import type { ShareSubject } from "../../../share-link/share-subject";
   import ExportDialog from "../export-sheet/ExportDialog.svelte";
   import SavedNote from "../export-sheet/SavedNote.svelte";
 
@@ -85,7 +86,7 @@
     {/if}
     <div class="file">
       <b>{fileName}</b>
-      <small>{facts}</small>
+      <small><Separated text={facts} /></small>
       {#if exportState.kind === "idle" && exportState.sizeBytes !== null}
         <span class="size mono">{formatBytes(exportState.sizeBytes)}</span>
       {/if}

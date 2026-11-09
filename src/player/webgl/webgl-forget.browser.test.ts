@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { RED, solidBitmap, standingStill, viewportBox } from "../testing/browser-pictures";
+import { RED, solidPixels, standingStill, viewportBox } from "../testing/browser-pictures";
 import { WebGlRenderer } from "./webgl-renderer";
 
 /** A square picture on this screen hides more than a third of itself covering: blurred fill. */
@@ -40,7 +40,7 @@ function setUp() {
 describe("WebGlRenderer.forget, a blurred fill (ADR-0028)", () => {
   it("deletes the picture's backdrop texture along with its own", async () => {
     const { renderer, created, deleted } = setUp();
-    const picture = await solidBitmap(RED);
+    const picture = solidPixels(RED);
     const motion = standingStill({ zoom: 1, centerX: 0.5, centerY: 0.5 });
     renderer.render({
       kind: "slide",

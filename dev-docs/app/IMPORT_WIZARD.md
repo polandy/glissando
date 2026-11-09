@@ -15,8 +15,7 @@ Immich photos, and is created on the server
   folder", and drag-and-drop on desktop (folders read recursively). While anything is in flight, more can be picked at any time; each pick joins the
   running import as a row of a queue, and the tiles arrange like the editor's
   ([IMPORT_ARRANGING.md](IMPORT_ARRANGING.md): the queue, placeholders, order, selecting,
-  moving, viewing, the keys). Then "n pictures · from – to". **Removing**: ✕ on a tile (mouse
-  only), Remove in the selection bar, or Delete or Backspace on a focused tile; never
+  moving, viewing, the keys). Then "n pictures · from – to". **Removing**: Remove in the selection bar, or Delete or Backspace on a focused tile; never
   confirmed. The toast "Picture removed" with "Undo" follows; removals while
   it shows add up ("3 pictures removed") and one Undo puts them all back. Choosing more pictures,
   discarding, or leaving the step (Next, Cancel, ←) ends the undo and dismisses the toast. A
@@ -25,8 +24,9 @@ Immich photos, and is created on the server
   notice "n files could not be read as pictures and were skipped: names. The other m pictures
   are in." (photos that could not be downloaded from Immich get their own sentence "n photos
   could not be downloaded from Immich and were skipped: names." and a picture the browser read
-  but cannot decode "n pictures could not be decoded and were skipped: names.", in the same
-  notice; each read and each decode is tried twice before a picture is skipped, and the skip is
+  but cannot decode "n pictures could not be decoded and were skipped: names." and a picture over
+  the size limit "n pictures are too large and were skipped: names.", in the same notice; each
+  read and each decode is tried twice (a too-large picture once) before it is skipped, and the skip is
   logged with its cause), full storage a coral one with "Choose fewer pictures" (discards and reopens the
   picker). A failed import is a coral notice "The import failed. No more pictures can be added."
   with "Start over" (discards the selection and shows the empty drop zone); the drop zone and
@@ -53,7 +53,7 @@ Immich photos, and is created on the server
   their time to the second. A tile's + ("Take in picture from <date> at <time>", a 44 px target)
   puts it back into the strip at its capture-date place (at the end once the order is the
   user's own) and focus moves to the next +; from then
-  on it is an ordinary picture (✕ removes it) and never set aside again; "Take all in" takes all
+  on it is an ordinary picture (Remove removes it) and never set aside again; "Take all in" takes all
   back. Once none is left set aside, focus moves to the strip tile of the picture taken in
   last (for "Take all in", the latest of them). Set-aside pictures are not kept: the slideshow never references them, so the clean-up
   after Next deletes their media. Exact duplicates are skipped before the check, and neither
@@ -72,4 +72,6 @@ Immich photos, and is created on the server
   problem met on the way (e.g. a rejected key) is reported to `ImmichAvailability`, so the Immich
   box and the settings name it.
 - **Music** (optional): [import-wizard/MUSIC.md](import-wizard/MUSIC.md) — picking songs or sample
-  music, the picture-length choice, and how the music and pictures end (ADR-0047).
+  music, the picture-length choice, and how the music and pictures end (ADR-0047). The step
+  also holds the **Title** field above the create actions: prefilled with a title no other
+  slideshow has, Enter creates, blank falls back to it.

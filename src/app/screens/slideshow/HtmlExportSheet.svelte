@@ -2,11 +2,13 @@
   import { onMount } from "svelte";
   import { MILLISECONDS_PER_SECOND } from "../../../player";
   import { pageSizeById } from "../../../html-export/plan";
-  import Notice from "../../components/Notice.svelte";
+  import { describeExportProblem } from "../../export-errors/describe-export-failure";
   import { getTranslator } from "../../i18n/context";
+  import { PAGE_SIZE_NAME_KEY } from "../../html-export/size-scale";
   import type { HtmlExportState } from "../../html-export/html-export-state";
   import type { HtmlExportSession } from "../../html-export/html-export-session";
   import ExportDialog from "./export-sheet/ExportDialog.svelte";
+  import ExportFailure from "./export-sheet/ExportFailure.svelte";
   import PageChoose from "./html-export/PageChoose.svelte";
   import PageDone from "./html-export/PageDone.svelte";
   import PageRunning from "./html-export/PageRunning.svelte";
@@ -56,6 +58,11 @@
     onClose();
   }
 
+  async function chooseSmaller(): Promise<void> {
+    await session.retry();
+    session.select("small");
+  }
+
   function back(): void {
     session.close();
     onBack?.();
@@ -67,7 +74,7 @@
         return {
           title: t("htmlExport.runningTitle"),
           subtitle: t("htmlExport.runningSubtitle", {
-            size: t(`htmlExport.size-${view.sizeId}`),
+            size: t(PAGE_SIZE_NAME_KEY[view.sizeId]),
             pixels: String(pageSizeById(view.sizeId).bound.longEdge),
           }),
         };
@@ -120,12 +127,11 @@
       onClose={close}
     />
   {:else}
-    <Notice tone="error">
-      {t("htmlExport.failedText")}
-      <small class="error-detail">{view.error.message}</small>
-    </Notice>
-    <footer>
-      <button class="btn" type="button" onclick={close}>{t("common.close")}</button>
-    </footer>
+    <ExportFailure
+      description={describeExportProblem(view, "page")}
+      onClose={close}
+      onRetry={() => void session.retry()}
+      onChooseSize={() => void chooseSmaller()}
+    />
   {/if}
 </ExportDialog>

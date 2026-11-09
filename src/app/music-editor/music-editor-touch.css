@@ -1,0 +1,43 @@
+/*
+ * A finger needs 44 px (`--gl-hit-min`). Each music-editor control keeps its look and grows an
+ * invisible pad to that size around its own box, as `.btn` does in styles/base.css. Rows and
+ * groups keep a gap of at least twice the pad's overhang so neighbouring pads never overlap.
+ * The sheet is global, so every rule hangs off the editor's own root class: other screens use
+ * the same control class names.
+ */
+@media (pointer: coarse) {
+  .music-editor .grip,
+  .music-editor .remove,
+  .music-editor .pick,
+  .music-editor .add,
+  .music-editor .listen-btn,
+  .music-editor .handle button,
+  .music-editor .choices button {
+    position: relative;
+  }
+  .music-editor .handle button {
+    position: absolute;
+  }
+  .music-editor .grip::after,
+  .music-editor .remove::after,
+  .music-editor .pick::after,
+  .music-editor .add::after,
+  .music-editor .listen-btn::after,
+  .music-editor .handle button::after,
+  .music-editor .choices button::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, var(--gl-hit-min));
+    height: max(100%, var(--gl-hit-min));
+    transform: translate(-50%, -50%);
+  }
+  /* The grip's pad reaches 6 px past its box; the song's name starts beyond it. */
+  .music-editor .songs .song {
+    gap: 8px;
+  }
+  .music-editor input[type="range"] {
+    min-height: var(--gl-hit-min);
+  }
+}

@@ -1,4 +1,4 @@
-import { ISO_8601_DATE_TIME } from "./document-values";
+import { CLIP_MEDIA_TYPE, ISO_8601_DATE_TIME, SONG_MEDIA_TYPE } from "./document-values";
 
 /**
  * A small, typed subset of JSON Schema draft-07: just the keywords the manifest schema
@@ -39,6 +39,18 @@ export const NON_EMPTY_STRING_SCHEMA: JsonSchema = { type: "string", pattern: "\
  * reader-only).
  */
 export const DATE_TIME_SCHEMA: JsonSchema = { type: "string", pattern: ISO_8601_DATE_TIME.source };
+
+/** `readSongMediaType`'s shape. */
+export const SONG_MEDIA_TYPE_SCHEMA: JsonSchema = {
+  type: "string",
+  pattern: SONG_MEDIA_TYPE.source,
+};
+
+/** `readClipMediaType`'s shape. */
+export const CLIP_MEDIA_TYPE_SCHEMA: JsonSchema = {
+  type: "string",
+  pattern: CLIP_MEDIA_TYPE.source,
+};
 
 /** `isHexColour`'s shape: `#RRGGBB`, case-insensitive. */
 export const HEX_COLOUR_SCHEMA: JsonSchema = { type: "string", pattern: "^#[0-9A-Fa-f]{6}$" };

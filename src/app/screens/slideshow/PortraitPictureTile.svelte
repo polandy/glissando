@@ -13,7 +13,6 @@
     automatic,
     radio = $bindable(),
     onPick,
-    onKeydown,
   }: {
     choice: ResolvedPortraitPictures;
     checked: boolean;
@@ -21,7 +20,6 @@
     automatic: boolean;
     radio?: HTMLButtonElement | undefined;
     onPick: () => void;
-    onKeydown: (event: KeyboardEvent) => void;
   } = $props();
 
   const { t } = getTranslator();
@@ -46,7 +44,6 @@
   tabindex={checked ? 0 : -1}
   data-choice={choice}
   onclick={onPick}
-  onkeydown={onKeydown}
 >
   <span class="dot" aria-hidden="true"></span>
   <b>{t(`portrait.choice-${choice}`)}</b>

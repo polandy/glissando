@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
+import { Toaster } from "../toast/toaster";
+import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
+import { ResetUndo } from "./reset-undo";
 import { VideoSettingsEditor } from "./video-settings-editor";
 
 const START: StoredSlideshow = {
@@ -23,11 +26,14 @@ const START: StoredSlideshow = {
 
 function setUp() {
   let current = START;
+  const toaster = new Toaster(new FakeScheduler());
   const editor = new VideoSettingsEditor(
+    { clipResetText: () => "Clip zurückgesetzt" },
+    new ResetUndo(toaster, () => "Rückgängig"),
     () => current,
     (next) => void (current = next),
   );
-  return { editor, video: () => current.pictures[0]?.video };
+  return { editor, toaster, video: () => current.pictures[0]?.video };
 }
 
 describe("VideoSettingsEditor", () => {
@@ -63,5 +69,31 @@ describe("VideoSettingsEditor", () => {
 
     expect(() => editor.setExcerpt("clip", 2000, 2100)).toThrow(/endMs/);
     expect(video()?.startMs).toBe(0);
+  });
+
+  it("the reset offers an undo that restores the previous clip settings", () => {
+    const { editor, toaster, video } = setUp();
+    editor.setExcerpt("clip", 2000, 9000);
+    editor.setVolume("clip", 0);
+    const before = video();
+    editor.reset("clip");
+    expect(toaster.current?.text).toBe("Clip zurückgesetzt");
+
+    toaster.act();
+
+    expect(video()).toEqual(before);
+  });
+
+  it("a later edit of the clip ends the reset's undo", () => {
+    const { editor, toaster, video } = setUp();
+    editor.setVolume("clip", 0);
+    editor.reset("clip");
+    const undo = toaster.current?.action;
+
+    editor.setVolume("clip", 40);
+    undo?.run();
+
+    expect(toaster.current).toBeNull();
+    expect(video()?.volume).toBe(40);
   });
 });

@@ -12,6 +12,7 @@ import {
   reconcile,
   shiftGroup as orderWithGroupShifted,
   shuffle as orderShuffled,
+  sortByCaptureDate,
   type ArrangementState,
 } from "./import-arrangement";
 
@@ -66,6 +67,16 @@ export class SessionArrangement {
   /** A new random order of the ready pictures, the user's own. */
   shuffle(): void {
     this.#set(orderShuffled(this.#state, this.#ports.random));
+  }
+
+  /** Back to capture order, which is no longer the user's own. */
+  sortByDate(): void {
+    this.#set(
+      sortByCaptureDate(
+        this.#state,
+        this.#ports.pictures.state.pictures.map((picture) => picture.id),
+      ),
+    );
   }
 
   /** Starts over, such as when the import is discarded. */

@@ -7,9 +7,21 @@ import {
   type Slideshow,
 } from "../../player";
 import { audioEncoderConfig, videoEncoderConfig, type AudioCodecChoice } from "../capabilities";
+import type { AudioEncoderPort, VideoEncoderPort } from "../ports";
 import { exportVideo, type ExportOutcome, type ExportProgress } from "../export-video";
-import { frameCount, packetCountBounds, presetById, type PresetId } from "../plan";
-import { WebCodecsAudioEncoder, WebCodecsVideoEncoder } from "./encoders";
+import {
+  frameCount,
+  packetCountBounds,
+  presetById,
+  type PresetId,
+  type VideoPreset,
+} from "../plan";
+import {
+  WebCodecsAudioEncoder,
+  WebCodecsVideoEncoder,
+  type AudioChunkOutput,
+  type VideoChunkOutput,
+} from "./encoders";
 import type { ExportTarget } from "./file-targets";
 import { CanvasFrameSource } from "./frame-source";
 import { createMp4Muxer, type Mp4Muxer } from "./mp4-muxer";
@@ -40,8 +52,27 @@ export type VideoExportResult =
   | { readonly kind: "done"; readonly frames: number; readonly file: File }
   | Exclude<ExportOutcome, { readonly kind: "done" }>;
 
+/** Builds the encoders; a test injects ones that fail or record. */
+export interface ExportEncoders {
+  video(config: VideoEncoderConfig, output: VideoChunkOutput): VideoEncoderPort<VideoFrame>;
+  audio(config: AudioEncoderConfig, output: AudioChunkOutput): AudioEncoderPort<AudioData>;
+}
+
+const webCodecsEncoders: ExportEncoders = {
+  video: (config, output) => new WebCodecsVideoEncoder(config, output),
+  audio: (config, output) => new WebCodecsAudioEncoder(config, output),
+};
+
 /** Renders the slideshow into `target` as an MP4 (VIDEO_EXPORT.md). */
-export async function runVideoExport(options: RunVideoExportOptions): Promise<VideoExportResult> {
+export function runVideoExport(options: RunVideoExportOptions): Promise<VideoExportResult> {
+  return runVideoExportWith(webCodecsEncoders, options);
+}
+
+/** `runVideoExport` with the encoders injected. */
+export async function runVideoExportWith(
+  encoders: ExportEncoders,
+  options: RunVideoExportOptions,
+): Promise<VideoExportResult> {
   const { slideshow, target, signal } = options;
   const preset = presetById(options.preset);
   if (exportHasAudio(slideshow) !== (options.audioCodec !== null)) {
@@ -52,14 +83,12 @@ export async function runVideoExport(options: RunVideoExportOptions): Promise<Vi
   if (hasClips && openVideo === undefined) {
     throw new Error("runVideoExport needs openVideo for a slideshow with video slides");
   }
-  const framePlayer = createFramePlayer(
-    slideshow,
-    preset.size,
-    options.openPicture,
-    openVideo === undefined
-      ? undefined
-      : (src) => new ClipFrames(src, openVideo, preset.size.width),
-  );
+  const framePlayer = createFramePlayer(slideshow, preset.size, {
+    ...(options.openPicture === undefined ? {} : { openPicture: options.openPicture }),
+    ...(openVideo === undefined
+      ? {}
+      : { openVideoFrames: (src: string) => new ClipFrames(src, openVideo, preset.size.width) }),
+  });
   if (framePlayer === null) {
     return { kind: "failed", error: new Error("this browser has no WebGL2 to draw the video") };
   }
@@ -74,14 +103,14 @@ export async function runVideoExport(options: RunVideoExportOptions): Promise<Vi
   // The timeline lays the slides end to end, so this is the player's duration in whole ms.
   const durationMs = slideshow.slides.reduce((total, slide) => total + slide.durationMs, 0);
   try {
-    const job = await prepare(options, clipAudio, framePlayer, durationMs);
+    const job = await prepare(encoders, options, clipAudio, framePlayer, durationMs, preset);
     if (job.kind !== "ready") {
       return job;
     }
     const outcome = await exportVideo({
       durationMs,
       frames: new CanvasFrameSource(framePlayer),
-      videoEncoder: new WebCodecsVideoEncoder(videoEncoderConfig(preset), job.muxer.addVideo),
+      videoEncoder: job.videoEncoder,
       audio: job.audio,
       muxer: job.muxer.port,
       sink: target,
@@ -100,9 +129,10 @@ type Prepared =
   | {
       readonly kind: "ready";
       readonly muxer: Mp4Muxer;
+      readonly videoEncoder: VideoEncoderPort<VideoFrame>;
       readonly audio: {
         readonly source: AudioMixer;
-        readonly encoder: WebCodecsAudioEncoder;
+        readonly encoder: AudioEncoderPort<AudioData>;
       } | null;
     }
   | Extract<ExportOutcome, { readonly kind: "failed" | "cancelled" }>;
@@ -112,13 +142,17 @@ type Prepared =
  * failure here leaves no file behind either.
  */
 async function prepare(
+  encoders: ExportEncoders,
   { slideshow, openMusic, audioCodec, target, signal }: RunVideoExportOptions,
   clipAudio: ClipAudio | null,
   framePlayer: FramePlayer,
   durationMs: number,
+  preset: VideoPreset,
 ): Promise<Prepared> {
   let writable: WritableStream | null = null;
   let muxer: Mp4Muxer | null = null;
+  let videoEncoder: VideoEncoderPort<VideoFrame> | null = null;
+  let audioEncoder: AudioEncoderPort<AudioData> | null = null;
   try {
     const [music] = await Promise.all([
       audioCodec === null ? null : AudioMixer.decode(slideshow.music ?? [], openMusic, clipAudio),
@@ -132,18 +166,19 @@ async function prepare(
       audioCodec,
       maxPackets: packetCountBounds(frameCount(durationMs)),
     });
+    videoEncoder = encoders.video(videoEncoderConfig(preset), muxer.addVideo);
+    if (music !== null && audioCodec !== null && muxer.addAudio !== null) {
+      audioEncoder = encoders.audio(audioEncoderConfig(audioCodec), muxer.addAudio);
+    }
     const audio =
-      music === null || audioCodec === null || muxer.addAudio === null
-        ? null
-        : {
-            source: music,
-            encoder: new WebCodecsAudioEncoder(audioEncoderConfig(audioCodec), muxer.addAudio),
-          };
-    return { kind: "ready", muxer, audio };
+      audioEncoder === null || music === null ? null : { source: music, encoder: audioEncoder };
+    return { kind: "ready", muxer, videoEncoder, audio };
   } catch (error: unknown) {
     // The outcome carries the first error; a cancel that fails as well must not keep a private
     // file from being removed.
     const ignore = () => undefined;
+    audioEncoder?.close();
+    videoEncoder?.close();
     if (muxer !== null) {
       await muxer.port.cancel().catch(ignore);
     } else if (writable !== null) {

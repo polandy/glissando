@@ -11,10 +11,11 @@
 </script>
 
 <script lang="ts">
+  import Separated from "../../../components/Separated.svelte";
   import { getTranslator } from "../../../i18n/context";
   import type { ExportMenuState } from "../../../glissando-file/export-menu";
   import { shareSummary } from "../../../share-link/share-summary";
-  import type { ShareSubject } from "../../../share-link/ShareSheet.svelte";
+  import type { ShareSubject } from "../../../share-link/share-subject";
   import ExportDialog from "../export-sheet/ExportDialog.svelte";
   import ShareOption from "./ShareOption.svelte";
 
@@ -75,7 +76,7 @@
 >
   {#if link.kind !== "absent"}
     <section class="group" aria-labelledby="share-group-link">
-      <h3 class="eyebrow" id="share-group-link">{t("share.groupLink")}</h3>
+      <h3 class="eyebrow" id="share-group-link"><Separated text={t("share.groupLink")} /></h3>
       {#if link.kind === "device"}
         <ShareOption icon="link" title={t("share.rowTitle")} text={t("share.deviceHint")} />
       {:else if link.url === null}
@@ -100,7 +101,7 @@
     </section>
   {/if}
   <section class="group" aria-labelledby="share-group-copy">
-    <h3 class="eyebrow" id="share-group-copy">{t("share.groupCopy")}</h3>
+    <h3 class="eyebrow" id="share-group-copy"><Separated text={t("share.groupCopy")} /></h3>
     <ShareOption
       icon="film"
       title={t("share.videoTitle")}

@@ -2,7 +2,7 @@ import { musicExcerptMs, placeSongs, playlistMs, repeatedPlaylist } from "../../
 import { moodSettings, moodTempo } from "../../compose/mood-settings";
 import { SEQUENCE_BETWEEN_SONGS } from "../../library/own-music";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
-import { timingNote } from "./music-timing-note";
+import { pictureFit } from "./picture-fit";
 import {
   slideshowTimes,
   songBeats,
@@ -90,11 +90,7 @@ export function playlistView(
   loudness: SongsLoudnessStatus = new Map(),
   details = true,
 ): PlaylistView {
-  const { beatsMs, durationsMs, slideshowMs, picturesFit } = slideshowTimes(
-    stored,
-    beats,
-    loudness,
-  );
+  const { durationsMs, slideshowMs, picturesFit } = slideshowTimes(stored, beats, loudness);
   const repeatMusic = stored.repeatMusic === true;
   const originalCount = stored.songs.length;
   const placed = repeatMusic
@@ -125,13 +121,12 @@ export function playlistView(
   });
   const crossfades = details ? allCrossfades : [];
   const playlistLengthMs = playlistMs(stored) ?? 0;
-  const note = repeatMusic
-    ? undefined
-    : timingNote(
+  const fit = repeatMusic
+    ? {}
+    : pictureFit(
         stored,
         durationsMs,
         playlistLengthMs,
-        beatsMs !== undefined,
         picturesFit,
         moodSecondsPerPicture(stored, beats),
       );
@@ -146,12 +141,11 @@ export function playlistView(
     slideshowMs,
     slideChangesMs: durationsMs.slice(0, -1).map((durationMs) => (changeMs += durationMs)),
     repeatMusic,
-    ...(note?.kind === "fitted" ? { fittedShareMs: note.shareMs } : {}),
-    ...(note?.kind === "outlasts" ? { overMs: note.overMs } : {}),
+    ...fit,
   };
 }
 
-/** What a mood would otherwise give every automatic picture, for `timingNote` (`music-editor-view.ts`'s pattern). */
+/** What a mood would otherwise give every automatic picture, for `pictureFit`. */
 function moodSecondsPerPicture(
   stored: StoredSlideshow,
   beats: SongsBeatsStatus,

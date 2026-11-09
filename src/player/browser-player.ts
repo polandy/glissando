@@ -1,4 +1,4 @@
-import { BitmapLoader, type BitmapPicture, type PictureDecoder } from "./browser/bitmap-loader";
+import { PixelLoader, type PixelPicture, type PictureDecoder } from "./browser/pixel-loader";
 import { MusicOutput } from "./browser/music-output";
 import { openVideoElement, type DecodeClipSound } from "./browser/open-video";
 import {
@@ -19,6 +19,7 @@ import type { PictureLoader, SlideRenderer } from "./ports";
 import type { Slideshow } from "./slideshow";
 import { SlideshowPlayer } from "./slideshow-player";
 import { WebGlRenderer } from "./webgl/webgl-renderer";
+import { WebGlSetupError } from "./webgl/webgl-setup-error";
 
 /** Mirrors `ui-kit/reduced-motion`'s query; the player engine imports nothing from the app. */
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
@@ -67,8 +68,8 @@ const browserObjectUrls = {
 type Drawing =
   | {
       readonly kind: "webgl";
-      readonly renderer: SlideRenderer<BitmapPicture>;
-      readonly pictures: PictureLoader<BitmapPicture>;
+      readonly renderer: SlideRenderer<PixelPicture>;
+      readonly pictures: PictureLoader<PixelPicture>;
     }
   | {
       readonly kind: "dom";
@@ -77,7 +78,7 @@ type Drawing =
     };
 
 /** A player drawing with WebGL2 or with the DOM fallback; they differ only inside. */
-export type BrowserPlayer = SlideshowPlayer<BitmapPicture> | SlideshowPlayer<BrowserPicture>;
+export type BrowserPlayer = SlideshowPlayer<PixelPicture> | SlideshowPlayer<BrowserPicture>;
 
 /**
  * `createPlayer` with the decode worker started by the caller: the exported page starts it from
@@ -99,6 +100,7 @@ export function createBrowserPlayer(
   }: BrowserPlayerOptions,
 ): BrowserPlayer {
   let player: BrowserPlayer | null = null;
+  const reducedMotionQuery = window.matchMedia(REDUCED_MOTION_QUERY);
   const redraw = () => player?.redraw();
   const createDecoder = (): PictureDecoder => {
     const workerDecoder = new WorkerPictureDecoder(startDecodeWorker);
@@ -123,12 +125,13 @@ export function createBrowserPlayer(
     openVideo: (src: string, volume: number, endMs: number) =>
       openVideoElement(src, volume, endMs, {
         output: videoOutput,
+        createElement: () => document.createElement("video"),
         ...(readVideo === undefined
           ? {}
           : { source: { openVideo: readVideo, urls: browserObjectUrls } }),
         ...(decodeClipSound === undefined ? {} : { decodeClipSound }),
       }),
-    reducedMotion: () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
+    reducedMotion: () => reducedMotionQuery.matches,
     ...(picturesAhead === undefined ? {} : { picturesAhead }),
   };
   player =
@@ -159,16 +162,20 @@ function createDrawing(
   Object.assign(canvas.style, { position: "absolute", inset: "0", width: "100%", height: "100%" });
   const gl = webGl2Context(canvas);
   if (gl === null) {
-    return {
-      kind: "dom",
-      renderer: new DomRenderer(container, onResize),
-      pictures: new ImageElementLoader(
-        openPicture === undefined ? null : { openPicture, urls: browserObjectUrls },
-      ),
-    };
+    return domDrawing(container, onResize, openPicture);
+  }
+  let renderer: WebGlRenderer;
+  try {
+    renderer = new WebGlRenderer(canvas, gl, onResize, fonts === undefined ? {} : { fonts });
+  } catch (error) {
+    if (!(error instanceof WebGlSetupError)) {
+      throw error;
+    }
+    console.warn("WebGL2 setup failed; drawing with the DOM fallback", error);
+    gl.getExtension("WEBGL_lose_context")?.loseContext();
+    return domDrawing(container, onResize, openPicture);
   }
   container.append(canvas);
-  const renderer = new WebGlRenderer(canvas, gl, onResize, fonts === undefined ? {} : { fonts });
   // Starts a card style's font loading as soon as the renderer exists, rather than leaving it to
   // begin mid-playback on the first frame that draws it (ADR-0032). Never swallowed silently:
   // `CardTextures` itself logs a failed load (`#loadStyle`); this merely asks it to start one.
@@ -178,6 +185,20 @@ function createDrawing(
   return {
     kind: "webgl",
     renderer,
-    pictures: new BitmapLoader(createDecoder(), openPicture),
+    pictures: new PixelLoader(createDecoder(), openPicture),
+  };
+}
+
+function domDrawing(
+  container: HTMLElement,
+  onResize: () => void,
+  openPicture: OpenPicture | undefined,
+): Drawing {
+  return {
+    kind: "dom",
+    renderer: new DomRenderer(container, onResize),
+    pictures: new ImageElementLoader(
+      openPicture === undefined ? null : { openPicture, urls: browserObjectUrls },
+    ),
   };
 }

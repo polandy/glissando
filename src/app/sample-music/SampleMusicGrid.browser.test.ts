@@ -13,6 +13,7 @@ import { Toaster } from "../toast/toaster";
 import SampleMusicGrid from "./SampleMusicGrid.svelte";
 import { SamplePreview, type SamplePreviewAudio, type SamplePreviewPorts } from "./sample-preview";
 import type { SampleSongRow } from "./sample-song-pick";
+import { settleMicrotasks } from "../../testing/settle-microtasks";
 
 // First 3 (the folded grid) and one from the remaining 6 (unfolded by "Show all").
 const VISIBLE_TITLE = "Hold the Frame";
@@ -101,10 +102,8 @@ const toggleButton = (target: HTMLElement): HTMLButtonElement => {
   return button;
 };
 
-// hasTrackOnDevice resolves on a microtask per track; a flush after lets its effect settle.
 async function settled(): Promise<void> {
-  await Promise.resolve();
-  await Promise.resolve();
+  await settleMicrotasks();
   flushSync();
 }
 

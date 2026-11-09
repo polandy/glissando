@@ -92,6 +92,8 @@ export class AddPicturesSession {
    * end is reported, not thrown: it only spares their media, which the slideshow now keeps.
    */
   async commit(): Promise<readonly string[]> {
+    // A link still reading colours is waited for; one that failed is reported already.
+    await this.intake.linked();
     const state = this.intake.pictures.state;
     if (state.busy) {
       throw new Error("cannot add the pictures: they are still being imported");

@@ -1,6 +1,5 @@
-import type { VideoPlayback } from "../ports";
 import type { ObjectUrlPort } from "./picture-loader";
-import { VideoElementPlayback, type VideoOutput } from "./video-playback";
+import { VideoElementPlayback, type VideoElementPort, type VideoOutput } from "./video-playback";
 
 /** Where clips come from when a slide's `video.src` is no URL the browser can load itself. */
 export interface VideoSource {
@@ -12,15 +11,17 @@ export interface VideoSource {
 /** Decodes a clip's whole sound into one `AudioBuffer`; null for a clip with none (`decodeClipSound`). */
 export type DecodeClipSound = (blob: Blob) => Promise<AudioBuffer | null>;
 
-export interface OpenVideoOptions {
+export interface OpenVideoOptions<Element extends VideoElementPort> {
   readonly output: VideoOutput;
   readonly source?: VideoSource;
-  readonly createElement?: () => HTMLVideoElement;
+  readonly createElement: () => Element;
   /** Without it, a clip's sound never decodes and the clip plays silent. */
   readonly decodeClipSound?: DecodeClipSound;
+  /** Reports a sound that failed to decode; the console without it. */
+  readonly log?: (error: unknown) => void;
 }
 
-const createVideoElement = (): HTMLVideoElement => document.createElement("video");
+const warnInConsole = (error: unknown): void => console.warn(error);
 
 /**
  * Opens a clip in a `<video>` element, always muted (ADR-0035): its picture only, drawn frame by
@@ -28,12 +29,18 @@ const createVideoElement = (): HTMLVideoElement => document.createElement("video
  * `VideoSource` its bytes are read only when the clip is first needed and the object URL lives
  * until `dispose`; `endMs` is the clip's own file-time clamp, for the sound decoded up to it.
  */
-export function openVideoElement(
+export function openVideoElement<Element extends VideoElementPort>(
   src: string,
   volume: number,
   endMs: number,
-  { output, source, createElement = createVideoElement, decodeClipSound }: OpenVideoOptions,
-): VideoPlayback {
+  {
+    output,
+    source,
+    createElement,
+    decodeClipSound,
+    log = warnInConsole,
+  }: OpenVideoOptions<Element>,
+): VideoElementPlayback<Element> {
   const element = createElement();
   if (source === undefined) {
     element.src = src;
@@ -66,7 +73,7 @@ export function openVideoElement(
     }
     element.src = url;
   });
-  const decoded = decodedSound(volume, decodeClipSound, () => blob);
+  const decoded = decodedSound(volume, decodeClipSound, () => blob, log);
   return new VideoElementPlayback(element, volume, endMs, output, decoded, sourceReady, () => {
     disposed = true;
     revoke();
@@ -82,6 +89,7 @@ function decodedSound(
   volume: number,
   decodeClipSound: DecodeClipSound | undefined,
   blobOf: () => Promise<Blob>,
+  log: (error: unknown) => void,
 ): Promise<AudioBuffer | null> {
   if (volume <= 0 || decodeClipSound === undefined) {
     return Promise.resolve(null);
@@ -89,7 +97,7 @@ function decodedSound(
   return blobOf()
     .then((blob) => decodeClipSound(blob))
     .catch((error: unknown) => {
-      console.warn("could not decode a video clip's sound", error);
+      log(new Error("could not decode a video clip's sound", { cause: error }));
       return null;
     });
 }

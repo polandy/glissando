@@ -69,9 +69,12 @@
 
   // svelte-ignore state_referenced_locally
   let home = $state<SlideshowHome>(session.choices.current().home);
-  const locked = $derived(importState.pictures.length > 0 || importState.busy);
+  // svelte-ignore state_referenced_locally
+  let linking = $state(session.intake.linking.current());
+  const locked = $derived(importState.pictures.length > 0 || importState.busy || linking);
 
   $effect(() => session.pictures.subscribe((next) => (importState = next)));
+  $effect(() => session.intake.linking.subscribe((next) => (linking = next)));
   // svelte-ignore state_referenced_locally
   let cullingState = $state.raw(session.intake.culling.state);
   $effect(() => session.intake.culling.subscribe((next) => (cullingState = next)));

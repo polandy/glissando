@@ -7,7 +7,7 @@ import type { Command, PlaybackState } from "./tv-protocol";
  */
 
 /** Less than this far into a picture, `previous` goes to the picture before. */
-export const PREVIOUS_RESTARTS_WITHIN_SECONDS = 2;
+const PREVIOUS_RESTARTS_WITHIN_SECONDS = 2;
 /** How often the TV reports while it plays, so the remote's clock never drifts far. */
 export const REPORT_EVERY_MS = 5000;
 

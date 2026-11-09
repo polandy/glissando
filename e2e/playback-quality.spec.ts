@@ -9,6 +9,7 @@ test.use(GERMAN_BROWSER);
 
 const TITLE = "Sommer auf dem Server";
 const QUALITY_GROUP = "Bildqualität von Server-Diashows";
+const SERVER_SECTION = "Auf deinem Glissando-Server";
 
 async function serverShowOnTheServer(page: Page) {
   let jpeg: Uint8Array | null = null;
@@ -46,7 +47,7 @@ async function serverShowOnTheServer(page: Page) {
 }
 
 async function chooseQuality(page: Page, name: string): Promise<void> {
-  await page.getByRole("button", { name: "Einstellungen" }).click();
+  await page.getByRole("button", { name: "Einstellungen", exact: true }).click();
   const group = page.getByRole("dialog", { name: "Einstellungen" }).getByRole("radiogroup", {
     name: QUALITY_GROUP,
   });
@@ -56,26 +57,29 @@ async function chooseQuality(page: Page, name: string): Promise<void> {
 
 async function playTheServerShow(page: Page): Promise<void> {
   await page
-    .getByRole("region", { name: "Auf deinem Glissando-Server" })
+    .getByRole("region", { name: SERVER_SECTION })
     .getByRole("button", { name: new RegExp(TITLE) })
     .click();
   await page.getByRole("button", { name: "Abspielen", exact: true }).last().click();
 }
 
-test("E2E-046 a server slideshow plays Immich's previews at 1440 and prepares the originals at 4K", async ({
+test("E2E-046 a server slideshow plays Immich's previews at Standard (1440) and prepares the originals at Large (4K)", async ({
   page,
 }) => {
   const server = await serverShowOnTheServer(page);
 
-  await chooseQuality(page, "1440 Pixel");
+  await chooseQuality(page, "Standard");
   await playTheServerShow(page);
   await expect(page.getByRole("dialog", { name: TITLE })).toBeVisible();
-  await expect.poll(() => server.previewsAsked.length).toBeGreaterThan(0);
+  await expect
+    .poll(() => new Set(server.previewsAsked).size)
+    .toBe(LIBRARY_PAGE.assets.items.length);
   expect(server.originalsAsked).toEqual([]);
 
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Zurück", exact: true }).click();
-  await chooseQuality(page, "4K");
+  await expect(page.getByRole("region", { name: SERVER_SECTION })).toBeVisible();
+  await chooseQuality(page, "Groß");
   await playTheServerShow(page);
   await expect(page.getByRole("dialog", { name: TITLE })).toBeVisible();
   await expect.poll(() => server.originalsAsked.length).toBeGreaterThan(0);

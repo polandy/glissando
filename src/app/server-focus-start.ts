@@ -19,9 +19,10 @@ const isFrame = (route: Route): boolean => route.screen === "frame";
 /**
  * Starts the server focus pass whenever the server library turns on — app open included, as the
  * availability replays — and when the app leaves the frame for its own screens, since a frame
- * opened first held the pass back: a kiosk showing one album has no library to search.
+ * opened first held the pass back: a kiosk showing one album has no library to search. Returns
+ * the same allow check, for a start the caller triggers itself.
  */
-export function followServerFocusStart(options: ServerFocusStartOptions): void {
+export function followServerFocusStart(options: ServerFocusStartOptions): () => void {
   const { availability, navigator, start } = options;
   const startIfAllowed = (): void => {
     if (availability.state.kind === "on" && !isFrame(navigator.route)) start();
@@ -33,4 +34,5 @@ export function followServerFocusStart(options: ServerFocusStartOptions): void {
     previous = route;
     if (leftFrame) startIfAllowed();
   });
+  return startIfAllowed;
 }

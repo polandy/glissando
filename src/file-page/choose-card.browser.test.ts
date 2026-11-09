@@ -56,6 +56,41 @@ describe("createChooseCard", () => {
     expect(alert?.querySelector("img")).toBeNull();
   });
 
+  it("keeps the reason behind a Show details button until it is pressed", () => {
+    const { document, choose } = card();
+
+    choose.show(WORDS.damaged, "no JSON at 1:2");
+
+    const alert = document.querySelector<HTMLElement>("[role=alert]");
+    const toggle = document.querySelector<HTMLButtonElement>(".details-toggle");
+    const reason = document.querySelector<HTMLElement>(".error-details");
+    expect(alert?.textContent).toBe(WORDS.damaged);
+    expect(toggle?.textContent).toBe(WORDS.showDetails);
+    expect(toggle?.getAttribute("aria-expanded")).toBe("false");
+    expect(reason?.hidden).toBe(true);
+
+    toggle?.click();
+
+    expect(reason?.hidden).toBe(false);
+    expect(reason?.textContent).toBe("no JSON at 1:2");
+    expect(toggle?.getAttribute("aria-expanded")).toBe("true");
+    expect(toggle?.textContent).toBe(WORDS.hideDetails);
+
+    toggle?.click();
+
+    expect(reason?.hidden).toBe(true);
+    expect(toggle?.textContent).toBe(WORDS.showDetails);
+  });
+
+  it("offers no details button for a problem without a reason", () => {
+    const { document, choose } = card();
+
+    choose.show(WORDS.noManifest);
+
+    expect(document.querySelector<HTMLElement>("[role=alert]")?.hidden).toBe(false);
+    expect(document.querySelector<HTMLElement>(".details-toggle")?.hidden).toBe(true);
+  });
+
   it("hands on every picked file with its path inside the folder", () => {
     const { picker, picked } = card();
     const file = new File(["{}"], "glissando.json");

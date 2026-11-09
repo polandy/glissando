@@ -56,4 +56,7 @@ export const deShare = {
     "Der Link konnte nicht erstellt werden. Dein Glissando-Server antwortet nicht.",
   "share.turnOffFailed":
     "Der Link konnte nicht ausgeschaltet werden. Dein Glissando-Server antwortet nicht.",
+  "sizeScale.small": "Klein",
+  "sizeScale.standard": "Standard",
+  "sizeScale.large": "Groß",
 } as const satisfies Record<string, Message>;

@@ -3,18 +3,18 @@ import { realOffsetsMs, type InsertedTime } from "./inserted-time";
 export { snapToNextBeat } from "./snap-to-next-beat";
 
 /** Beats per phrase: a bar of four, so a change on a phrase start sits where the music turns. */
-export const BEATS_PER_PHRASE = 4;
+const BEATS_PER_PHRASE = 4;
 
 /**
  * Moves slide boundaries onto the music's beats (ADR-0021): each one, automatic or an own
  * duration, to the nearest beat (preferring a phrase start, `nearestBeatMs`) that leaves this
- * slide and the next automatic one ahead at least `minSlideMs`. An own duration also keeps its
+ * slide and the next automatic one ahead at least `minSlideMs`. A chosen duration also keeps its
  * slide within its slack of that duration — half its length above the minimum — so it moves to
  * about its set length rather than exactly it. The difference absorbs into the next automatic
- * slide ahead, whose own boundary may then snap again in turn; a slide with an own duration in
+ * slide ahead, whose own boundary may then snap again in turn; a slide with a chosen duration in
  * between carries over unaffected, its own boundary decided separately on its own terms. With
  * `endOnBeat`, a slide with no automatic slide ahead to absorb into — the last automatic slide
- * when the pictures do not fill the music, or an own duration after it — still moves its own end
+ * when the pictures do not fill the music, or a chosen duration after it — still moves its own end
  * the same bounded way; otherwise it stays, and the sum of the durations does not change.
  *
  * `inserted` is how much of a title card or chapter plays around each slide unit (`InsertedTime`)
@@ -83,7 +83,7 @@ function sum(durationsMs: readonly number[]): number {
 /**
  * The beat nearest `targetMs` from `earliestMs` to `latestMs`, the earlier one on a tie — but a
  * phrase start (every `BEATS_PER_PHRASE`th beat of the list) when the nearest one of those is at
- * most one beat further from the target.
+ * most half a beat further from the target — a beat being the interval after the nearest beat.
  */
 function nearestBeatMs(
   beatsMs: readonly number[],
@@ -92,11 +92,13 @@ function nearestBeatMs(
   latestMs: number,
 ): number | undefined {
   let nearest: number | undefined;
+  let nearestIndex = -1;
   let nearestPhrase: number | undefined;
   beatsMs.forEach((beatMs, index) => {
     if (beatMs < earliestMs || beatMs > latestMs) return;
     if (nearest === undefined || distance(beatMs, targetMs) < distance(nearest, targetMs)) {
       nearest = beatMs;
+      nearestIndex = index;
     }
     const startsPhrase = index % BEATS_PER_PHRASE === 0;
     if (
@@ -108,7 +110,10 @@ function nearestBeatMs(
     }
   });
   if (nearest === undefined || nearestPhrase === undefined) return nearest;
-  const oneBeatMs = ((beatsMs.at(-1) as number) - (beatsMs[0] as number)) / (beatsMs.length - 1);
+  const nextMs = beatsMs[nearestIndex + 1];
+  const previousMs = beatsMs[nearestIndex - 1];
+  const oneBeatMs =
+    nextMs !== undefined ? nextMs - nearest : previousMs !== undefined ? nearest - previousMs : 0;
   return distance(nearestPhrase, targetMs) <= distance(nearest, targetMs) + oneBeatMs / 2
     ? nearestPhrase
     : nearest;

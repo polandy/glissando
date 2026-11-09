@@ -21,7 +21,7 @@ async function storeWithOwnMotion(): Promise<WriteRecordingStore> {
 }
 
 describe("FocusPass, what it writes (ADR-0041)", () => {
-  it("writes only the focus it found, leaving a picture's own motion untouched", async () => {
+  it("writes only the focus it found, leaving a picture's chosen motion untouched", async () => {
     const store = await storeWithOwnMotion();
     const detector = new FakeFocusDetector(() => FACES);
     const { pass } = passOver(store, detector);

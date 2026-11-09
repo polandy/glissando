@@ -23,21 +23,27 @@ the server.
 
 - **Share links** add `…/slideshows/{id}/share` and the public `/api/share/` (`dev-docs/SHARE_LINK.md`).
 - **TV remote** adds `/api/library/tv/`, the public `/api/tv/` and `/api/share/{token}/tv`, served by `server/tv/` beside the library (`dev-docs/TV_REMOTE.md`).
+- **Too large**: a body over its path's limit answers 413 `tooLarge` with `Connection: close`.
+  Up to `DRAIN_BUDGET_BYTES` (1 MiB) past the limit is read and dropped first so the answer
+  reaches the client; a longer body is left unread and its connection closed after the 413
+  (`server/collect-body.ts`).
 - **Unreadable documents**: the list leaves out a slideshow whose stored document the service
   cannot read and logs it (`SERVER_DOCUMENT.md`).
 - **Revision**: a positive whole number, 1 on create, +1 on every accepted `PUT`. Compared in the
   same transaction as the write. An `If-Match` other than the
   current `"<revision>"` (also `*` or a weak tag) is a stale one: 412.
 - **Music**: a document naming, in any song, a `musicId` the server does not have is refused
-  (409). Music no document references is deleted after `UNREFERENCED_MUSIC_GRACE_MS` (1 h, the
-  service's injected clock, checked on every upload), its beats and loudness with it. The grace
-  starts at the upload, and again when a `PUT` or `DELETE` drops the last reference
-  (`uploaded_at` is set to that time), so undoing a song's removal can name the music again.
+  (409). Music no document references is deleted, its beats and loudness with it, on the first
+  upload after `UNREFERENCED_MUSIC_GRACE_MS` (1 h, the service's injected clock) passed without an
+  upload. Each upload restarts the grace of all unreferenced music, so a slow save that uploads
+  its songs one by one before naming them keeps its earlier songs. The grace restarts too when a
+  `PUT` or `DELETE` drops the last reference (`uploaded_at` is set to that time), so undoing a
+  song's removal can name the music again.
 - **Beats** (`MusicBeats`, `src/beats/music-beats.ts`, ADR-0021): a device `PUT`s what it found so
   later devices read it instead of detecting again; a later `PUT` replaces the stored result
   (two devices may race, but the same detector gives the same answer).
 - **Loudness** (`MusicLoudness`, `src/loudness/measure-loudness.ts`, `dev-docs/library/MUSIC.md`):
-  a device `PUT`s what the loudness pass measured, as the compact dB/dBFS JSON
+  a device `PUT`s what the music analysis measured, as the compact dB/dBFS JSON
   `src/loudness/music-loudness-json.ts` defines, so later devices read it instead of measuring
   again; a later `PUT` replaces the stored result the same way beats does.
 - **Focus** (`StoredFocus`, `src/library/picture-focus.ts`, ADR-0041): a device `PUT`s the focus it

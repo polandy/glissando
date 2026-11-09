@@ -4,6 +4,7 @@ import { transitionDurationMs } from "../../compose";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
 import { CUT_TRANSITION, type TransitionChoice } from "../../library/own-timing";
 import { FakeClock, FakeFrameScheduler } from "../../player/testing/fakes";
+import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { reactiveProps } from "../testing/reactive-props.svelte";
 import PictureEditorScreen from "./PictureEditorScreen.svelte";
@@ -60,7 +61,7 @@ export function unmountEditor(): void {
   destroy();
 }
 
-/** The view after `choice` is picked (`own: true`) or an own transition is reset to it. */
+/** The view after `choice` is picked (`own: true`) or a chosen transition is reset to it. */
 function transitionedView(
   current: PictureEditorView,
   choice: TransitionChoice,
@@ -81,18 +82,23 @@ function transitionedView(
 export function mountEditor(shown: PictureEditorView = view(), { reducedMotion = false } = {}) {
   const clock = new FakeClock();
   const frames = new FakeFrameScheduler();
+  const scheduler = new FakeScheduler();
   let current = shown;
   const calls = {
     changed: [] as OwnKenBurns[],
+    changedPictureIds: [] as string[],
+    /** The motion edits in the order they reached the store. */
+    motionEdits: [] as ("change" | "swap" | "reset")[],
     opened: [] as string[],
+    played: [] as string[],
     swaps: 0,
     resets: 0,
     backs: 0,
     captions: [] as string[],
     durations: [] as number[],
-    durationResets: 0,
+    clearedCaptions: 0,
     transitions: [] as TransitionChoice[],
-    transitionResets: 0,
+    timingResets: 0,
     alones: [] as boolean[],
     lookAgains: 0,
   };
@@ -109,20 +115,39 @@ export function mountEditor(shown: PictureEditorView = view(), { reducedMotion =
     slideshowTitle: "Sommer am See",
     onBack: () => (calls.backs += 1),
     onOpen: (pictureId: string) => calls.opened.push(pictureId),
-    onChange: (motion: OwnKenBurns) => calls.changed.push(motion),
-    onSwap: () => (calls.swaps += 1),
-    onReset: () => (calls.resets += 1),
+    onPlayFrom: (pictureId: string) => calls.played.push(pictureId),
+    onChange: (pictureId: string, motion: OwnKenBurns) => {
+      calls.changedPictureIds.push(pictureId);
+      calls.changed.push(motion);
+      calls.motionEdits.push("change");
+    },
+    onSwap: () => {
+      calls.swaps += 1;
+      calls.motionEdits.push("swap");
+    },
+    onReset: () => {
+      calls.resets += 1;
+      calls.motionEdits.push("reset");
+    },
     onCaption: (typed: string) => calls.captions.push(typed),
     onDuration: (durationMs: number) => calls.durations.push(durationMs),
-    onResetDuration: () => (calls.durationResets += 1),
+    onClearCaption: () => (calls.clearedCaptions += 1),
     // A picked (or reset) transition is stored at once, as the real app's store does.
     onTransition: (choice: TransitionChoice) => {
       calls.transitions.push(choice);
       update(transitionedView(current, choice, true));
     },
-    onResetTransition: () => {
-      calls.transitionResets += 1;
-      update(transitionedView(current, current.transition.automatic, false));
+    onResetTiming: () => {
+      calls.timingResets += 1;
+      const automaticMs =
+        current.durationBasis.kind === "seconds-per-picture"
+          ? current.durationBasis.automaticMs
+          : current.durationMs;
+      update({
+        ...transitionedView(current, current.transition.automatic, false),
+        durationMs: automaticMs,
+        ownDuration: false,
+      });
     },
     onAlone: (alone: boolean) => {
       calls.alones.push(alone);
@@ -130,6 +155,7 @@ export function mountEditor(shown: PictureEditorView = view(), { reducedMotion =
     },
     onLookAgain: () => (calls.lookAgains += 1),
     previewPorts: { clock, frames },
+    scheduler,
     reducedMotion,
     saving: false,
   });
@@ -141,7 +167,7 @@ export function mountEditor(shown: PictureEditorView = view(), { reducedMotion =
     frames.runFrame();
     flushSync();
   };
-  return { target: mounted.target, calls, frames, advance, update };
+  return { target: mounted.target, calls, frames, scheduler, advance, update };
 }
 
 export function element<T extends Element = HTMLElement>(selector: string): T {

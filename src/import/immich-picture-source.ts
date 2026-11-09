@@ -1,4 +1,5 @@
 import {
+  ImmichDownloadTooLargeError,
   ImmichRequestFailedError,
   ImmichUnavailableError,
   type ImmichClient,
@@ -6,10 +7,10 @@ import {
   type ImmichUnavailableKind,
 } from "../immich/immich-client";
 import { focusFromFaces } from "../immich/immich-focus";
+import { MAX_VIDEO_BYTES } from "../library/own-video";
 import type { PictureFocus } from "../library/picture-focus";
 import type { PictureIdentity } from "../library/picture-identity";
 import type { DecodedPicture } from "./downscale";
-import type { ExifGps } from "./exif-gps";
 import { PictureNotDownloadedError, type PictureSource } from "./picture-source";
 import { UnreadablePictureError } from "./unreadable-picture";
 import { VideoRefusedError } from "./video-refusal";
@@ -28,7 +29,7 @@ export interface ImmichVideoReaders extends Pick<VideoReaders, "openClip"> {
 }
 
 export interface ImmichPictureReaders {
-  readonly client: Pick<ImmichClient, "original" | "thumbnail" | "faces" | "gps">;
+  readonly client: Pick<ImmichClient, "original" | "thumbnail" | "faces">;
   readonly videos?: ImmichVideoReaders;
   /** Rejects with `UnreadablePictureError` for a file it cannot decode. */
   decode(file: File): Promise<DecodedPicture>;
@@ -71,8 +72,9 @@ export function immichPhotoIdentity(photo: ImmichPhoto): PictureIdentity {
 }
 
 /**
- * A video on Immich: its playable version downloaded whole, then read like a local video file. A
- * download that fails is a `PictureNotDownloadedError`.
+ * A video on Immich: its playable version downloaded whole, then read like a local video file. One
+ * Immich announces as over `MAX_VIDEO_BYTES` is refused unread; a download that fails is a
+ * `PictureNotDownloadedError`.
  */
 function immichVideoSource(video: ImmichPhoto, readers: ImmichPictureReaders): PictureSource {
   const { reportUnavailable, videos } = readers;
@@ -80,12 +82,15 @@ function immichVideoSource(video: ImmichPhoto, readers: ImmichPictureReaders): P
     fileName: video.fileName,
     mimeType: IMMICH_VIDEO_TYPE,
     identify: () => Promise.resolve(immichPhotoIdentity(video)),
-    read: async () => {
+    read: async (signal) => {
       if (videos === undefined) throw new VideoRefusedError(video.fileName, "videoUnplayable");
       let blob: Blob;
       try {
-        blob = await videos.client.video(video.id);
+        blob = await videos.client.video(video.id, MAX_VIDEO_BYTES, signal);
       } catch (error) {
+        if (error instanceof ImmichDownloadTooLargeError) {
+          throw new VideoRefusedError(video.fileName, "videoTooLarge", { cause: error });
+        }
         if (error instanceof ImmichUnavailableError) reportUnavailable(error.kind);
         if (error instanceof ImmichUnavailableError || error instanceof ImmichRequestFailedError) {
           throw new PictureNotDownloadedError(video.fileName, { cause: error });
@@ -111,9 +116,9 @@ export function immichPictureSource(
 ): PictureSource {
   if (photo.video !== undefined) return immichVideoSource(photo, readers);
   const { client, decode, reportUnavailable, log } = readers;
-  const download = async (): Promise<DecodedPicture> => {
+  const download = async (signal: AbortSignal | undefined): Promise<DecodedPicture> => {
     try {
-      return await decodeImmichPhoto(photo, { client, decode });
+      return await decodeImmichPhoto(photo, { client, decode }, signal);
     } catch (error) {
       if (error instanceof ImmichUnavailableError) reportUnavailable(error.kind);
       if (error instanceof ImmichUnavailableError || error instanceof ImmichRequestFailedError) {
@@ -133,24 +138,14 @@ export function immichPictureSource(
     }
   };
 
-  const gps = async (): Promise<ExifGps | null> => {
-    try {
-      return await client.gps(photo.id);
-    } catch (error) {
-      if (error instanceof ImmichUnavailableError) reportUnavailable(error.kind);
-      log(error);
-      return null;
-    }
-  };
-
   return {
     fileName: photo.fileName,
     mimeType: IMMICH_PHOTO_TYPE,
     identify: () => Promise.resolve(immichPhotoIdentity(photo)),
-    read: async () => {
-      const decoded = await download();
-      const [pictureFocus, pictureGps] = await Promise.all([focus(), gps()]);
-      return { decoded, focus: pictureFocus, ...(pictureGps === null ? {} : { gps: pictureGps }) };
+    read: async (signal) => {
+      const decoded = await download(signal);
+      const gps = photo.gps ?? null;
+      return { decoded, focus: await focus(), ...(gps === null ? {} : { gps }) };
     },
   };
 }

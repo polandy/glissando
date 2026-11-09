@@ -11,7 +11,7 @@ https://polandy.github.io/glissando-assets/mockups/video-slides/.
 | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Model         | A stored picture with an optional `video`; its picture is the **poster** frame (ADR-0034)                                                                |
 | Stored bytes  | The original file as chosen, never re-encoded; accepted when this browser can play it (ADR-0034)                                                         |
-| Length        | The chosen excerpt, 0.5 s to 5 min; a fixed own duration, like ADR-0008                                                                                  |
+| Length        | The chosen excerpt, 0.5 s to 5 min; a fixed chosen duration, like ADR-0008                                                                               |
 | Sound         | On by default; the music ducks to 20 %, staying audible, while a clip with sound plays (ADR-0035)                                                        |
 | Decoder       | A muted `<video>` in the player, its sound decoded with mediabunny; WebCodecs through mediabunny in the video export (ADR-0035)                          |
 | Network       | Clips are downloaded whole before they play, from Immich; never streamed (ADR-0034). The server keeps no clips: a server slideshow holds no video slides |
@@ -20,7 +20,7 @@ https://polandy.github.io/glissando-assets/mockups/video-slides/.
 ## Import
 
 - Videos come in through the same picker as pictures, mixed in capture order. A picture list shows a
-  video with a length badge; Immich videos are no longer hidden (`IMMICH.md`).
+  video with a length badge; Immich videos are listed too (`IMMICH.md`).
 - Capture time: the container's creation time (read with mediabunny, taken as device wall time
   like a photo's), then the file date. The poster is the frame at the
   start of the excerpt, downscaled like a picture (`PICTURE_IMPORT.md`) and cached as its picture.
@@ -28,6 +28,9 @@ https://polandy.github.io/glissando-assets/mockups/video-slides/.
   play this video format."); the rest of the batch goes on. Loading its metadata into a `<video>`
   decides: `canPlayType` is not asked, as Chrome answers "" for a `.mov` it plays.
   A source over `MAX_VIDEO_BYTES` (1 GiB) is refused the same way.
+- A clip's length is where its video track ends (read with mediabunny), not the longer sound
+  track a `<video>` reports, so a slide never holds a still last frame while the sound runs on.
+  A container mediabunny cannot read keeps the element's length.
 - A clip longer than 5 min is accepted; its excerpt starts as the first 5 min and the user moves it.
 
 ## Stored form
@@ -37,7 +40,7 @@ https://polandy.github.io/glissando-assets/mockups/video-slides/.
 | Field       | Meaning                                                                           |
 | ----------- | --------------------------------------------------------------------------------- |
 | `mediaId`   | the original file in the `videos` object store (bytes + type)                     |
-| `sourceMs`  | the whole clip's length, whole ms                                                 |
+| `sourceMs`  | the whole clip's length up to where its picture ends, whole ms                    |
 | `startMs`   | where the excerpt starts, whole ms of the clip                                    |
 | `endMs`     | where it ends; `endMs − startMs` is 500 to 300000                                 |
 | `volume`    | 0 to 100 in steps of 5; absent: 100; 0 is "sound off"                             |
@@ -103,13 +106,14 @@ changes: a clip is content, not decoration.
   multiply on top.
 - Two clips closer together than a ramp up plus a ramp down stay ducked between them.
 - A clip whose bytes are missing or that the browser cannot decode raises `VideoPlaybackError`
-  when it loads, so a show never waits for it.
+  when it loads, so a show never waits for it. The failed clip is closed; the next Play opens it
+  afresh, and reports the error again if it still fails.
 
 ## Composition
 
 - The composer emits a video slide's `video` from the stored one; the slide has no Ken Burns
   (still framing) and its transition and caption follow the picture's rules.
-- Duration: a fixed own duration (ADR-0008): with music the other pictures share what is left
+- Duration: a fixed chosen duration (ADR-0008): with music the other pictures share what is left
   (ADR-0022); on the beat the video's own length is not snapped (ADR-0021). A card (ADR-0032)
   never lengthens it, opening or closing (`TITLE_CARD_COMPOSITION.md`).
 - A card (ADR-0032) may sit over a video slide's poster background, never over the playing clip.

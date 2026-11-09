@@ -42,7 +42,7 @@ describe("setPictureLength", () => {
 });
 
 describe("setSecondsPerPicture", () => {
-  it("sets how long each picture without an own duration stays", () => {
+  it("sets how long each picture without a chosen duration stays", () => {
     expect(setSecondsPerPicture(SLIDESHOW, 6.5)).toEqual({ ...SLIDESHOW, secondsPerPicture: 6.5 });
   });
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { FakeExportPorts, fakeTarget } from "./testing/fake-export-ports";
 import { FRAMES, opened, running } from "./video-export-session-fixtures";
+import { settleMicrotasks } from "../../testing/settle-microtasks";
 
 describe("VideoExportSession — closing", () => {
   it("cancels a running export at once by aborting its signal", async () => {
@@ -42,8 +43,7 @@ describe("VideoExportSession — closing", () => {
     }
 
     sheet.close();
-    await Promise.resolve();
-    await Promise.resolve();
+    await settleMicrotasks();
 
     expect(ports.logged).toEqual([stuck]);
   });

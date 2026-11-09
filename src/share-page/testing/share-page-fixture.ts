@@ -9,8 +9,8 @@ import sharePage from "virtual:glissando-share-page";
 import type { FakeMedium, FakeShareApi } from "./fake-share-api";
 
 /** The shortest a picture may show (`checkOwnDurationMs`). */
-export const SLIDE_MS = 2000;
-export const MUSIC_MS = 1500;
+const SLIDE_MS = 2000;
+const MUSIC_MS = 1500;
 /**
  * These tests play a real slideshow through real timers rather than a mocked clock; a full
  * playthrough already takes several seconds, and a loaded CI runner can push that past the

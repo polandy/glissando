@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ImmichPhoto } from "../immich/immich-client";
-import type { PictureColours } from "../library/picture-colours";
+import { GREY_PICTURE_COLOURS, type PictureColours } from "../library/picture-colours";
 import { linkImmichPhotos, type LinkImmichPhotosPorts } from "./link-immich-photos";
 
 const SOME_COLOURS: PictureColours = { veil: "#112233", accent: "#AABBCC" };
@@ -9,7 +9,7 @@ function immichPhoto(
   id: string,
   size: ImmichPhoto["size"] = { width: 4000, height: 3000 },
 ): ImmichPhoto {
-  return { id, fileName: `${id}.jpg`, takenAt: "2025-07-12T14:30:00.000Z", size };
+  return { id, fileName: `${id}.jpg`, takenAt: "2025-07-12T14:30:00Z", size };
 }
 
 /** Answers every photo with `SOME_COLOURS` and records which photos it was asked about. */
@@ -21,6 +21,7 @@ function fakeColours(): LinkImmichPhotosPorts & { readonly asked: string[] } {
       asked.push(photo.id);
       return Promise.resolve(SOME_COLOURS);
     },
+    log: () => undefined,
   };
 }
 
@@ -33,7 +34,7 @@ describe("linkImmichPhotos", () => {
         id: "asset-1",
         immichAssetId: "asset-1",
         fileName: "asset-1.jpg",
-        capturedAt: "2025-07-12T14:30:00.000Z",
+        capturedAt: "2025-07-12T14:30:00Z",
         colours: SOME_COLOURS,
         width: 2880,
         height: 2160,
@@ -104,5 +105,28 @@ describe("linkImmichPhotos", () => {
     await linkImmichPhotos([immichPhoto("asset-1")], existing, ports);
 
     expect(ports.asked).toEqual([]);
+  });
+
+  it("links a photo whose colours cannot be read with grey colours, logs it once, and links the rest", async () => {
+    const failure = new Error("thumbnail unreadable");
+    const logged: unknown[] = [];
+    const ports: LinkImmichPhotosPorts = {
+      colours: (photo) =>
+        photo.id === "asset-2" ? Promise.reject(failure) : Promise.resolve(SOME_COLOURS),
+      log: (error) => logged.push(error),
+    };
+
+    const { pictures } = await linkImmichPhotos(
+      [immichPhoto("asset-1"), immichPhoto("asset-2"), immichPhoto("asset-3")],
+      [],
+      ports,
+    );
+
+    expect(pictures.map((picture) => [picture.id, picture.colours])).toEqual([
+      ["asset-1", SOME_COLOURS],
+      ["asset-2", GREY_PICTURE_COLOURS],
+      ["asset-3", SOME_COLOURS],
+    ]);
+    expect(logged).toEqual([failure]);
   });
 });

@@ -1,6 +1,6 @@
 /** The slowest and fastest tempo the detector considers (ADR-0021). */
-export const MIN_BEATS_PER_MINUTE = 50;
-export const MAX_BEATS_PER_MINUTE = 200;
+const MIN_BEATS_PER_MINUTE = 50;
+const MAX_BEATS_PER_MINUTE = 200;
 /** The tempo preferred among candidates that fit equally well. */
 const PREFERRED_BEATS_PER_MINUTE = 120;
 /** How wide the preference is, in octaves of tempo (standard deviation of a log-normal). */

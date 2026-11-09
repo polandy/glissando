@@ -5,7 +5,7 @@ import type { SlideshowLook } from "../../player";
 import type { SlideshowMood } from "../../library/slideshow-mood";
 import type { ResolvedPortraitPictures } from "../../library/portrait-pictures";
 import type { StoredCard } from "../../library/stored-slideshow";
-import type { CardInput } from "../../library/stored-card";
+import { checkStoredCard, type CardInput } from "../../library/stored-card";
 import { FakeClock, FakeFrameScheduler } from "../../player/testing/fakes";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { mountWithTranslator } from "../testing/mount-with-translator";
@@ -18,11 +18,16 @@ import type { ServerSlideshowRows } from "../server-library/server-slideshow-ses
 import { NO_FOCUS_KNOWN, type PicturesFocus } from "../focus/pictures-focus";
 import type { SlideshowSearch } from "../../library/focus-pass";
 import type { ChapterSettingsEditor } from "../editing/chapter-settings-editor";
-import type { MoodEnergyPacing } from "./slideshow/mood-energy-pacing";
 import { createStorageFineSettingsFoldStore } from "./slideshow/fine-settings-fold";
 import { moodPreviewPortsFixture } from "./slideshow/mood-preview-ports-fixture";
+import { createMountSlot, pictureTile } from "../testing/picture-fixtures";
 import { createMemoryStorage } from "../testing/memory-storage";
 import { withClosingCard, withMood, withOpeningCard } from "./slideshow-screen-harness-cards";
+
+/** `card` as the stored card the editor would keep; throws when it is not a valid one. */
+function checkedCard(card: CardInput, slideshow: SlideshowDetails): StoredCard {
+  return checkStoredCard(card, new Set(slideshow.pictures.map((tile) => tile.id)), "harness card");
+}
 
 /** The title slide a bare `ensureOpeningCard` call creates, for tests that don't care about it. */
 const DEFAULT_OPENING_CARD: StoredCard = {
@@ -45,12 +50,11 @@ const DEFAULT_CLOSING_CARD: StoredCard = {
   motion: true,
 };
 
-let destroy = () => {};
+const mountSlot = createMountSlot();
 
 /** Unmounts the screen the last `mountScreen` mounted. */
 export function unmountScreen(): void {
-  destroy();
-  destroy = () => {};
+  mountSlot.release();
 }
 
 // A transparent pixel stands in for every thumbnail.
@@ -78,18 +82,9 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
     pairCount: 0,
     capturedFrom: "2025-07-01T10:00:00Z",
     capturedTo: "2025-07-03T10:00:00Z",
-    pictures: ids.map((id, index) => ({
-      id,
-      thumbnailUrl: PIXEL,
-      capturedAt: `2025-07-0${index + 1}T10:00:00Z`,
-      ownMotion: false,
-      ownDurationMs: null,
-      ownTransition: null,
-      pairedWithNumber: null,
-      blurredFill: false,
-      alone: false,
-      colours: { veil: "#404040", accent: "#C0C0C0" },
-    })),
+    pictures: ids.map((id, index) =>
+      pictureTile(id, PIXEL, { capturedAt: `2025-07-0${index + 1}T10:00:00Z` }),
+    ),
   };
   return { ...base, ...overrides };
 }
@@ -110,7 +105,6 @@ export function mountScreen(
     chapterEditor = null as ChapterSettingsEditor | null,
     moodBpm = undefined as number | undefined,
     moodBeats = NO_SONG_BEATS as SongBeats,
-    moodEnergyPacing = null as MoodEnergyPacing | null,
     moodPreviewPorts = moodPreviewPortsFixture(),
     fineSettingsFold = createStorageFineSettingsFoldStore(createMemoryStorage()),
   } = {},
@@ -122,6 +116,7 @@ export function mountScreen(
   const calls = {
     removed: [] as string[],
     shuffles: 0,
+    sortsByDate: 0,
     removedGroup: [] as string[][],
     shifted: [] as [readonly string[], number][],
     moved: [] as [readonly string[], number][],
@@ -138,8 +133,10 @@ export function mountScreen(
     portraitPictureChoices: [] as ResolvedPortraitPictures[],
     portraitPictureResets: 0,
     deletes: 0,
+    sharesOpened: 0,
     adds: 0,
     plays: 0,
+    playedFrom: [] as string[],
     storageActions: [] as StorageAction[],
     openingCardsEnsured: 0,
     openingCards: [] as CardInput[],
@@ -156,10 +153,12 @@ export function mountScreen(
     slideshow,
     onBack: () => {},
     onPlay: () => (calls.plays += 1),
+    onPlayFrom: (pictureId: string) => calls.playedFrom.push(pictureId),
     onAddPictures: () => (calls.adds += 1),
     newPictureIds,
     onRemove: (pictureId: string) => calls.removed.push(pictureId),
     onShuffle: () => (calls.shuffles += 1),
+    onSortByDate: () => (calls.sortsByDate += 1),
     onShiftGroup: (pictureIds: readonly string[], offset: number) =>
       calls.shifted.push([pictureIds, offset]),
     onRemoveGroup: (pictureIds: readonly string[]) => calls.removedGroup.push([...pictureIds]),
@@ -175,73 +174,74 @@ export function mountScreen(
     },
     onError: (error: unknown) => calls.errors.push(error),
     onEditMusic: () => (calls.musicEdits += 1),
-    onTransition: (transition: SlideshowTransition) => {
-      calls.transitions.push(transition);
-      props.slideshow = { ...props.slideshow, transition };
-    },
-    onResetTransition: () => {
-      calls.transitionResets += 1;
-      props.slideshow = { ...props.slideshow, transition: "crossfade" };
-    },
-    onLook: (look: SlideshowLook) => {
-      calls.looks.push(look);
-      props.slideshow = { ...props.slideshow, look };
-    },
-    onResetLook: () => {
-      calls.lookResets += 1;
-      props.slideshow = { ...props.slideshow, look: "none" };
-    },
     moodBpm,
     moodBeats,
-    moodEnergyPacing,
     moodPreviewPorts,
-    onMood: (mood: SlideshowMood | undefined) => {
-      calls.moods.push(mood);
-      props.slideshow = withMood(props.slideshow, mood);
-    },
-    onResetMood: () => {
-      calls.moodResets += 1;
-      props.slideshow = withMood(props.slideshow, undefined);
-    },
-    onEnergyPacing: (on: boolean) => {
-      calls.energyPacingChoices.push(on);
-      props.slideshow = { ...props.slideshow, energyPacing: on };
-    },
-    onPortraitPictures: (choice: ResolvedPortraitPictures) => {
-      calls.portraitPictureChoices.push(choice);
-      props.slideshow = { ...props.slideshow, portraitPictures: choice };
-    },
-    onResetPortraitPictures: () => {
-      calls.portraitPictureResets += 1;
-      props.slideshow = { ...props.slideshow, portraitPictures: "automatic" };
-    },
-    onEnsureOpeningCard: () => {
-      calls.openingCardsEnsured += 1;
-      const created = props.slideshow.openingCard ?? DEFAULT_OPENING_CARD;
-      props.slideshow = withOpeningCard(props.slideshow, created);
-      return created;
-    },
-    onOpeningCard: (card: CardInput) => {
-      calls.openingCards.push(card);
-      props.slideshow = withOpeningCard(props.slideshow, card as StoredCard);
-    },
-    onRemoveOpeningCard: () => {
-      calls.openingCardsRemoved += 1;
-      props.slideshow = withOpeningCard(props.slideshow, undefined);
-    },
-    onEnsureClosingCard: () => {
-      calls.closingCardsEnsured += 1;
-      const created = props.slideshow.closingCard ?? DEFAULT_CLOSING_CARD;
-      props.slideshow = withClosingCard(props.slideshow, created);
-      return created;
-    },
-    onClosingCard: (card: CardInput) => {
-      calls.closingCards.push(card);
-      props.slideshow = withClosingCard(props.slideshow, card as StoredCard);
-    },
-    onRemoveClosingCard: () => {
-      calls.closingCardsRemoved += 1;
-      props.slideshow = withClosingCard(props.slideshow, undefined);
+    editCommands: {
+      onTransition: (transition: SlideshowTransition) => {
+        calls.transitions.push(transition);
+        props.slideshow = { ...props.slideshow, transition };
+      },
+      onResetTransition: () => {
+        calls.transitionResets += 1;
+        props.slideshow = { ...props.slideshow, transition: "crossfade" };
+      },
+      onLook: (look: SlideshowLook) => {
+        calls.looks.push(look);
+        props.slideshow = { ...props.slideshow, look };
+      },
+      onResetLook: () => {
+        calls.lookResets += 1;
+        props.slideshow = { ...props.slideshow, look: "none" };
+      },
+      onMood: (mood: SlideshowMood | undefined) => {
+        calls.moods.push(mood);
+        props.slideshow = withMood(props.slideshow, mood);
+      },
+      onResetMood: () => {
+        calls.moodResets += 1;
+        props.slideshow = withMood(props.slideshow, undefined);
+      },
+      onEnergyPacing: (on: boolean) => {
+        calls.energyPacingChoices.push(on);
+        props.slideshow = { ...props.slideshow, energyPacing: on };
+      },
+      onPortraitPictures: (choice: ResolvedPortraitPictures) => {
+        calls.portraitPictureChoices.push(choice);
+        props.slideshow = { ...props.slideshow, portraitPictures: choice };
+      },
+      onResetPortraitPictures: () => {
+        calls.portraitPictureResets += 1;
+        props.slideshow = { ...props.slideshow, portraitPictures: "automatic" };
+      },
+      onEnsureOpeningCard: () => {
+        calls.openingCardsEnsured += 1;
+        const created = props.slideshow.openingCard ?? DEFAULT_OPENING_CARD;
+        props.slideshow = withOpeningCard(props.slideshow, created);
+        return created;
+      },
+      onOpeningCard: (card: CardInput) => {
+        calls.openingCards.push(card);
+        props.slideshow = withOpeningCard(props.slideshow, checkedCard(card, props.slideshow));
+      },
+      onRemoveOpeningCard: () => {
+        calls.openingCardsRemoved += 1;
+        props.slideshow = withOpeningCard(props.slideshow, undefined);
+      },
+      onEnsureClosingCard: () => {
+        calls.closingCardsEnsured += 1;
+        const created = props.slideshow.closingCard ?? DEFAULT_CLOSING_CARD;
+        props.slideshow = withClosingCard(props.slideshow, created);
+        return created;
+      },
+      onClosingCard: (card: CardInput) => {
+        calls.closingCards.push(card);
+        props.slideshow = withClosingCard(props.slideshow, checkedCard(card, props.slideshow));
+      },
+      onRemoveClosingCard: () => {
+        calls.closingCardsRemoved += 1;
+        props.slideshow = withClosingCard(props.slideshow, undefined);
+      },
     },
     chapterEditor,
     previewPorts: { clock, frames },
@@ -249,7 +249,7 @@ export function mountScreen(
     onDelete: () => (calls.deletes += 1),
     exportState: { kind: "idle", sizeBytes: null } as ExportMenuState,
     onExport: () => Promise.resolve("saved" as const),
-    onShareOpened: () => {},
+    onShareOpened: () => (calls.sharesOpened += 1),
     newVideoExport: () => {
       throw new Error("the video export sheet is not opened in these tests");
     },
@@ -272,8 +272,8 @@ export function mountScreen(
     props,
     english ? { current: createTranslator("en") } : undefined,
   );
-  destroy = mounted.destroy;
-  return { target: mounted.target, calls, clock, frames, holdScheduler, dragFrames };
+  mountSlot.hold(mounted.destroy);
+  return { target: mounted.target, props, calls, clock, frames, holdScheduler, dragFrames };
 }
 
 export {

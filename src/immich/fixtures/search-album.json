@@ -37,7 +37,11 @@
         "resized": true,
         "width": 520,
         "height": 671,
-        "isEdited": false
+        "isEdited": false,
+        "exifInfo": {
+          "city": "Annecy",
+          "country": "France"
+        }
       },
       {
         "id": "30efe6bc-ff0d-4772-ad2e-9673808327e6",
@@ -67,7 +71,11 @@
         "resized": true,
         "width": 756,
         "height": 1061,
-        "isEdited": false
+        "isEdited": false,
+        "exifInfo": {
+          "city": "Lyon",
+          "country": "France"
+        }
       },
       {
         "id": "42a6c54a-fe8b-4bb1-bb7e-8f4a6009f948",
@@ -97,7 +105,11 @@
         "resized": true,
         "width": 1280,
         "height": 926,
-        "isEdited": false
+        "isEdited": false,
+        "exifInfo": {
+          "city": null,
+          "country": null
+        }
       },
       {
         "id": "8edd8f38-198e-48c3-90f5-0c23e40d1cc8",
@@ -157,7 +169,11 @@
         "resized": true,
         "width": 520,
         "height": 671,
-        "isEdited": false
+        "isEdited": false,
+        "exifInfo": {
+          "city": "Annecy",
+          "country": "France"
+        }
       },
       {
         "id": "4d420d08-d7d5-43b0-859f-435fc771a684",

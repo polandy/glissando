@@ -11,6 +11,7 @@
   import { loadServerShelf } from "./server-shelf-loading";
   import StartLogo from "../start/StartLogo.svelte";
   import { loadStartSlideshows } from "./route-loading";
+  import RouteSkeleton from "./RouteSkeleton.svelte";
   import {
     isDemoSlideshowVisible,
     type DemoSlideshowFlow,
@@ -25,6 +26,7 @@
     playStartAnimation,
     onError,
     onCreate,
+    now,
     onOpen,
     updateWaiting,
     onSettings,
@@ -50,6 +52,7 @@
     playStartAnimation: boolean;
     onError: (error: unknown) => void;
     onCreate: () => void;
+    now: () => Date;
     onOpen: (slideshowId: string) => void;
     /** A new version waits to take over: the gear carries a dot. */
     updateWaiting: boolean;
@@ -146,7 +149,9 @@
   <StartLogo play={playStartAnimation} />
 {/snippet}
 
-{#if slideshows !== null}
+{#if slideshows === null}
+  <RouteSkeleton variant="start" />
+{:else}
   <!-- The header carries the brand; the large logo greets an empty library and plays the
        first-launch animation even over a filled one. -->
   <StartScreen
@@ -155,6 +160,7 @@
     focusSearches={passState.slideshows}
     serverFocusSearches={serverPassState.slideshows}
     {onCreate}
+    today={now().toISOString()}
     {onOpen}
     {updateWaiting}
     {onSettings}

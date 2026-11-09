@@ -3,10 +3,10 @@ import type { Catalogue } from "./messages.ts";
 
 /** English copy of adding pictures to a slideshow and of duplicates; typed to the German keys. */
 export const enAdd: Pick<Catalogue, keyof typeof deAdd> = {
-  "add.title": "Add media",
+  "add.title": "Add pictures",
   "add.titleShort": "Add",
   "add.leadByDate": "They go into place by capture date.",
-  "add.leadOwnOrder": "Your own order stays; choose below where the new pictures go.",
+  "add.leadOwnOrder": "Your order stays; choose below where the new pictures go.",
   "add.leadDownscale": "Glissando downscales them for this device; your originals stay untouched.",
   "add.placementTitle": "Where they go",
   "add.placementByDate": "By capture date",
@@ -21,11 +21,11 @@ export const enAdd: Pick<Catalogue, keyof typeof deAdd> = {
   "add.placementOrder": "Play order after adding",
   "add.afterTitle": "After adding",
   "add.afterPictures": "Pictures",
-  "add.afterDuration": "Duration",
+  "add.afterDuration": "Length",
   "add.afterPerPicture": "Per picture",
   "add.beforeAfter": "{before} → {after}",
   "add.sharesMusic":
-    "The pictures keep sharing the music; each gets a little shorter. Pictures with their own duration stay about that long.",
+    "The pictures keep sharing the music; each gets a little shorter. Pictures with a chosen picture length stay about that long.",
   "add.fitted": "Each new picture shrinks to about {seconds} each, to end with the music.",
   "add.musicTooShort": "The music is too short for all pictures:",
   "add.musicTooShortText":

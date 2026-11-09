@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { VideoElementPlayback, type VideoOutput } from "./video-playback";
+import { VideoElementPlayback, type VideoElementPort, type VideoOutput } from "./video-playback";
 import type { ClipSoundOutput } from "./music-output";
 
 const END_MS = 20_000;
@@ -10,17 +10,18 @@ const OUTPUT: VideoOutput = {
 };
 
 /** A `<video>` fake covering only what dispose and play's start-up read and write. */
-class FakeElement extends EventTarget {
+class FakeElement extends EventTarget implements VideoElementPort {
   currentTime = 0;
   muted = false;
   volume = 1;
   playsInline = false;
   playbackRate = 1;
-  preload = "";
+  preload: VideoElementPort["preload"] = "";
   readyState = 2;
   seeking = false;
   paused = false;
   src = "";
+  error = null;
   play(): Promise<void> {
     return Promise.resolve();
   }
@@ -50,9 +51,9 @@ class ListenerTrackingElement extends FakeElement {
   }
 }
 
-function playbackFor(element: FakeElement): VideoElementPlayback {
+function playbackFor(element: FakeElement): VideoElementPlayback<FakeElement> {
   return new VideoElementPlayback(
-    element as unknown as HTMLVideoElement,
+    element,
     1,
     END_MS,
     OUTPUT,

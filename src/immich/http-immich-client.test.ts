@@ -5,6 +5,7 @@ import error403 from "./fixtures/error-403.json";
 import serverVersion from "./fixtures/server-version.json";
 import { HttpImmichClient } from "./http-immich-client";
 import {
+  ImmichDownloadTooLargeError,
   ImmichRequestFailedError,
   ImmichUnavailableError,
   type ImmichUnavailableKind,
@@ -88,6 +89,39 @@ describe("HttpImmichClient.status", () => {
     expect(fake.requests.map((request) => request.signal)).toEqual([cancel.signal, cancel.signal]);
   });
 
+  it("refuses a video Immich announces as over maxBytes, cancelling its body unread", async () => {
+    const body = { pulled: false, cancelled: false };
+    const stream = new ReadableStream<Uint8Array>(
+      {
+        pull: () => void (body.pulled = true),
+        cancel: () => void (body.cancelled = true),
+      },
+      { highWaterMark: 0 },
+    );
+    const fake = new FakeFetch().answer(
+      "GET",
+      "api/assets/clip-1/video/playback",
+      () => new Response(stream, { headers: { "content-length": "5" } }),
+    );
+
+    const refusal = await clientWith(fake)
+      .video("clip-1", 4)
+      .catch((error: unknown) => error);
+
+    expect(refusal).toBeInstanceOf(ImmichDownloadTooLargeError);
+    expect(body).toEqual({ pulled: false, cancelled: true });
+  });
+
+  it("downloads a video Immich announces at exactly maxBytes", async () => {
+    const fake = new FakeFetch().answer(
+      "GET",
+      "api/assets/clip-1/video/playback",
+      () => new Response(new Uint8Array([1, 2, 3, 4]), { headers: { "content-length": "4" } }),
+    );
+
+    expect((await clientWith(fake).video("clip-1", 4)).size).toBe(4);
+  });
+
   it("fails loud on a version answer that is not Immich's shape", async () => {
     const fake = new FakeFetch().answer("GET", "api/server/version", json({ major: "3" }));
 
@@ -141,38 +175,5 @@ describe("HttpImmichClient failures", () => {
     expect(
       () => new HttpImmichClient({ baseUrl: "https://glissando.example/immich", fetch }),
     ).toThrow(/end with "\/"/);
-  });
-});
-
-describe("HttpImmichClient.gps", () => {
-  it("reads the coordinate Immich's exifInfo already holds", async () => {
-    const fake = new FakeFetch().answer(
-      "GET",
-      "api/assets/a",
-      json({ exifInfo: { latitude: 48.2082, longitude: 16.3738 } }),
-    );
-
-    expect(await clientWith(fake).gps("a")).toEqual({ latitude: 48.2082, longitude: 16.3738 });
-  });
-
-  it("is null when exifInfo has no coordinate", async () => {
-    const fake = new FakeFetch().answer("GET", "api/assets/a", json({ exifInfo: {} }));
-
-    expect(await clientWith(fake).gps("a")).toBeNull();
-  });
-
-  it.each([
-    ["exifInfo is null", { exifInfo: null }],
-    ["exifInfo is absent", {}],
-  ])("is null when %s", async (_name, body) => {
-    const fake = new FakeFetch().answer("GET", "api/assets/a", json(body));
-
-    expect(await clientWith(fake).gps("a")).toBeNull();
-  });
-
-  it("fails loud on an answer that is not Immich's shape", async () => {
-    const fake = new FakeFetch().answer("GET", "api/assets/a", json({ exifInfo: "nowhere" }));
-
-    await expect(clientWith(fake).gps("a")).rejects.toThrow(/"exifInfo"/);
   });
 });

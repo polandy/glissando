@@ -128,6 +128,49 @@ function stagger(stepMs: number, spreadMs: number, n: number): number {
   return n <= 1 ? 0 : Math.min(stepMs, spreadMs / (n - 1));
 }
 
+/** Where an enter and a reveal window start and how long each lasts, in slide time. */
+interface PresenceWindows {
+  readonly enterAtMs: number;
+  readonly enterMs: number;
+  /** Absent on a card that only enters and holds. */
+  readonly revealAtMs: number | undefined;
+  readonly revealMs: number;
+}
+
+interface Presence {
+  readonly presence: number;
+  readonly revealProgress: number;
+  readonly driftEm: number;
+}
+
+/**
+ * The presence (§ Timing) and drift over `windows` with `card`'s entrance easing and drift — the
+ * one formula behind the whole card's timing and each item's own. Reduced motion eases linearly
+ * and drops the drift.
+ */
+function presenceAt(
+  card: Pick<Card, "entrance">,
+  windows: PresenceWindows,
+  slideTimeMs: number,
+  reducedMotion: boolean,
+): Presence {
+  const spec = ENTRANCE_SPECS[card.entrance];
+  const enterEase: Easing = reducedMotion ? "linear" : spec.enterEase;
+  const revealEase: Easing = reducedMotion ? "linear" : "ease-in-out";
+  const enterProgress = ease(
+    enterEase,
+    windowProgress(slideTimeMs, windows.enterAtMs, windows.enterMs),
+  );
+  const revealProgress =
+    windows.revealAtMs === undefined
+      ? 0
+      : ease(revealEase, windowProgress(slideTimeMs, windows.revealAtMs, windows.revealMs));
+  const driftEm = reducedMotion
+    ? 0
+    : (1 - enterProgress) * spec.enterDriftEm + revealProgress * spec.revealDriftEm;
+  return { presence: enterProgress * (1 - revealProgress), revealProgress, driftEm };
+}
+
 /**
  * The enter phase's whole length for `card`'s entrance: the last item's stagger offset plus its
  * own enter duration, which is why `rise`/`focus`/`slow-fade` (one item) are just their own
@@ -148,25 +191,17 @@ export function cardEnterMs(card: Pick<Card, "title" | "subtitle" | "entrance">)
  * `veil` are absent on a card that only enters and holds, as on most title and closing slides.
  */
 export function cardTimingAt(card: Card, slideTimeMs: number, reducedMotion: boolean): CardTiming {
-  const spec = ENTRANCE_SPECS[card.entrance];
-  const enterAtMs = card.enterAtMs ?? 0;
   const enterMs = reducedMotion ? CARD_REDUCED_FADE_MS : cardEnterMs(card);
   const revealMs = reducedMotion ? CARD_REDUCED_FADE_MS : CARD_REVEAL_MS;
-  const enterEase: Easing = reducedMotion ? "linear" : spec.enterEase;
-  const revealEase: Easing = reducedMotion ? "linear" : "ease-in-out";
-  const enterProgress = ease(enterEase, windowProgress(slideTimeMs, enterAtMs, enterMs));
-  const revealProgress =
-    card.revealAtMs === undefined
-      ? 0
-      : ease(revealEase, windowProgress(slideTimeMs, card.revealAtMs, revealMs));
-
-  const textOpacity = enterProgress * (1 - revealProgress);
-  const driftEm = reducedMotion
-    ? 0
-    : (1 - enterProgress) * spec.enterDriftEm + revealProgress * spec.revealDriftEm;
+  const { presence, revealProgress, driftEm } = presenceAt(
+    card,
+    { enterAtMs: card.enterAtMs ?? 0, enterMs, revealAtMs: card.revealAtMs, revealMs },
+    slideTimeMs,
+    reducedMotion,
+  );
   const veilAmount = veilAmountAt(card, slideTimeMs, revealProgress, reducedMotion);
 
-  return { textOpacity, driftEm, veilAmount, captionOpacity: 1 - textOpacity };
+  return { textOpacity: presence, driftEm, veilAmount, captionOpacity: 1 - presence };
 }
 
 /**
@@ -183,9 +218,6 @@ export function cardItemTimingAt(
   reducedMotion: boolean,
 ): CardItemVisual {
   const spec = ENTRANCE_SPECS[card.entrance];
-  const enterAtMs = card.enterAtMs ?? 0;
-  const enterMs = reducedMotion ? CARD_REDUCED_FADE_MS : spec.enterItemMs;
-  const revealMs = reducedMotion ? CARD_REDUCED_FADE_MS : spec.revealItemMs;
   const enterStagger = reducedMotion
     ? 0
     : stagger(spec.enterStepMs, spec.enterSpreadMs, itemsTotal);
@@ -193,25 +225,18 @@ export function cardItemTimingAt(
     ? 0
     : stagger(spec.revealStepMs, spec.revealSpreadMs, itemsTotal);
   const reverseIndex = itemsTotal - 1 - itemIndex;
-
-  const enterEase: Easing = reducedMotion ? "linear" : spec.enterEase;
-  const revealEase: Easing = reducedMotion ? "linear" : "ease-in-out";
-  const enterProgress = ease(
-    enterEase,
-    windowProgress(slideTimeMs, enterAtMs + itemIndex * enterStagger, enterMs),
+  const { presence, driftEm } = presenceAt(
+    card,
+    {
+      enterAtMs: (card.enterAtMs ?? 0) + itemIndex * enterStagger,
+      enterMs: reducedMotion ? CARD_REDUCED_FADE_MS : spec.enterItemMs,
+      revealAtMs:
+        card.revealAtMs === undefined ? undefined : card.revealAtMs + reverseIndex * revealStagger,
+      revealMs: reducedMotion ? CARD_REDUCED_FADE_MS : spec.revealItemMs,
+    },
+    slideTimeMs,
+    reducedMotion,
   );
-  const revealProgress =
-    card.revealAtMs === undefined
-      ? 0
-      : ease(
-          revealEase,
-          windowProgress(slideTimeMs, card.revealAtMs + reverseIndex * revealStagger, revealMs),
-        );
-
-  const presence = enterProgress * (1 - revealProgress);
-  const driftEm = reducedMotion
-    ? 0
-    : (1 - enterProgress) * spec.enterDriftEm + revealProgress * spec.revealDriftEm;
 
   if (drawsBlurredCopy(card.entrance, reducedMotion)) {
     return {

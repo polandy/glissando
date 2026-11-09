@@ -1,7 +1,9 @@
 import { TRANSITION_EFFECTS, type TransitionEffect } from "../slideshow";
 import { fragmentShader, VERTEX_SHADER } from "./transition-shaders";
+import { linkProgram } from "./link-program";
+import { WebGlSetupError } from "./webgl-setup-error";
 
-export class ShaderCompileError extends Error {
+class ShaderCompileError extends WebGlSetupError {
   constructor(effect: TransitionEffect, log: string) {
     super(`the ${effect} shader does not compile or link: ${log}`);
     this.name = "ShaderCompileError";
@@ -71,28 +73,13 @@ function compile(
   effect: TransitionEffect,
   positionAttribute: number,
 ): EffectProgram {
-  const program = gl.createProgram();
-  for (const [type, source] of [
-    [gl.VERTEX_SHADER, VERTEX_SHADER],
-    [gl.FRAGMENT_SHADER, fragmentShader(effect)],
-  ] as const) {
-    const shader = gl.createShader(type);
-    if (shader === null) {
-      throw new ShaderCompileError(effect, "createShader returned null");
-    }
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      throw new ShaderCompileError(effect, gl.getShaderInfoLog(shader) ?? "no log");
-    }
-    gl.attachShader(program, shader);
-    gl.deleteShader(shader);
-  }
-  gl.bindAttribLocation(program, positionAttribute, "position");
-  gl.linkProgram(program);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    throw new ShaderCompileError(effect, gl.getProgramInfoLog(program) ?? "no log");
-  }
+  const program = linkProgram(
+    gl,
+    VERTEX_SHADER,
+    fragmentShader(effect),
+    new Map([["position", positionAttribute]]),
+    (log) => new ShaderCompileError(effect, log),
+  );
   const uniforms = Object.fromEntries(
     UNIFORM_NAMES.map((name) => [name, gl.getUniformLocation(program, name)]),
   ) as Record<UniformName, WebGLUniformLocation | null>;

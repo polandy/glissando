@@ -7,8 +7,9 @@ availability answers (not while it is `checking` or `offline`). The server libra
 that answers the discovery and Immich is available; **offline** when the device is offline
 (Immich's `offline`: the Glissando server is out of reach) and the last answer this session was
 the discovery; otherwise **off**; **checking** until Immich and the first discovery have answered.
-A discovery that cannot reach the server keeps the last answer; of two under way, the later one
-counts. Off, nothing below shows and the app is as without this feature.
+A discovery that cannot reach the server, or that the server answers 5xx or with a new sign-in
+(the forward auth's redirect), keeps the last answer, also the remembered one; of two under way,
+the later one counts. Off, nothing below shows and the app is as without this feature.
 
 ## What this device remembers
 
@@ -37,22 +38,7 @@ fail-soft (a device whose storage refuses remembers nothing):
 
 ## Where a new slideshow lives
 
-With the server library on, the pictures step shows above everything a group "Where should it
-live?" with two options: "This device" ("Pictures are downloaded and stored here. Plays
-offline.") and "Glissando server" ("Pictures stay in Immich. Plays on every device at home,
-online."); the last choice is remembered per device, "This device" by default. Once a picture is
-in, both are disabled with "Chosen for this slideshow. Clear the pictures to change it." Not on:
-no group, the step as before.
-
-**Glissando server** chosen: the "From Immich" box comes first with "Open Immich" as the primary
-button; the device drop zone is disabled with "A server slideshow only links photos from Immich.
-Upload these to Immich first, or save this slideshow on this device." The "Open file" box is not
-offered, and photos skipped as duplicates stay skipped (no "Add anyway"). Picked photos join at once
-(no downscaling; tiles are Immich thumbnails) with the mint notice "Linked from Immich. Nothing is
-downloaded now; playing loads the pictures from Immich." Duplicates are skipped as before
-(ADR-0016). The music step is unchanged; "Create slideshow" uploads each song's music, then
-creates the document, under the overlay "Saving on your Glissando server …". A failure keeps the
-wizard as it was with a coral toast naming it and "Try again".
+The wizard's choice and server mode: [Where a new slideshow lives](NEW_SLIDESHOW_HOME.md).
 
 ## A server slideshow's screen
 
@@ -81,9 +67,14 @@ wizard as it was with a coral toast naming it and "Try again".
   the music. The copy plays offline and appears under “On this device”." / "Later edits to either
   one stay in that one." — Cancel / "Download and keep". It runs like an import (originals
   through `decodePicture`, each picture's own focus ([FOCUS.md](FOCUS.md)), claims, all or
-  nothing, title made unique; a picture no longer in Immich fails the copy —
+  nothing, title made unique, a title or closing slide over a picture kept over that picture's
+  copy; a picture no longer in Immich fails the copy —
   `keepCopyOnDevice`), the header progress
-  "Copying “title” … 34 %"; done: toast "Copied to this device" with "Open".
+  "Copying “title” … 34 %"; done: toast "Copied to this device" with "Open". Copies of different
+  slideshows run side by side, each with its own progress (`ServerCopyFlows`) in the header after
+  a running export's, the line under the bar following the first of them; choosing it again
+  while that slideshow's copy runs joins the running copy. A copy runs to its end: there is no
+  cancel.
 - A device slideshow's ⋯ menu adds (server library on) "Save on the server" ("A copy for every
   device at home"). All pictures from Immich: the sheet "Save on the server?" — "Every device that
   opens this Glissando can then play and edit it. Its n pictures stay in Immich and are linked,
@@ -111,7 +102,7 @@ wizard as it was with a coral toast naming it and "Try again".
   the server's own focus, laid over by this session's `putPictureFocus` ([FOCUS.md](FOCUS.md));
   `musicBeats`/`musicLoudness`
   (with `put…`) keep beats and loudness beside the server music, measured by the first device
-  opening the slideshow in the player or music editor (`serverBeatPass`/`serverLoudnessPass`). Both stores share the type
+  opening the slideshow in the player or music editor (`serverAnalysisPass`). Both stores share the type
   `SlideshowStore` (`src/library/library-store.ts`).
 - Errors the screens tell apart: an unknown slideshow is `SlideshowNotFoundError` as on the
   device; an edit at a stale revision `SlideshowChangedError` carrying the current slideshow; a
@@ -119,7 +110,8 @@ wizard as it was with a coral toast naming it and "Try again".
   answers 404 for `PictureMissingFromImmichError`; Immich itself unavailable
   `ImmichUnavailableError` (also reported to `ImmichAvailability`). Edits are applied one at a
   time, each naming the revision the one before left; one that failed leaves the last saved
-  version as the one the next edit names.
+  version as the one the next edit names. A list or read answered with an older revision than
+  the one last seen (sent before an edit, answered after it) keeps the newer one.
 - Before playing, the player measures and prepares the pictures in this device's quality
   ([app/PREPARING.md](../app/PREPARING.md), ADR-0027): 1440 from `playbackPictureBlob`, 4K from
   `pictureBlob` (`serverRenditionFor` in `server-playing.ts`). It opens them from the prepared

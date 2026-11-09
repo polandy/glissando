@@ -1,32 +1,8 @@
-/** The library database's object stores and how each schema version upgrades to the next. */
+/** The library database's object stores and how an older schema version is replaced. */
 
 /** Records and media share one database so a transaction can span both (see ADR-0003). */
 export const LIBRARY_DATABASE_NAME = "glissando";
 export const SCHEMA_VERSION = 8;
-/** The version that added the `imports` store. */
-const IMPORTS_ADDED_IN = 2;
-/** The version that added the `focus` store (ADR-0012). */
-const FOCUS_ADDED_IN = 3;
-/** The version that added the `beats` store (ADR-0021). */
-const BEATS_ADDED_IN = 4;
-/**
- * The version whose `StoredSlideshow` records require a picture's `colours` and a picture
- * background card's `tint` (ADR-0033). There is no production instance yet, so a device on an
- * older version loses its stored slideshows rather than carrying records a newer build cannot
- * read; its media is cleaned up next by `deleteUnreferencedMedia`.
- */
-const COLOURS_ADDED_IN = 5;
-/** The version that added the `videos` store (ADR-0034). */
-const VIDEOS_ADDED_IN = 6;
-/** The version that added the `loudness` store (dev-docs/library/MUSIC.md). */
-const LOUDNESS_ADDED_IN = 7;
-/**
- * The version whose `focus` records carry a `detector` version (ADR-0041). There is no
- * production instance yet, so the store is dropped and refilled rather than migrated: every
- * picture is looked at again by the current detector, including one stored as "none" before
- * objects or scenery.
- */
-const FOCUS_RESET_IN = 8;
 
 export const SLIDESHOWS = "slideshows";
 export const PICTURES = "pictures";
@@ -50,38 +26,27 @@ export type StoreName =
   | typeof VIDEOS
   | typeof LOUDNESS;
 
+/** The stores keyed by media id: a media's record in each goes when the media does. */
+export const MEDIA_KEYED_STORES: readonly StoreName[] = [
+  PICTURES,
+  MUSIC,
+  VIDEOS,
+  FOCUS,
+  BEATS,
+  LOUDNESS,
+];
+
 /**
- * Adds what each version after `oldVersion` brought. Existing data stays untouched, except the
- * slideshow records a version before `COLOURS_ADDED_IN` left behind: cleared, not migrated, since
- * no production instance predates it.
+ * Creates the current stores. An older library is not migrated (no production instance yet):
+ * every store goes, and the library starts empty.
  */
-export function upgradeLibraryDatabase(database: IDBDatabase, oldVersion: number): void {
-  if (oldVersion < 1) {
-    database.createObjectStore(SLIDESHOWS, { keyPath: "id" });
-    database.createObjectStore(PICTURES);
-    database.createObjectStore(MUSIC);
+export function upgradeLibraryDatabase(database: IDBDatabase): void {
+  for (const name of [...database.objectStoreNames]) {
+    database.deleteObjectStore(name);
   }
-  if (oldVersion < IMPORTS_ADDED_IN) {
-    database.createObjectStore(IMPORTS, { keyPath: "id" });
-  }
-  if (oldVersion < FOCUS_ADDED_IN) {
-    database.createObjectStore(FOCUS);
-  }
-  if (oldVersion < BEATS_ADDED_IN) {
-    database.createObjectStore(BEATS);
-  }
-  if (oldVersion < VIDEOS_ADDED_IN) {
-    database.createObjectStore(VIDEOS);
-  }
-  if (oldVersion < LOUDNESS_ADDED_IN) {
-    database.createObjectStore(LOUDNESS);
-  }
-  if (oldVersion > 0 && oldVersion < COLOURS_ADDED_IN) {
-    database.deleteObjectStore(SLIDESHOWS);
-    database.createObjectStore(SLIDESHOWS, { keyPath: "id" });
-  }
-  if (oldVersion > 0 && oldVersion < FOCUS_RESET_IN) {
-    database.deleteObjectStore(FOCUS);
-    database.createObjectStore(FOCUS);
+  database.createObjectStore(SLIDESHOWS, { keyPath: "id" });
+  database.createObjectStore(IMPORTS, { keyPath: "id" });
+  for (const name of MEDIA_KEYED_STORES) {
+    database.createObjectStore(name);
   }
 }

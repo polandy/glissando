@@ -58,6 +58,7 @@ describe("loading the library's server section", () => {
         {
           id: "iceland",
           title: "Iceland 2025",
+          createdAt: "2025-07-02T08:00:00Z",
           coverUrls: ["blob:cover-1"],
           pictureCount: 2,
           durationSeconds: 10,

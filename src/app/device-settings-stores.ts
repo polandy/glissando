@@ -1,4 +1,4 @@
-import type { KeyValueStorage } from "./start/first-launch";
+import type { KeyValueStorage } from "./storage/storage-port";
 import { createStorageMusicEditorDetailsStore } from "./music-editor/music-editor-details";
 import { createStorageFineSettingsFoldStore } from "./screens/slideshow/fine-settings-fold";
 

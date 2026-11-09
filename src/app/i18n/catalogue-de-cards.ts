@@ -50,4 +50,6 @@ export const deCards = {
   "cards.hintOpeningStill": "Etwa 4 s, zum Takt.",
   "cards.hintClosingMotion": "Etwa 4 s, zum Takt. Mit Einblenden erscheint das Bild erst.",
   "cards.hintClosingStill": "Etwa 4 s, zum Takt.",
+  "cards.openingRemoved": "Titelbild entfernt",
+  "cards.closingRemoved": "Schlussbild entfernt",
 } as const satisfies Record<string, Message>;

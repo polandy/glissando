@@ -1,12 +1,13 @@
 import type { ConvertMusic } from "../../import/music-conversion";
 import { UnconvertibleMusicError } from "../../import/music-conversion";
+import { MAX_MUSIC_BYTES, MAX_MUSIC_DURATION_MS } from "../../import/music-limits";
 import { recogniseMusicFormat, type ConvertibleSource } from "../../import/music-format";
 import { UnreadableMusicError, type MusicProbe } from "../../import/music-probe";
 import type { SampleOrigin } from "../sample-music/sample-song-pick";
 
 /** What reads a picked music file: its probe, its FLAC conversion (ADR-0020) and the log. */
 export interface MusicPickPorts {
-  probeMusic(file: File): Promise<MusicProbe>;
+  probeMusic(file: File, signal: AbortSignal): Promise<MusicProbe>;
   readonly convertMusic: ConvertMusic;
   log(error: unknown): void;
 }
@@ -26,7 +27,7 @@ export interface ChosenMusic {
 export interface UnusableMusic {
   readonly kind: "unusable";
   readonly pickedName: string;
-  readonly reason: "unreadable" | "protected";
+  readonly reason: "unreadable" | "protected" | "tooLarge" | "tooLong";
 }
 
 /** Music being converted on this device. */
@@ -52,7 +53,7 @@ export type PendingSong = { readonly key: number } & (
 /**
  * Reads a picked file as music: the file itself, or its FLAC copy when a target browser cannot
  * decode it, telling `onConverting` how far the conversion is; music that cannot be read is
- * `unusable`. An abort of `signal` cancels the conversion and rejects.
+ * `unusable`, one over `MAX_MUSIC_BYTES` or `MAX_MUSIC_DURATION_MS` with the limit it hit. An abort of `signal` cancels the conversion or the probe and rejects.
  */
 export async function readPickedMusic(
   file: File,
@@ -65,6 +66,7 @@ export async function readPickedMusic(
     pickedName: file.name,
     reason,
   });
+  if (file.size > MAX_MUSIC_BYTES) return unusable("tooLarge");
   try {
     const format = await recogniseMusicFormat(file);
     if (format.kind === "protected") return unusable("protected");
@@ -83,7 +85,9 @@ export async function readPickedMusic(
         signal,
       );
     }
-    const { durationMs } = await ports.probeMusic(playable);
+    if (playable.size > MAX_MUSIC_BYTES) return unusable("tooLarge");
+    const { durationMs } = await ports.probeMusic(playable, signal);
+    if (durationMs > MAX_MUSIC_DURATION_MS) return unusable("tooLong");
     return {
       kind: "chosen",
       file: playable,

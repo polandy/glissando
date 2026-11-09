@@ -4,6 +4,7 @@ import { enMusic } from "./catalogue-en-music.ts";
 import { enTiming } from "./catalogue-en-timing.ts";
 import { enTransitions } from "./catalogue-en-transitions.ts";
 import { enLook } from "./catalogue-en-look.ts";
+import { enSelection } from "./catalogue-en-selection.ts";
 import { enMood } from "./catalogue-en-mood.ts";
 import { enPortrait } from "./catalogue-en-portrait.ts";
 import { enImmich } from "./catalogue-en-immich.ts";
@@ -23,6 +24,7 @@ import { enFrame } from "./catalogue-en-frame.ts";
 import { enCards } from "./catalogue-en-cards.ts";
 import { enChapters } from "./catalogue-en-chapters.ts";
 import { enFilePage } from "./catalogue-en-file-page.ts";
+import { enExportErrors } from "./catalogue-en-export-errors.ts";
 import { enSampleMusicCredit } from "./catalogue-en-sample-music-credit.ts";
 import { enSampleMusicPicker } from "./catalogue-en-sample-music-picker.ts";
 import type { Catalogue } from "./messages.ts";
@@ -39,6 +41,11 @@ export const en: Catalogue = {
   "common.breadcrumb": "Breadcrumb",
   "common.next": "Next",
   "common.unexpectedError": "Something went wrong. Please try again.",
+  "common.storageUnavailable":
+    "Glissando can't open its storage in this browser. Reload the page — if that doesn't help, check that this site may store data.",
+  "common.newerVersionOpen":
+    "A newer version of Glissando is open in another tab. Reload this tab to use it.",
+  "common.reload": "Reload",
 
   "units.seconds": "{seconds} s",
   "units.pictures": { one: "{count} picture", other: "{count} pictures" },
@@ -53,6 +60,7 @@ export const en: Catalogue = {
   "start.library": "Library",
   "start.yourSlideshows": "Your slideshows",
   "start.withMusic": "with music",
+  "start.created": "Created {date}",
   "start.searchingSubjects": "Looking for subjects",
   "start.searchingAgain": "Looking again",
   "start.searchProgress": "{done} of {total}",
@@ -84,6 +92,7 @@ export const en: Catalogue = {
   "settings.documentation": "Documentation",
   "settings.sourceCode": "Source code on GitHub",
   "settings.licenses": "Open-source licences",
+  "settings.selfHosting": "Self-hosting and Immich",
   "settings.version": "Version",
   "settings.versionName": "Glissando {version}",
   "settings.update": "Reload to update",
@@ -93,23 +102,25 @@ export const en: Catalogue = {
   "slideshow.dateRange": "{from} – {to}",
   "slideshow.music": "Music",
   "slideshow.noMusic": "None",
-  "slideshow.kenBurns": "Ken Burns",
+  "slideshow.kenBurns": "Motion",
   "slideshow.automatic": "automatic",
   "slideshow.transitions": "Transitions",
   "slideshow.look": "Look",
   "slideshow.mood": "Mood",
   "slideshow.play": "Play",
-  "slideshow.fineSettings": "Fine settings",
+  "slideshow.fineSettings": "More settings",
   "slideshow.pictures": "Pictures",
   "slideshow.sortedByDate": "Sorted by capture date",
   "slideshow.pictureLabel": "Picture {number}, taken on {date}",
-  "slideshow.ownOrder": "Own order",
-  "slideshow.reorderHintWide": "drag or tap",
-  "slideshow.reorderHintNarrow": "tap to reorder",
+  "slideshow.ownOrder": "Your order",
+  "slideshow.reorderHintWide": "Drag to reorder",
+  "slideshow.reorderHintNarrow": "Hold and drag to reorder",
   "slideshow.select": "Select",
   "slideshow.shuffle": "Shuffle",
   "slideshow.shuffled": "{count} pictures shuffled",
-  "slideshow.removePicture": "Remove picture {number}",
+  "slideshow.sortByDate": "Sort by date",
+  "slideshow.sortByDateLabel": "Sort by capture date",
+  "slideshow.sortedByDateToast": "{count} pictures sorted by capture date",
   "slideshow.removed": { one: "Picture removed", other: "{count} pictures removed" },
   "slideshow.undo": "Undo",
   "slideshow.selection": "Selection",
@@ -128,7 +139,7 @@ export const en: Catalogue = {
     "At least one picture stays. To get rid of all of them, delete the whole slideshow.",
   "slideshow.rename": "Rename title",
   "slideshow.titleInput": "Title",
-  "slideshow.titleHint": "Enter saves · Esc discards · empty = automatic title",
+  "slideshow.titleHint": "Enter saves · Esc cancels · empty = automatic title",
   "slideshow.more": "More",
   "slideshow.focus": "Faces and subjects\u00a0…",
   "slideshow.focusFailedHint": {
@@ -138,9 +149,9 @@ export const en: Catalogue = {
   "slideshow.delete": "Delete slideshow\u00a0…",
   "slideshow.deleteTitle": "Delete “{title}”?",
   "slideshow.deleteText": {
-    one: "The slideshow and its one picture are removed from this device. Your original photos stay where they are. This cannot be undone.",
+    one: "The slideshow and its one picture are removed from this device. Your pictures stay where they are. This cannot be undone.",
     other:
-      "The slideshow and its {count} pictures are removed from this device. Your original photos stay where they are. This cannot be undone.",
+      "The slideshow and its {count} pictures are removed from this device. Your pictures stay where they are. This cannot be undone.",
   },
   "slideshow.keep": "Keep",
   "slideshow.deleteConfirm": "Delete",
@@ -166,13 +177,13 @@ export const en: Catalogue = {
   "focusSheet.statusSubject": "Subjects",
   "focusSheet.statusImmich": "Faces from Immich",
   "focusSheet.statusScenery": "Scenery",
-  "focusSheet.statusNone": "Nothing found",
-  "focusSheet.statusOutdated": "Older detection",
+  "focusSheet.statusNone": "Shown whole",
+  "focusSheet.statusOutdated": "Looked at earlier",
   "focusSheet.statusFailed": "Couldn't look",
   "focusSheet.statusWaiting": "Not yet",
   "focusSheet.statusWaitingForServer": "Waiting for server",
   "focusSheet.statusLooking": "Looking",
-  "focusSheet.ownMotion": "Own motion",
+  "focusSheet.ownMotion": "Chosen motion",
   "focusSheet.tryAgain": "Try the {count} again",
   "focusSheet.lookAgainAll": {
     one: "Look again at the picture",
@@ -192,8 +203,8 @@ export const en: Catalogue = {
   "import.crumbMusic": "Music",
   "import.picturesTitle": "Which pictures?",
   "import.picturesText":
-    "Glissando sorts them by capture date and downsizes them for the device. Your originals stay untouched.",
-  "import.pickPictures": "Choose media",
+    "Glissando sorts them by capture date and downscales them for the device. Your pictures stay untouched.",
+  "import.pickPictures": "Choose pictures",
   "import.or": "or",
   "import.pickFolder": "choose a folder",
   "import.dropHint": "on a desktop, drop them here too",
@@ -201,8 +212,8 @@ export const en: Catalogue = {
     "JPEG, PNG, WebP, HEIC and videos (MP4, WebM, MOV), where the browser supports them",
   "import.progressCount": "{done} / {count}",
   "import.progressLabel": {
-    one: "picture being downsized\u00a0…",
-    other: "pictures being downsized\u00a0…",
+    one: "picture being downscaled\u00a0…",
+    other: "pictures being downscaled\u00a0…",
   },
   "import.dateRange": "{from} to {to}",
   "import.addMore": "Add pictures",
@@ -210,7 +221,7 @@ export const en: Catalogue = {
   "import.addFolder": "A folder",
   "import.queueHeader": "Importing · {done} of {count} ready",
   "import.queueLeft": "{count} left",
-  "import.pickImmich": { one: "Immich · {count} photo", other: "Immich · {count} photos" },
+  "import.pickImmich": { one: "Immich · {count} picture", other: "Immich · {count} pictures" },
   "import.pickProgress": "{done} / {total}",
   "import.pickWaiting": "waiting",
   "import.pickDone": "{count} ✓",
@@ -233,13 +244,17 @@ export const en: Catalogue = {
     one: "{count} file could not be read as a picture and was skipped:",
     other: "{count} files could not be read as pictures and were skipped:",
   },
+  "import.tooLarge": {
+    one: "{count} picture is too large and was skipped:",
+    other: "{count} pictures are too large and were skipped:",
+  },
   "import.undecodable": {
-    one: "{count} picture could not be decoded and was skipped:",
-    other: "{count} pictures could not be decoded and were skipped:",
+    one: "{count} picture could not be read and was skipped:",
+    other: "{count} pictures could not be read and were skipped:",
   },
   "import.notDownloaded": {
-    one: "{count} photo could not be downloaded from Immich and was skipped:",
-    other: "{count} photos could not be downloaded from Immich and were skipped:",
+    one: "{count} picture could not be downloaded from Immich and was skipped:",
+    other: "{count} pictures could not be downloaded from Immich and were skipped:",
   },
   "import.skippedFiles": "{files}.",
   "import.skippedRest": {
@@ -260,12 +275,11 @@ export const en: Catalogue = {
   "import.musicFormats": "One or more files · MP3, M4A, FLAC, WAV, Ogg, AIFF, WMA\u00a0…",
   "import.ownMusicTitle": "Your own music",
   "import.chooseFiles": "Choose files",
-  "import.soundtrackTitle": "Soundtrack",
-  "import.soundtrackEmpty": "No music yet — add a track or your own songs above.",
+  "import.soundtrackTitle": "Music",
+  "import.soundtrackEmpty": "No music yet — add a song above.",
   "import.trackMeta": "{duration} · {format}",
   "import.paceMood": "Mood {mood}",
-  "import.paceWithMusic":
-    "about {seconds} per picture, on the music's phrases. Change it in the slideshow.",
+  "import.paceWithMusic": "about {seconds} per picture, to the music. Change it in the slideshow.",
   "import.paceWithoutMusic": "about {seconds} per picture. Change it in the slideshow.",
   "import.secondsShorter": "Shorter",
   "import.secondsLonger": "Longer",
@@ -287,13 +301,14 @@ export const en: Catalogue = {
   "import.backToPictures": "Pictures",
   "import.create": "Create slideshow",
   "import.createWithoutMusic": "Create without music",
-  "import.discardTitle": "Discard selection?",
+  "import.titleLabel": "Title",
+  "import.titleHint": "You can change it later on the slideshow screen.",
+  "import.discardTitle": "Remove selection?",
   "import.discardText": "The chosen pictures will not be saved.",
   "import.keepChoosing": "Keep choosing",
-  "import.discard": "Discard",
+  "import.discard": "Remove",
   "import.creatingTitle": "Creating slideshow\u00a0…",
-  "import.creatingText": "Order by capture date · Ken Burns · transitions",
-  "import.created": "Slideshow created — tap Play",
+  "import.creatingText": "Putting your pictures in order, with motion and transitions",
 
   "storage.persistRefusedTitle": "Glissando may not store anything permanently",
   "storage.persistRefusedText":
@@ -353,11 +368,11 @@ export const en: Catalogue = {
   "pwa.firefoxDesktop.note":
     "As its own window in the Dock or taskbar: open Glissando in Chrome, Edge or Safari and install it there.",
 
-  "glissandoFile.exportRunning": "Exporting\u00a0… {percent}\u00a0%",
-  "glissandoFile.exportAfterRunning": "Once the running export is done",
-  "glissandoFile.exportIndicator": "Exporting “{title}”\u00a0… {percent}\u00a0%",
+  "glissandoFile.exportRunning": "Saving\u00a0… {percent}\u00a0%",
+  "glissandoFile.exportAfterRunning": "Once the running save is done",
+  "glissandoFile.exportIndicator": "Saving “{title}”\u00a0… {percent}\u00a0%",
   "glissandoFile.downloaded": "“{fileName}” downloaded · {size}",
-  "glissandoFile.exportFailed": "Export failed: not enough storage on the device.",
+  "glissandoFile.exportFailed": "Saving failed: not enough storage on the device.",
   "glissandoFile.tryAgain": "Try again",
   "glissandoFile.sheetText":
     "The whole slideshow — pictures, music, every setting — in one .glissando file. Open it in Glissando on another device to watch or edit on.",
@@ -381,10 +396,10 @@ export const en: Catalogue = {
   "glissandoFile.cancelled": "Opening cancelled, nothing saved.",
   "glissandoFile.foreignTitle": "“{name}” is not a Glissando slideshow.",
   "glissandoFile.foreignText":
-    "Glissando only opens .glissando files it exported itself. Pictures come in through “New slideshow”.",
+    "Glissando only opens .glissando files it saved itself. Pictures come in through “New slideshow”.",
   "glissandoFile.damagedTitle": "“{name}” is damaged.",
   "glissandoFile.damagedText":
-    "The file is incomplete or parts of it cannot be read, perhaps it was not fully copied or downloaded. Export the slideshow again on the other device.",
+    "The file is incomplete or parts of it cannot be read, perhaps it was not fully copied or downloaded. Save the slideshow again on the other device.",
   "glissandoFile.newerTitle": "“{name}” comes from a newer Glissando version.",
   "glissandoFile.newerText":
     "This version cannot read the file yet. Reload the app to get the newest version, then open the file again.",
@@ -408,7 +423,7 @@ export const en: Catalogue = {
   "player.keyPrevious": "←",
   "player.keyNext": "→",
   "player.keyClose": "Esc",
-  "player.fullscreen": "Fullscreen (F)",
+  "player.fullscreen": "Full screen (F)",
   "player.end": "The end",
   "player.again": "Again",
   "player.pictureError": "A picture could not be loaded.",
@@ -418,6 +433,7 @@ export const en: Catalogue = {
   ...enTiming,
   ...enTransitions,
   ...enLook,
+  ...enSelection,
   ...enMood,
   ...enPortrait,
   ...enImmich,
@@ -438,6 +454,9 @@ export const en: Catalogue = {
   ...enCards,
   ...enChapters,
   ...enFilePage,
+  ...enExportErrors,
   ...enSampleMusicCredit,
   ...enSampleMusicPicker,
+  "route.loading": "Loading…",
+  "start.searchShort": "Finding subjects {done}/{total}",
 };

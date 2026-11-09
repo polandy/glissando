@@ -4,7 +4,7 @@ import { writeGlissandoFile, type WritePorts } from "../../glissando-file/write-
 import type { LibraryStore } from "../../library/library-store";
 import type { Navigator } from "../navigation/navigator";
 import type { Toaster } from "../toast/toaster";
-import { isQuotaExceeded } from "./storage-shortage";
+import { isQuotaExceeded } from "../../storage-quota/is-quota-exceeded";
 
 /** The screen an open started from; its notice shows there (dev-docs/app/SCREENS.md). */
 export type OpenOrigin = "library" | "pictures";
@@ -146,7 +146,7 @@ export class OpenFlow {
       this.#ports.afterCreate();
     } catch (error) {
       await this.#failed(error, {
-        cancelled: cancel.signal.aborted,
+        cancel: cancel.signal,
         origin,
         fileName,
         neededBytes,
@@ -156,9 +156,12 @@ export class OpenFlow {
 
   async #failed(
     error: unknown,
-    context: { cancelled: boolean; origin: OpenOrigin; fileName: string; neededBytes: number },
+    context: { cancel: AbortSignal; origin: OpenOrigin; fileName: string; neededBytes: number },
   ): Promise<void> {
-    if (context.cancelled) {
+    if (context.cancel.aborted) {
+      if (error !== context.cancel.reason) {
+        this.#ports.log(error);
+      }
       this.#end({});
       this.#ports.toaster.show({ text: this.#ports.cancelledText(), tone: "info" });
       return;

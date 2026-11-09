@@ -1,3 +1,4 @@
+import { browserObjectUrls } from "../../media/object-urls";
 import type { StoredSlideshow } from "../../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../../library/testing/memory-store";
 import { MusicOutput } from "../../../player";
@@ -19,6 +20,7 @@ export function moodPreviewPortsFixture(
       secondsPerPicture: 5,
       ...stored,
     },
+    objectUrls: browserObjectUrls,
     musicOutput: new MusicOutput(() => null),
     decodeClipSound: () => Promise.resolve(null),
     log: () => {},

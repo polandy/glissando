@@ -50,4 +50,25 @@ describe("FocusSearchIndicator", () => {
     expect(line).not.toBeNull();
     expect(line?.classList.contains("raised")).toBe(raised);
   });
+
+  it("keeps a visible short text label beside the ring in a phone-wide container", () => {
+    const mounted = mountWithTranslator(
+      FocusSearchIndicator,
+      { search: { done: 1, total: 30, again: false }, besideExport: false },
+      { current: createTranslator("en") },
+    );
+    destroy = mounted.destroy;
+    const host = mounted.target;
+    host.style.cssText = "container-type: inline-size; width: 390px";
+
+    expect(host.querySelector(".progress-ring")).not.toBeNull();
+    const short = host.querySelector<HTMLElement>(".label-short");
+    const box = short?.getBoundingClientRect();
+    expect(box?.width).toBeGreaterThan(0);
+    expect(getComputedStyle(short as HTMLElement).visibility).toBe("visible");
+    expect(short?.textContent).toContain("1/30");
+    expect(host.querySelector('[role="progressbar"]')?.getAttribute("aria-label")).toBe(
+      "Looking for subjects",
+    );
+  });
 });

@@ -98,11 +98,11 @@ describe("PictureIntakeBody, a picture full screen", () => {
     openByKey(target, 0);
 
     press("ArrowLeft");
-    expect(text(viewer(target)?.querySelector(".meta span"))).toBe("1 von 2");
+    expect(text(viewer(target)?.querySelector(".meta > span"))).toBe("1 von 2");
     press("ArrowRight");
-    expect(text(viewer(target)?.querySelector(".meta span"))).toBe("2 von 2");
+    expect(text(viewer(target)?.querySelector(".meta > span"))).toBe("2 von 2");
     press("ArrowRight");
-    expect(text(viewer(target)?.querySelector(".meta span"))).toBe("2 von 2");
+    expect(text(viewer(target)?.querySelector(".meta > span"))).toBe("2 von 2");
   });
 
   it("jumps to a picture with its filmstrip thumbnail", async () => {
@@ -112,7 +112,7 @@ describe("PictureIntakeBody, a picture full screen", () => {
     target.querySelectorAll<HTMLElement>(".film button")[2]?.click();
     flushSync();
 
-    expect(text(viewer(target)?.querySelector(".meta span"))).toBe("3 von 3");
+    expect(text(viewer(target)?.querySelector(".meta > span"))).toBe("3 von 3");
     expect(target.querySelectorAll(".film button")[2]?.getAttribute("aria-current")).toBe("true");
   });
 
@@ -156,7 +156,7 @@ describe("PictureIntakeBody, a picture full screen", () => {
       "lake.jpg",
     ]);
     expect(toaster.current?.text).toBe("1 picture removed");
-    expect(text(viewer(target)?.querySelector(".meta span"))).toBe("2 von 2");
+    expect(text(viewer(target)?.querySelector(".meta > span"))).toBe("2 von 2");
     expect(text(viewer(target)?.querySelector(".meta b"))).toBe("03.07.2025 · 10:00:00");
   });
 
@@ -203,7 +203,7 @@ describe("PictureIntakeBody, a set-aside picture full screen", () => {
     target.querySelector<HTMLElement>(".aside .tile:not(.kept) button.view")?.click();
     flushSync();
 
-    expect(text(viewer(target)?.querySelector(".meta span"))).toBe(
+    expect(text(viewer(target)?.querySelector(".meta > span"))).toBe(
       "3 von 3 · Beiseitegelegt: Ähnlich",
     );
     expect(viewer(target)?.querySelector(".pill.remove")).toBeNull();

@@ -40,8 +40,8 @@
 .app-shell-stage {
   flex: 1;
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
   padding-top: 32px;
 }
 .app-shell-logo {
@@ -50,6 +50,23 @@
   overflow: visible;
   /* A slow breath shows that the app is still on its way. */
   animation: app-shell-breath 1.6s ease-in-out infinite;
+}
+.app-shell[data-failed] .app-shell-logo {
+  animation: none;
+}
+.app-shell-failure {
+  max-width: 36ch;
+  margin: 24px 16px 0;
+  color: var(--gl-ink);
+  font-size: var(--gl-size-body);
+  text-align: center;
+}
+.app-in-place-message {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gl-surface);
 }
 .app-shell-status {
   flex: none;

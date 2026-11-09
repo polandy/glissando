@@ -8,16 +8,18 @@
   import type { ExportPreview } from "../../video-export/slideshow-video-export";
   import type { VideoExportSession } from "../../video-export/video-export-session";
   import type { SlideshowDetails, SlideshowStorage } from "../view-models";
+  import type { SlideshowSheets } from "./slideshow-sheets.svelte";
   import ShareFlow from "./share/ShareFlow.svelte";
-  import FocusSheetHost from "./FocusSheetHost.svelte";
-  import DeleteFlow from "./DeleteFlow.svelte";
+  import FocusSheet from "./FocusSheet.svelte";
+  import DeleteDialog from "./DeleteDialog.svelte";
 
   /**
-   * The slideshow screen's modal overlays that are not part of its editing sheets: export,
-   * focus and delete. Grouped apart from `SlideshowEditSheets` only to keep `SlideshowScreen`
-   * under its line limit; each overlay's open button gives focus back through `onClosed`.
+   * The slideshow screen's modal overlays that are not part of its editing sheets: share, focus
+   * and delete, the one `sheets` names. Grouped apart from `SlideshowEditSheets` only to keep
+   * `SlideshowScreen` under its line limit.
    */
   let {
+    sheets,
     slideshow,
     storage,
     focus,
@@ -32,9 +34,8 @@
     newVideoExport,
     newHtmlExport,
     onDelete,
-    onClosed,
-    onShareClosed,
   }: {
+    sheets: SlideshowSheets;
     slideshow: SlideshowDetails;
     storage: SlideshowStorage | null;
     focus: PicturesFocus;
@@ -51,57 +52,48 @@
     newVideoExport: () => VideoExportSession<ExportPreview>;
     newHtmlExport: () => HtmlExportSession;
     onDelete: () => void;
-    /** An overlay closed without acting further; focus goes back to the button it opened from. */
-    onClosed: () => void;
-    /** The Share sheet closed; focus goes back to the Share button. */
-    onShareClosed: () => void;
   } = $props();
 
-  let shareFlow = $state<ShareFlow>();
-  let focusSheetHost = $state<FocusSheetHost>();
-  let deleteFlow = $state<DeleteFlow>();
-
-  export function openShare(): void {
-    shareFlow?.open();
-  }
-
-  export function showFocus(): void {
-    focusSheetHost?.show();
-  }
-
-  export function openDelete(): void {
-    deleteFlow?.open();
-  }
+  const open = $derived(sheets.current?.kind);
+  const onServer = $derived(storage?.kind === "server");
+  const close = () => sheets.close();
 </script>
 
-<ShareFlow
-  bind:this={shareFlow}
-  {slideshow}
-  {storage}
-  {linkSession}
-  {exportState}
-  {onExport}
-  onOpened={onShareOpened}
-  {newVideoExport}
-  {newHtmlExport}
-  onClosed={onShareClosed}
-/>
-<FocusSheetHost
-  bind:this={focusSheetHost}
-  {focus}
-  pictures={slideshow.pictures}
-  search={focusSearch}
-  passPaused={focusPaused}
-  onServer={storage?.kind === "server"}
-  {onEdit}
-  {onLookAgain}
-/>
-
-<DeleteFlow
-  bind:this={deleteFlow}
-  title={slideshow.title}
-  pictureCount={slideshow.pictures.length}
-  onServer={storage?.kind === "server"}
-  {onDelete}
-  onKept={onClosed}
-/>
+{#if open === "share"}
+  <ShareFlow
+    {slideshow}
+    {storage}
+    {linkSession}
+    {exportState}
+    {onExport}
+    onOpened={onShareOpened}
+    {newVideoExport}
+    {newHtmlExport}
+    onClose={close}
+  />
+{:else if open === "focus"}
+  <FocusSheet
+    {focus}
+    pictures={slideshow.pictures}
+    search={focusSearch}
+    passPaused={focusPaused}
+    {onServer}
+    onEdit={(pictureId) => {
+      sheets.handOff();
+      onEdit(pictureId);
+    }}
+    {onLookAgain}
+    onClose={close}
+  />
+{:else if open === "delete"}
+  <DeleteDialog
+    title={slideshow.title}
+    pictureCount={slideshow.pictures.length}
+    {onServer}
+    onKeep={close}
+    onDelete={() => {
+      sheets.handOff();
+      onDelete();
+    }}
+  />
+{/if}

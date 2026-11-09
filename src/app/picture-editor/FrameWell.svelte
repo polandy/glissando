@@ -1,20 +1,13 @@
 <script lang="ts">
   import type { OwnKenBurns } from "../../library/own-ken-burns";
   import type { Framing, Rect, Size } from "../../player";
-  import {
-    frameRect,
-    frameStyle,
-    rectStyle,
-    framingForKey,
-    wheelZoomedFraming,
-    type Corner,
-  } from "./frame-geometry";
-  import FocusMarker from "./FocusMarker.svelte";
+  import { frameRect, framingForKey, wheelZoomedFraming, type Corner } from "./frame-geometry";
   import type { FocusIndication } from "./focus-indication";
   import { FrameGesture } from "./frame-gesture";
   import { tappedFrame, TAP_TOLERANCE_PX } from "./frame-hit";
   import { FRAME_KEYS, type FrameKey } from "./frame-keys";
-  import PictureFrame from "./PictureFrame.svelte";
+  import type { FramingStep } from "./framing-step";
+  import FrameOverlays from "./FrameOverlays.svelte";
 
   /**
    * The picture with the motion's two frames on it. A drag anywhere on the picture moves the
@@ -44,8 +37,7 @@
     focus: FocusIndication;
     reducedMotion: boolean;
     onActivate: (key: FrameKey) => void;
-    /** A frame changed; `final` once a gesture ends, while dragging it is false. */
-    onFraming: (key: FrameKey, framing: Framing, final: boolean) => void;
+    onFraming: (key: FrameKey, framing: Framing, step: FramingStep) => void;
   } = $props();
 
   let fitWidth = $state(0);
@@ -58,11 +50,6 @@
   // The size is fixed for the well's lifetime: the editor screen is keyed by picture.
   // svelte-ignore state_referenced_locally
   const gesture = new FrameGesture(size);
-
-  function centre(framing: Framing) {
-    const { x, y, width, height } = frameRect(framing, size);
-    return { x: (x + width / 2) * 100, y: (y + height / 2) * 100 };
-  }
 
   /** `PointerEvent.button` of a mouse's main button. */
   const MAIN_BUTTON = 0;
@@ -114,14 +101,14 @@
     const point = { x: event.clientX, y: event.clientY };
     const framing = gesture.move(event.pointerId, point, pictureElement.getBoundingClientRect());
     if (framing !== null) {
-      onFraming(gestureKey, framing, false);
+      onFraming(gestureKey, framing, "dragging");
     }
   }
 
   function pointerUp(event: PointerEvent): void {
     const end = gesture.up(event.pointerId);
     if (end.kind === "framing") {
-      onFraming(gestureKey, end.framing, true);
+      onFraming(gestureKey, end.framing, "done");
     } else if (end.kind === "tap") {
       const picked = tapped(event);
       if (picked !== null && picked !== active) {
@@ -134,7 +121,7 @@
   function pointerCancel(event: PointerEvent): void {
     const end = gesture.up(event.pointerId);
     if (end.kind === "framing") {
-      onFraming(gestureKey, end.framing, true);
+      onFraming(gestureKey, end.framing, "done");
     }
   }
 
@@ -147,7 +134,7 @@
     const changed = framingForKey(motion[active], event.key, event.shiftKey, size);
     if (changed !== null) {
       event.preventDefault();
-      onFraming(active, changed, true);
+      onFraming(active, changed, "done");
     }
   }
 
@@ -155,13 +142,11 @@
   function wheelZoom(element: HTMLElement) {
     const wheel = (event: WheelEvent) => {
       event.preventDefault();
-      onFraming(active, wheelZoomedFraming(motion[active], event.deltaY, size), true);
+      onFraming(active, wheelZoomedFraming(motion[active], event.deltaY, size), "wheeling");
     };
     element.addEventListener("wheel", wheel, { passive: false });
     return { destroy: () => element.removeEventListener("wheel", wheel) };
   }
-
-  const path = $derived({ from: centre(motion.from), to: centre(motion.to) });
 </script>
 
 <svelte:window
@@ -170,12 +155,13 @@
   onpointercancel={pointerCancel}
 />
 
-<div class="well" style:--picture-aspect={aspect}>
+<div class="well" data-testid="frame-well" style:--picture-aspect={aspect}>
   <div class="fit" bind:clientWidth={fitWidth} bind:clientHeight={fitHeight}>
     <!-- Pointer gestures on the picture; the keyboard works on the focused frame instead. -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       class="pic"
+      data-testid="frame-well-picture"
       bind:this={pictureElement}
       style:width="{shownWidth}px"
       style:height="{shownWidth / aspect}px"
@@ -187,27 +173,16 @@
       {#if pictureUrl !== null}
         <img src={pictureUrl} {alt} draggable="false" />
       {/if}
-      <!-- The veil darkens the picture around the active frame; its own clip spares the handles. -->
-      <div class="veil" aria-hidden="true">
-        <div class="hole" style={frameStyle(motion[active], size)}></div>
-      </div>
-      {#each FRAME_KEYS as key (key)}
-        <PictureFrame
-          {key}
-          framing={motion[key]}
-          {size}
-          active={key === active}
-          {onActivate}
-          onKeydown={keydown}
-        />
-      {/each}
-      <svg class="path" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        <line x1={path.from.x} y1={path.from.y} x2={path.to.x} y2={path.to.y} />
-      </svg>
-      {#if playhead !== null}
-        <div class="playhead" style={rectStyle(playhead)} aria-hidden="true"></div>
-      {/if}
-      <FocusMarker indication={focus} {reducedMotion} />
+      <FrameOverlays
+        {size}
+        {motion}
+        {active}
+        {playhead}
+        {focus}
+        {reducedMotion}
+        {onActivate}
+        onKeydown={keydown}
+      />
     </div>
   </div>
 </div>
@@ -244,39 +219,6 @@
     display: block;
     width: 100%;
     height: 100%;
-    pointer-events: none;
-  }
-  .veil {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    pointer-events: none;
-  }
-  .hole {
-    position: absolute;
-    border-radius: 2px;
-    box-shadow: 0 0 0 100vmax var(--gl-photo-veil);
-  }
-  .path {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-  }
-  .path line {
-    stroke: var(--gl-photo-dashed);
-    stroke-width: 1.5;
-    stroke-dasharray: 4 4;
-    vector-effect: non-scaling-stroke;
-  }
-  .playhead {
-    position: absolute;
-    z-index: 3;
-    box-sizing: border-box;
-    border: 1.5px solid var(--gl-player-progress);
-    border-radius: 2px;
     pointer-events: none;
   }
   @media (pointer: coarse) {

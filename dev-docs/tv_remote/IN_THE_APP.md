@@ -23,8 +23,9 @@
      closed, back to the code step; a 404 `notFound` (the slideshow is gone) reads the list again.
 - **Disconnecting**: closing the sheet (✕, "Disconnect", or leaving the screen) before a
   slideshow was shown sends the public `disconnect` command, so the TV goes back to its code; a
-  claim answered after the sheet closed is disconnected the same way. Once shown, the TV belongs
-  to the remote page and closing does nothing to it.
+  claim answered after the sheet closed is disconnected the same way, and any other answer that
+  lands after the close changes nothing: the sheet stays closed and no remote page opens. Once
+  shown, the TV belongs to the remote page and closing does nothing to it.
 - **Code**: `src/app/tv-remote/`: `tv-session.ts` (the sheet's steps and calls through a
   `TvApi` port, unit-tested with a fake), `TvControl.svelte` (row plus sheet), `TvRow.svelte`,
   `TvSheet.svelte` with `TvCodeBoxes.svelte` and `TvSlideshowCards.svelte`, `tv-code.ts`

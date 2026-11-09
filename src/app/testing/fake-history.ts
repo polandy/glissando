@@ -5,7 +5,7 @@ export class FakeHistory implements HistoryPort {
   entries: unknown[];
   index: number;
   #listeners: ((state: unknown) => void)[] = [];
-  #pendingPop: number | null = null;
+  #pendingPops: number[] = [];
 
   constructor(entries: unknown[] = [null], index = entries.length - 1) {
     this.entries = entries;
@@ -26,8 +26,8 @@ export class FakeHistory implements HistoryPort {
   }
 
   go(delta: number): void {
-    // The browser moves asynchronously; the move lands when the test calls `deliverPop`.
-    this.#pendingPop = delta;
+    // The browser queues moves and lands each later; it lands when the test calls `deliverPop`.
+    this.#pendingPops.push(delta);
   }
 
   onPop(listener: (state: unknown) => void): () => void {
@@ -37,12 +37,18 @@ export class FakeHistory implements HistoryPort {
     };
   }
 
-  /** The browser's back gesture or a finished `go`. */
-  deliverPop(delta = this.#pendingPop ?? -1): void {
-    this.#pendingPop = null;
+  /** The browser's back gesture, or the oldest queued `go` landing. */
+  deliverPop(delta = this.#pendingPops.shift() ?? -1): void {
     this.index = Math.max(0, Math.min(this.entries.length - 1, this.index + delta));
     for (const listener of this.#listeners) {
       listener(this.state);
+    }
+  }
+
+  /** Lands every queued `go`, including those issued while landing. */
+  deliverAllPops(): void {
+    while (this.#pendingPops.length > 0) {
+      this.deliverPop();
     }
   }
 }

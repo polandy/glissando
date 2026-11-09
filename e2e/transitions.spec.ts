@@ -14,25 +14,25 @@ test.use(GERMAN_BROWSER);
 test("E2E-025 the slideshow's default transition is chosen in the info panel, stored, followed by the picture editor and goes back to crossfade with undo", async ({
   page,
 }) => {
-  const defaultRow = page.getByRole("button", { name: "Übergänge Überblenden Vorgabe" });
-  const pushRow = page.getByRole("button", { name: "Übergänge Schieben eigene Wahl" });
+  const defaultRow = page.getByRole("button", { name: "Übergänge Überblenden Automatisch" });
+  const pushRow = page.getByRole("button", { name: "Übergänge Schieben gewählt" });
   const sheet = page.getByRole("dialog", { name: "Übergänge der Diashow" });
   const pushTile = sheet.getByRole("radio", { name: /Schieben/ });
   const crossfadeTile = sheet.getByRole("radio", { name: /Überblenden/ });
-  const transitionSection = page.locator('section[aria-labelledby="transition-label"]');
+  const timingSection = page.locator('section[aria-labelledby="timing-label"]');
   await openApp(page);
   await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"]);
   // A new slideshow opens on Calm (ADR-0050); this case is
   // about the slideshow's own default transition, so it switches back to Custom.
   await chooseCustomMood(page);
   // The Transitions row lives behind the Fine settings fold (ADR-0048).
-  await page.getByRole("button", { name: "Feineinstellungen" }).click();
+  await page.getByRole("button", { name: "Weitere Einstellungen" }).click();
 
   await defaultRow.click();
   await expect(crossfadeTile).toHaveAttribute("aria-checked", "true");
   await pushTile.click();
   await expect(pushTile).toHaveAttribute("aria-checked", "true");
-  await expect(sheet.getByText("Eigene Wahl")).toBeVisible();
+  await expect(sheet.getByText("Gewählt")).toBeVisible();
   await editsStored(page);
   await sheet.getByRole("button", { name: "Fertig" }).click();
   await expect(sheet).toBeHidden();
@@ -42,14 +42,12 @@ test("E2E-025 the slideshow's default transition is chosen in the info panel, st
   await expect(pushRow).toBeVisible();
 
   await editPicture(page, "Bild 1, aufgenommen am 12.07.2025");
-  await expect(transitionSection.locator(".state")).toHaveText("Automatisch");
-  await expect(transitionSection.getByRole("radio", { name: /Schieben/ })).toHaveAttribute(
+  await expect(timingSection.getByText("Automatisch", { exact: true })).toBeVisible();
+  await expect(timingSection.getByRole("radio", { name: /Schieben/ })).toHaveAttribute(
     "aria-checked",
     "true",
   );
-  await expect(transitionSection).toContainText(
-    "Automatisch gilt der Übergang der Diashow: Schieben.",
-  );
+  await expect(timingSection).toContainText("Automatisch gilt der Übergang der Diashow: Schieben.");
   await leaveEditor(page);
 
   await pushRow.click();

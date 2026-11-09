@@ -1,4 +1,10 @@
-import { FlacSampleQueue, SAMPLE_FORMAT, flacDepthOf, type DecodedAudio } from "../flac-samples";
+import {
+  FlacSampleQueue,
+  SAMPLE_FORMAT,
+  flacDepthOf,
+  requirePositiveInteger,
+  type DecodedAudio,
+} from "../flac-samples";
 import { UnconvertibleMusicError } from "../music-conversion";
 import loaderUrl from "../libav/libav-6.10.9.0-glissando-audio.mjs?url";
 import factoryUrl from "../libav/libav-6.10.9.0-glissando-audio.wasm.mjs?url";
@@ -185,6 +191,7 @@ interface Encoding {
 async function startEncoding(libav: LibAV, first: LibAVFrame): Promise<Encoding> {
   const sampleRate = first.sample_rate ?? 0;
   const channels = first.channels ?? 0;
+  requirePositiveInteger("channels", channels);
   const channelLayout = first.channel_layout || DEFAULT_CHANNEL_LAYOUTS[channels] || 0;
   const depth = flacDepthOf(first.format);
   const sampleFormat = depth === 24 ? SAMPLE_FORMAT.S32 : SAMPLE_FORMAT.S16;

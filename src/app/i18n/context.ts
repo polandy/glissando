@@ -34,11 +34,13 @@ export function getTranslator(): Translator {
     formatZoom: (zoom) => source.current.formatZoom(zoom),
     formatTenths: (seconds) => source.current.formatTenths(seconds),
     formatList: (items) => source.current.formatList(items),
+    formatShortDate: (isoDateTime, relativeTo) =>
+      source.current.formatShortDate(isoDateTime, relativeTo),
     formatVolumeDb: (db) => source.current.formatVolumeDb(db),
   };
 }
 
 /** The context for `mount(App, { context })`, for a root mounted outside a component. */
-export function translatorContext(source: TranslatorSource): Map<symbol, TranslatorSource> {
+export function translatorContext(source: TranslatorSource): Map<symbol, unknown> {
   return new Map([[TRANSLATOR_CONTEXT, source]]);
 }

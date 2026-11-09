@@ -1,18 +1,11 @@
-import { expect, test, type Locator } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { chooseFiles, GERMAN_BROWSER, openImport } from "./support/app";
 import { openApp } from "./support/browser";
+import { boxOf } from "./support/pointer";
 import { pictureTakenOn } from "./support/media";
 
 // A common phone width, tall enough that the top bar and the filmstrip never meet (E2E-076).
 const PHONE = { width: 412, height: 915 };
-
-type Box = NonNullable<Awaited<ReturnType<Locator["boundingBox"]>>>;
-
-async function boxOf(locator: Locator): Promise<Box> {
-  const box = await locator.boundingBox();
-  if (box === null) throw new Error("the element has no layout box");
-  return box;
-}
 
 test.use(GERMAN_BROWSER);
 
@@ -29,7 +22,7 @@ test("E2E-060 a picture of the pictures step opens full screen, browses, removes
     await pictureTakenOn(page, "lake.jpg", "2025-07-14", "#ffd54f"),
   ];
   await openImport(page);
-  await chooseFiles(page, page.getByRole("button", { name: "Medien auswählen" }), files);
+  await chooseFiles(page, page.getByRole("button", { name: "Bilder auswählen" }), files);
 
   // Selects the tile, then opens it full screen from the selection bar (IMPORT_ARRANGING.md).
   await page.getByRole("button", { name: "Bild 2, aufgenommen am 13.07.2025" }).click();
@@ -72,7 +65,7 @@ test.describe("coarse pointer", () => {
       await pictureTakenOn(page, "lake.jpg", "2025-07-14", "#ffd54f"),
     ];
     await openImport(page);
-    await chooseFiles(page, page.getByRole("button", { name: "Medien auswählen" }), files);
+    await chooseFiles(page, page.getByRole("button", { name: "Bilder auswählen" }), files);
     await page.getByRole("button", { name: "Bild 2, aufgenommen am 13.07.2025" }).click();
     await page.getByRole("button", { name: "Ansehen" }).click();
 
@@ -84,15 +77,15 @@ test.describe("coarse pointer", () => {
     await expect(next).toBeVisible();
 
     // Vertically centred between the top bar and the filmstrip, so neither overlaps them.
-    const topBar = await boxOf(viewer.locator(".bar.top"));
-    const filmstrip = await boxOf(viewer.locator(".bottom"));
+    const topBar = await boxOf(viewer.getByTestId("viewer-top-bar"));
+    const filmstrip = await boxOf(viewer.getByTestId("viewer-filmstrip-bar"));
     const previousBox = await boxOf(previous);
     expect(previousBox.y).toBeGreaterThanOrEqual(topBar.y + topBar.height);
     expect(previousBox.y + previousBox.height).toBeLessThanOrEqual(filmstrip.y);
 
     // A swipe on the picture (not on an arrow) still steps forward. Dispatched directly, since
     // simulating a touch drag through real input differs too much between engines to be reliable.
-    const stagePicture = viewer.locator(".stage img");
+    const stagePicture = viewer.getByTestId("viewer-picture");
     const y = PHONE.height / 2;
     await stagePicture.dispatchEvent("pointerdown", { clientX: 250, clientY: y, bubbles: true });
     await stagePicture.dispatchEvent("pointerup", { clientX: 150, clientY: y, bubbles: true });

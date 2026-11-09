@@ -46,5 +46,7 @@
   `ShareGoneError`, `ShareUnreachableError`, `ShareMediumMissingError`), the answer's reader (`share-answer.ts`, failing loud on any field
   the share document doesn't have; pictures and songs become `pictureKey(n)` and `songKey(n)`),
   the loaded slideshow with its skips (`shared-show.ts`), the words (`share-page-words.ts`) and
-  the page's own parts (`share-parts.ts`, `share-page.css`). `build/share-page-plugin.ts` builds
+  the page's own parts (`share-parts.ts`, `share-page.css`). It imports nothing from `src/app/` (a lint rule
+  guards it): the QR code comes from `src/qr-code/`, the slide starts from
+  `src/player/slide-boundaries.ts`. `build/share-page-plugin.ts` builds
   `share.html` into the build with `src/app/share-page/share-page-languages.ts`.

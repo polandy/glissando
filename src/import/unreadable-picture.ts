@@ -1,5 +1,8 @@
-/** Which step of taking a picture in failed: reading its bytes, or decoding them into pixels. */
-export type PictureFailureStage = "read" | "decode";
+/**
+ * Which step of taking a picture in failed: reading its bytes, decoding them into pixels, or the
+ * picture being over the import's size limit, so that it was never decoded.
+ */
+export type PictureFailureStage = "read" | "decode" | "tooLarge";
 
 /** A picture file the browser cannot read or decode; the import skips it. */
 export class UnreadablePictureError extends Error {
@@ -8,7 +11,12 @@ export class UnreadablePictureError extends Error {
     readonly stage: PictureFailureStage,
     options?: ErrorOptions,
   ) {
-    super(`the browser cannot ${stage} the picture "${fileName}"`, options);
+    super(
+      stage === "tooLarge"
+        ? `the picture "${fileName}" is over the import's size limit`
+        : `the browser cannot ${stage} the picture "${fileName}"`,
+      options,
+    );
     this.name = "UnreadablePictureError";
   }
 }

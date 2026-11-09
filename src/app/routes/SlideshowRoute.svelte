@@ -2,22 +2,18 @@
   import { onDestroy, onMount, untrack } from "svelte";
   import { MediaQuery } from "svelte/reactivity";
   import { NO_SONG_BEATS } from "../../compose/playlist";
-  import { SlideshowNotFoundError } from "../../library/library-store";
-  import type { StoredSlideshow } from "../../library/stored-slideshow";
-  import type { SlideshowEditor } from "../editing/slideshow-editor";
-  import { createScreenEditor } from "./screen-editor";
   import { getTranslator } from "../i18n/context";
-  import { loadMusicAnalysis, ScreenEnergyPacing } from "./screen-energy-pacing.svelte";
+  import { browserObjectUrls } from "../media/object-urls";
   import { ScreenMoodBpm } from "./screen-mood-bpm.svelte";
   import { ScreenThumbnails } from "./screen-thumbnails.svelte";
   import SlideshowScreen from "../screens/SlideshowScreen.svelte";
   import { animationFrames, performanceClock } from "../../player";
   import { REDUCED_MOTION_QUERY } from "../../ui-kit/reduced-motion";
   import MusicEditorRoute from "./MusicEditorRoute.svelte";
+  import RouteSkeleton from "./RouteSkeleton.svelte";
   import PictureEditorRoute from "./PictureEditorRoute.svelte";
   import PlayerLayer from "./PlayerLayer.svelte";
   import ServerCopyConfirm from "./ServerCopyConfirm.svelte";
-  import { loadSlideshowScreen } from "./route-loading";
   import { deleteShownSlideshow } from "./slideshow-exits";
   import { must } from "./must";
   import { MOUSE_POINTER_QUERY } from "../screens/slideshow/pointer";
@@ -28,10 +24,11 @@
   } from "../screens/slideshow/strip-selection";
   import { ScreenExports } from "./screen-exports.svelte";
   import { ScreenFocus } from "./screen-focus.svelte";
+  import { ScreenSlideshow } from "./screen-slideshow.svelte";
   import { ScreenStorage } from "./screen-storage.svelte";
+  import { slideshowRouteEditorActions } from "./slideshow-route-editor-actions";
   import { slideshowRoutePictureActions } from "./slideshow-route-picture-actions";
   import type { SlideshowRouteProps } from "./slideshow-route-props";
-
   let {
     store,
     home,
@@ -40,11 +37,11 @@
     onSaveOnServer,
     serverSessions,
     focusPass,
-    beatPass,
-    loudnessPass,
+    analysisPass,
     toaster,
     newId,
     now,
+    random,
     slideshowId,
     exportProgress,
     onExport,
@@ -64,6 +61,8 @@
     musicEditorDetails,
     onBack,
     onPlay,
+    onPlayFrom,
+    pulsePlay = false,
     onAddPictures,
     addedPictureIds,
     onEdit,
@@ -73,11 +72,7 @@
     onError,
     log,
   }: SlideshowRouteProps = $props();
-
   const translator = getTranslator();
-  let stored = $state.raw<StoredSlideshow | null>(null);
-  let editor = $state.raw<SlideshowEditor | null>(null);
-  let saving = $state(false);
   /** The selection survives the picture editor: back there, the edited picture is selected. */
   let selection = $state<StripSelection>(NO_SELECTION);
   $effect(() => {
@@ -95,6 +90,23 @@
   // svelte-ignore state_referenced_locally
   const screenFocus = new ScreenFocus(focusPass, store, onError, left.signal);
   const focus = $derived(screenFocus.current);
+  // The ports are fixed for the screen's lifetime.
+  // svelte-ignore state_referenced_locally
+  const screenSlideshow = new ScreenSlideshow({
+    store,
+    slideshowId,
+    translator,
+    thumbnails,
+    focus: screenFocus,
+    editorPorts: { toaster, newId, now, random, onError, onGone },
+    addedPictureIds,
+    onBack,
+    onError,
+    left: left.signal,
+  });
+  const stored = $derived(screenSlideshow.stored);
+  const editor = $derived(screenSlideshow.editor);
+  const saving = $derived(screenSlideshow.saving);
   // svelte-ignore state_referenced_locally
   const exports = new ScreenExports({
     store,
@@ -107,43 +119,15 @@
     left: left.signal,
   });
   // svelte-ignore state_referenced_locally
-  const screenMoodBpm = new ScreenMoodBpm(beatPass, store, log);
-  // svelte-ignore state_referenced_locally
-  const screenEnergyPacing = new ScreenEnergyPacing(store, log);
+  const screenMoodBpm = new ScreenMoodBpm(analysisPass, store, log);
   onMount(() => {
     const stops = [screenFocus.follow(), screenMoodBpm.follow()];
-    loadSlideshowScreen(store, slideshowId, thumbnails.urls, translator.language, left.signal).then(
-      (loaded) => {
-        if (loaded !== null) {
-          screenFocus.load(loaded.stored);
-          stored = loaded.stored;
-          const focusOf = (pictureId: string) => focus.found.get(pictureId);
-          const ports = {
-            store,
-            focusOf,
-            toaster,
-            newId,
-            now,
-            random: Math.random,
-            onError,
-            onGone,
-          };
-          editor = createScreenEditor(loaded.stored, ports, translator);
-          editor.subscribe((edited) => (stored = edited));
-          editor.subscribeSaving((isSaving) => (saving = isSaving));
-          if (addedPictureIds.length > 0) editor.offerAddUndo(addedPictureIds);
-        }
-      },
-      (error: unknown) => {
-        if (error instanceof SlideshowNotFoundError) onBack();
-        else onError(error);
-      },
-    );
+    screenSlideshow.load();
     return () => stops.forEach((stop) => stop());
   });
   onDestroy(() => {
     left.abort();
-    editor?.dispose();
+    screenSlideshow.dispose();
     thumbnails.dispose();
     screenStorage.dispose();
   });
@@ -160,21 +144,20 @@
   // svelte-ignore state_referenced_locally
   const newPictureIds: ReadonlySet<string> = new Set(addedPictureIds);
   const pictureActions = slideshowRoutePictureActions(() => editor);
+  const editorActions = slideshowRouteEditorActions(() => editor);
   const details = $derived(
     stored === null ? null : thumbnails.details(stored, translator.language),
   );
   const storage = $derived(stored === null ? null : screenStorage.of(stored, { serverOn, saving }));
-
   // Rereads only when the songs change: `stored` is read untracked, so only `songIds` reruns this.
   const songIds = $derived(stored === null ? "" : stored.songs.map((song) => song.id).join(","));
   $effect(() => {
     void songIds;
     const current = untrack(() => stored);
-    if (current !== null) loadMusicAnalysis(current, screenMoodBpm, screenEnergyPacing);
+    if (current !== null) screenMoodBpm.load(current);
   });
   const moodBpm = $derived(stored === null ? undefined : screenMoodBpm.of(stored));
   const moodBeats = $derived(stored === null ? NO_SONG_BEATS : screenMoodBpm.beatsOf(stored));
-  const moodEnergyPacing = $derived(stored === null ? null : screenEnergyPacing.of(stored));
 </script>
 
 {#if editingPictureId !== null && stored !== null && editor !== null}
@@ -184,13 +167,13 @@
     {focus}
     {focusPass}
     passPaused={screenFocus.passPaused}
-    {beatPass}
-    {loudnessPass}
+    {analysisPass}
     {editor}
     pictureId={editingPictureId}
     {saving}
     {onBack}
     onOpen={onEdit}
+    {onPlayFrom}
     {onError}
     {log}
     {readClipPeaks}
@@ -200,8 +183,7 @@
     {store}
     {stored}
     {editor}
-    {beatPass}
-    {loudnessPass}
+    {analysisPass}
     audio={musicAudio}
     {songIntake}
     {samplePreview}
@@ -218,38 +200,26 @@
     slideshow={details}
     {onBack}
     {onPlay}
+    {onPlayFrom}
+    {pulsePlay}
     onAddPictures={() => stored !== null && onAddPictures(stored)}
     {newPictureIds}
     {...pictureActions}
+    editCommands={editorActions}
     {onEdit}
     loadPicture={(id) => store.playbackPictureBlob(id)}
     {onError}
     {onEditMusic}
-    onTransition={(transition) => editor?.setSlideshowTransition(transition)}
-    onResetTransition={() => editor?.resetSlideshowTransition()}
-    onLook={(look) => editor?.look.set(look)}
-    onResetLook={() => editor?.look.reset()}
     {moodBpm}
     {moodBeats}
-    {moodEnergyPacing}
     moodPreviewPorts={{
       store,
       stored: must(stored, "the slideshow"),
+      objectUrls: browserObjectUrls,
       musicOutput,
       decodeClipSound,
       log,
     }}
-    onMood={(mood) => editor?.mood.set(mood)}
-    onResetMood={() => editor?.mood.reset()}
-    onEnergyPacing={(on) => editor?.setEnergyPacing(on)}
-    onPortraitPictures={(choice) => editor?.setPortraitPictures(choice)}
-    onResetPortraitPictures={() => editor?.resetPortraitPictures()}
-    onEnsureOpeningCard={() => must(editor, "the editor").ensureOpeningCard()}
-    onOpeningCard={(card) => editor?.setOpeningCard(card)}
-    onRemoveOpeningCard={() => editor?.removeOpeningCard()}
-    onEnsureClosingCard={() => must(editor, "the editor").ensureClosingCard()}
-    onClosingCard={(card) => editor?.setClosingCard(card)}
-    onRemoveClosingCard={() => editor?.removeClosingCard()}
     chapterEditor={editor?.chapters ?? null}
     previewPorts={{ clock: performanceClock, frames: animationFrames }}
     reducedMotion={reducedMotion.current}
@@ -270,19 +240,21 @@
     focusPaused={screenFocus.passPaused}
     onLookAgain={(pictureIds) => focusPass.lookAgain(pictureIds)}
   />
+{:else}
+  <RouteSkeleton variant="strip" />
 {/if}
-{#if playing && stored !== null}
+{#if playing !== null && stored !== null}
   <PlayerLayer
     {store}
     {stored}
     {musicOutput}
     {decodeClipSound}
     onClose={onBack}
-    {onError}
     {log}
-    {beatPass}
+    {analysisPass}
     {home}
     {playbackQuality}
+    startPicture={playing.pictureId}
     missing={thumbnails.missing}
     onPictureMissing={(id) => thumbnails.missing.add(id)}
   />

@@ -1,6 +1,8 @@
 <script lang="ts">
   import { DEFAULT_SLIDESHOW_TRANSITION } from "../../../library/own-timing";
   import Icon from "../../components/Icon.svelte";
+  import Switch from "../../components/Switch.svelte";
+  import type { ChapterSettingsEditor } from "../../editing/chapter-settings-editor";
   import { getTranslator } from "../../i18n/context";
   import type { ServerSlideshowRows } from "../../server-library/server-slideshow-sessions";
   import TvControl from "../../tv-remote/TvControl.svelte";
@@ -11,7 +13,7 @@
   import StorageRow from "./StorageRow.svelte";
 
   /** The info panel's "Fine settings" fold (ADR-0048): folded by default, remembered per device
-   * for every slideshow; holds Transitions, Portrait pictures and Trip chapters, then where the
+   * for every slideshow; holds Transitions, Portrait pictures and the Trip chapters switch, then where the
    * slideshow lives and its TV row. */
   let {
     slideshow,
@@ -20,7 +22,7 @@
     serverRows = null,
     onEditTransitions,
     onEditPortraitPictures,
-    onEditChapters,
+    chapterEditor,
   }: {
     slideshow: SlideshowDetails;
     fineSettingsFold: FineSettingsFoldStore;
@@ -30,13 +32,12 @@
     onEditTransitions: () => void;
     /** Opens the sheet of the slideshow's portrait pictures setting. */
     onEditPortraitPictures: () => void;
-    /** Opens the trip chapters sheet in general mode (TRIP_CHAPTERS.md). */
-    onEditChapters: () => void;
+    /** Stores the slideshow-wide automatic-chapters switch (TRIP_CHAPTERS.md); null while unavailable. */
+    chapterEditor: ChapterSettingsEditor | null;
   } = $props();
 
   let transitionsRow: PanelActionRow;
   let portraitPicturesRow: PanelActionRow;
-  let chaptersRow: PanelActionRow;
 
   /** The transitions sheet closed: focus goes back to the row it was opened from. */
   export function focusTransitions(): void {
@@ -46,11 +47,6 @@
   /** The portrait pictures sheet closed: focus goes back to the row it was opened from. */
   export function focusPortraitPictures(): void {
     portraitPicturesRow.focus();
-  }
-
-  /** The chapters sheet closed: focus goes back to the row it was opened from. */
-  export function focusChapters(): void {
-    chaptersRow.focus();
   }
 
   const { t } = getTranslator();
@@ -72,22 +68,21 @@
         ? t("slideshow.transitionDefault")
         : t("slideshow.transitionOwnChoice");
     return slideshow.ownTransitionCount === 0
-      ? choice
-      : t("slideshow.transitionSummary", {
-          choice,
-          own: t("slideshow.transitionOwnCount", { count: slideshow.ownTransitionCount }),
-        });
+      ? [choice]
+      : [choice, t("slideshow.transitionOwnCount", { count: slideshow.ownTransitionCount })];
   });
   const transition = $derived(moodTransitionValue(t, slideshow, ownTransitionSummary));
   const portraitPicturesSummary = $derived(
-    slideshow.pairCount === 0 ? "" : `· ${t("portrait.pairCount", { count: slideshow.pairCount })}`,
+    slideshow.pairCount === 0
+      ? []
+      : [`· ${t("portrait.pairCount", { count: slideshow.pairCount })}`],
   );
-  // Hidden automatic chapters are omitted (TRIP_CHAPTERS.md): the count is what the trip shows.
-  const visibleChapterCount = $derived(
-    slideshow.chapters.filter((chapter) => !chapter.hidden).length,
-  );
-  const chaptersSummary = $derived(
-    slideshow.automaticChaptersOff ? t("chapters.automaticOffSummary") : "",
+  const chaptersHelper = $derived(
+    slideshow.ownOrder
+      ? t("chapters.automaticHelperDisabled")
+      : slideshow.automaticChaptersOff
+        ? t("chapters.automaticHelperOff")
+        : t("chapters.automaticHelperOn"),
   );
 </script>
 
@@ -113,14 +108,18 @@
       summary={portraitPicturesSummary}
       onclick={onEditPortraitPictures}
     />
-    <PanelActionRow
-      bind:this={chaptersRow}
-      name="chapters"
-      label={t("chapters.rowLabel")}
-      value={t("chapters.count", { count: visibleChapterCount })}
-      summary={chaptersSummary}
-      onclick={onEditChapters}
-    />
+    <div class="chapters">
+      <div>
+        <b>{t("chapters.rowLabel")}</b>
+        <small>{chaptersHelper}</small>
+      </div>
+      <Switch
+        checked={!slideshow.automaticChaptersOff}
+        disabled={slideshow.ownOrder}
+        label={t("chapters.rowLabel")}
+        onChange={(on) => chapterEditor?.setAutomaticChaptersOff(!on)}
+      />
+    </div>
   </div>
   {#if storage !== null}
     <div class="actions">
@@ -145,6 +144,12 @@
     color: var(--gl-muted);
     cursor: pointer;
   }
+  /* The neighbours sit flush against the row, so it grows instead of padding its hit area. */
+  @media (pointer: coarse) {
+    .toggle {
+      min-height: var(--gl-hit-min);
+    }
+  }
   .chevron {
     display: inline-flex;
     transform: rotate(90deg);
@@ -161,6 +166,19 @@
   }
   .rows {
     display: grid;
+  }
+  .chapters {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 0;
+  }
+  .chapters small {
+    display: block;
+    color: var(--gl-muted);
+    font-size: var(--gl-size-meta);
+    font-weight: var(--gl-weight-regular);
   }
   .actions {
     display: grid;

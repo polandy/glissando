@@ -22,7 +22,8 @@ export type Route =
       readonly slideshowId: string | null;
     }
   | { readonly screen: "add"; readonly slideshowId: string }
-  | { readonly screen: "player"; readonly slideshowId: string }
+  /** With a picture, the player starts at the slide that plays it; without, at the start. */
+  | { readonly screen: "player"; readonly slideshowId: string; readonly pictureId?: string }
   | { readonly screen: "music"; readonly slideshowId: string }
   | { readonly screen: "picture"; readonly slideshowId: string; readonly pictureId: string }
   | { readonly screen: "frameSetup" }
@@ -60,6 +61,11 @@ export function parentOf(route: Route): Route | null {
 
 /** The screens whose selection of pictures lives in memory only. */
 const SELECTING_SCREENS: ReadonlySet<Route["screen"]> = new Set(["import", "immich", "add"]);
+
+/** The screens whose selection of pictures lives in memory; moving between them keeps it. */
+export function isSelectingScreen(route: Route): boolean {
+  return SELECTING_SCREENS.has(route.screen);
+}
 
 /**
  * Whether history may bring the route back: a selection of pictures lives in memory only, so
@@ -109,8 +115,13 @@ export function parseRoute(state: unknown): Route | null {
       const albumId = state["albumId"];
       return isId(albumId) ? { screen: "frame", albumId } : null;
     }
+    case "player": {
+      const { slideshowId, pictureId } = state;
+      if (!isId(slideshowId)) return null;
+      if (pictureId === undefined) return { screen: "player", slideshowId };
+      return isId(pictureId) ? { screen: "player", slideshowId, pictureId } : null;
+    }
     case "slideshow":
-    case "player":
     case "music":
     case "add": {
       const slideshowId = state["slideshowId"];
@@ -136,4 +147,19 @@ export function parseRoute(state: unknown): Route | null {
     default:
       return null;
   }
+}
+
+/** The route `levelsUp` parents above `route`; throws when the path is shorter. */
+export function ancestorAt(route: Route, levelsUp: number): Route {
+  let current: Route = route;
+  for (let level = 0; level < levelsUp; level += 1) {
+    const parent = parentOf(current);
+    if (parent === null) {
+      throw new Error(
+        `${JSON.stringify(route)} has no ancestor ${levelsUp} levels up: the path ends after ${level}`,
+      );
+    }
+    current = parent;
+  }
+  return current;
 }

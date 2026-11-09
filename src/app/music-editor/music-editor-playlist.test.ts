@@ -63,7 +63,6 @@ describe("musicEditorView of one song of a playlist (ADR-0023)", () => {
 
     expect(view.slideshowMs).toBe(117_000);
     expect(view.slideChanges).toEqual([{ atMs: 21_000, offBeat: false }]);
-    expect(view.note).toMatchObject({ kind: "shared", automaticCount: 3, shareMs: 39_000 });
   });
 
   it("marks a song the slideshow ends before as not reached", () => {

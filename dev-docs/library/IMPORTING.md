@@ -5,6 +5,14 @@
   decode (e.g. HEIC outside Safari) or can no longer read (`NotReadableError`, e.g. when Android
   Chrome lets the picker's permission lapse before the file's turn comes) is skipped as
   _unreadable_. The adapters that read a file's bytes map both to `UnreadablePictureError`.
+- **Size limits** (`picture-limits.ts`): a picture over 100 MiB, or whose header claims more than
+  16384 x 16384 pixels (Chrome's canvas-area limit), is skipped as _tooLarge_ before the browser
+  decodes it, so a huge file or a small one claiming a huge size cannot crash the tab. The claimed
+  size is read from the first 256 KiB of a JPEG, PNG, WebP or GIF (`picture-dimensions.ts`); other
+  formats (AVIF, HEIC, ...) meet only the byte limit. A too-large picture is not retried. An
+  Immich original over a limit is replaced by Immich's 1440 px preview, as an undecodable one is.
+  The server focus pass's thumbnail decode meets the same limits and wraps a decode failure in
+  `UnreadablePictureError` as well.
 - **Downscaled** to fit 3840 px on the long edge and 2160 px on the short edge (about 4K, either
   orientation), never upscaled, turned upright by its EXIF orientation and stored as JPEG
   (quality 0.9). A thumbnail fits 480 px on the long edge (JPEG, quality 0.8).
@@ -12,11 +20,16 @@
   modification time. EXIF has no time zone, so every capture date is the _wall-clock time_ written
   with a `Z` suffix (`2025-07-01T10:30:15Z`); the file-date fallback uses the device's local
   time the same way. Ordering and titles follow the clock the user saw, not a true UTC instant.
+  The GPS coordinate comes from the same single read (`picture-exif.ts`), which the file keeps
+  from identification to decoding, so a file that turns unreadable in between keeps its GPS.
 - **Order**: by capture date ascending, equal dates by file name.
 - **From Immich** (ADR-0013): the original is downloaded and goes through the same decode; one
   the browser cannot decode falls back to Immich's preview (JPEG, ≤ 1440 px). The capture date is
-  Immich's `localDateTime` (wall time with `Z`, as above). A photo whose download fails (Immich or
-  the server gone meanwhile) is skipped as _not downloaded_; the import goes on. Files and Immich
+  Immich's `localDateTime` cut to whole seconds (wall time with `Z`, as above), so a photo met
+  once as a file and once through Immich has one capture date and counts as one picture. The GPS
+  coordinate comes with the photo from Immich's search (`exifInfo`), under the same range rule as
+  a file's EXIF, with no request per photo. A photo whose download fails (Immich or the server gone meanwhile) is skipped as _not downloaded_; the
+  import goes on. Files and Immich
   photos are two `PictureSource` adapters of the one `PictureImport`.
 - **Origin** (ADR-0016): a picture keeps `immichAssetId` (from Immich) or `fileBytes` (a file's
   size). **Duplicates**: before a picture is read, its identity (`PictureSource.identify()`: file

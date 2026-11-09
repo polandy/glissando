@@ -35,7 +35,7 @@ The sheet also holds the switch "Follow the music's energy" ([ENERGY_PACING](ENE
 (`stored.pictureLength` ignored), the default transition is the mood's, and the transition
 length and Ken Burns strength follow the table. A shorter music still shrinks the mood's seconds
 to fit it, like "Fill the music" and own seconds (`picturesFillMs`, ADR-0047) — the mood keeps
-its pace otherwise. Own duration, own transition and own motion of a picture win as always
+its pace otherwise. Chosen duration, chosen transition and chosen motion of a picture win as always
 (ADR-0008); beats snap as in `dev-docs/COMPOSITION.md`.
 
 ## Editing
@@ -52,7 +52,7 @@ its pace otherwise. Own duration, own transition and own motion of a picture win
 ## UI
 
 - **Tile**: the info panel's "Mood" tile sits between "Music" and "Look" and opens the sheet. It
-  shows the mood's name and a summary of picture times and motion ([SCREENS](../SCREENS.md)).
+  shows the mood's name and one short phrase ([SCREENS](../SCREENS.md)).
 - **What it sets elsewhere**: under a mood, the "Transitions" row under "Fine settings" shows the
   mood's transition with "by mood" underneath. The Transitions sheet checks the mood's transition and says "Set by the
   mood Calm. Choosing another switches the mood to Custom." The music sheet shows, instead of
@@ -63,15 +63,15 @@ its pace otherwise. Own duration, own transition and own motion of a picture win
   - **Preview** (`MoodPreview.svelte`): the real player (`createPlayer`) on the slideshow's
     first four slide units composed with the shown mood, looping, silent until its "Sound"
     toggle is on — until then it plays without the music, so it opens no audio; no badge over it, the tempo shows only in "What it sets" below. Plays at once
-    and re-paces once the background beat pass finds a song's beats, or once a mood is chosen.
+    and re-paces once the background music analysis finds a song's beats, or once a mood is chosen.
     Left out without pictures.
   - **Tiles**: a radiogroup — Calm "Slow, soft", Lively "Quick, on the beat", Custom "Your
     settings"; three columns. A tap stores at once; arrow keys move it.
   - **What it sets**: Picture times, Transitions ("Crossfade, long" / "Mixed, short" /
     "standard") and Ken Burns, worked out for this slideshow's tempo.
-  - **Hint**: under a mood "Picture times follow the song's beats and phrases. Pictures with
-    their own duration, transition or motion keep them."; for Custom "Your own picture times,
-    transitions and Ken Burns, as set on the slideshow."
+  - **Hint**: under a mood "Picture length follows the song's beat. Pictures with a chosen
+    picture length, transition or motion keep them."; for Custom "Picture length, transitions and
+    motion as you set them on the slideshow."
   - **Footer**: "Back to Custom" (disabled-looking under Custom; toast "Mood back to Custom"
     with "Undo") and "Done". Done, Esc or a tap on the scrim closes it; focus starts on the
     checked tile and goes back to the row.

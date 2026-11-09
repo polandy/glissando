@@ -25,7 +25,7 @@ export interface CullResult {
 }
 
 /** A picture joins a similar group taken at most this long after the group's first picture. */
-export const SIMILAR_SHOTS_WINDOW_MS = 120_000;
+const SIMILAR_SHOTS_WINDOW_MS = 120_000;
 /** Difference hashes at most this many bits apart show the same scene. */
 export const SAME_SCENE_MAX_HASH_DISTANCE = 10;
 /**
@@ -34,7 +34,7 @@ export const SAME_SCENE_MAX_HASH_DISTANCE = 10;
  */
 export const BLURRY_SHARPNESS_FLOOR = 50;
 /** A blurry picture is also below this share of the import's median sharpness. */
-export const BLURRY_SHARE_OF_MEDIAN = 1 / 3;
+const BLURRY_SHARE_OF_MEDIAN = 1 / 3;
 
 /**
  * Which pictures of one import are set aside: of each similar group all but the sharpest (ties go to

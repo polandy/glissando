@@ -1,16 +1,17 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import type { BitmapPicture } from "../browser/bitmap-loader";
+import { afterEach, describe, expect, it } from "vitest";
+import type { PixelPicture } from "../browser/pixel-loader";
 import type { RenderFrame, SlideLayer } from "../ports";
 import type { Framing } from "../slideshow";
 import {
   BLUE,
   RED,
-  solidBitmap,
+  solidPixels,
   standingStill,
   viewportBox,
   type Rgb,
 } from "../testing/browser-pictures";
 import type { Fonts } from "../fonts";
+import { recordingGl, type GlCall } from "./testing/recording-gl";
 import { WebGlRenderer } from "./webgl-renderer";
 
 const VIEWPORT = { width: 100, height: 100 };
@@ -50,16 +51,22 @@ async function setUp({ fontsLoaded = true } = {}) {
     throw new Error("this browser has no WebGL2");
   }
   const fonts = new ControlledFonts();
-  const renderer = new WebGlRenderer(canvas, gl, () => undefined, {
-    pixelRatio: () => 1,
-    fonts,
-  });
+  const textureCreations: GlCall<"createTexture">[] = [];
+  const renderer = new WebGlRenderer(
+    canvas,
+    recordingGl(gl, "createTexture", textureCreations),
+    () => undefined,
+    {
+      pixelRatio: () => 1,
+      fonts,
+    },
+  );
   if (fontsLoaded) {
     fonts.finishLoading();
     await renderer.captionFontLoaded;
   }
   /** Reads straight after drawing, before the browser presents and clears the frame. */
-  function drawAndRead(frame: RenderFrame<BitmapPicture>, [x, y]: readonly [number, number]) {
+  function drawAndRead(frame: RenderFrame<PixelPicture>, [x, y]: readonly [number, number]) {
     renderer.render(frame);
     const pixel = new Uint8Array(4);
     gl?.readPixels(
@@ -74,14 +81,14 @@ async function setUp({ fontsLoaded = true } = {}) {
     return [pixel[0] ?? 0, pixel[1] ?? 0, pixel[2] ?? 0] as const;
   }
   /** Every pixel's red channel in the bottom half, after drawing `frame`. */
-  function bottomHalfReds(frame: RenderFrame<BitmapPicture>): number[] {
+  function bottomHalfReds(frame: RenderFrame<PixelPicture>): number[] {
     renderer.render(frame);
     const half = canvas.height / 2;
     const pixels = new Uint8Array(canvas.width * half * 4);
     gl?.readPixels(0, 0, canvas.width, half, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
     return [...pixels].filter((_, index) => index % 4 === 0);
   }
-  return { renderer, fonts, drawAndRead, bottomHalfReds, canvas, gl };
+  return { renderer, fonts, drawAndRead, bottomHalfReds, canvas, gl, textureCreations };
 }
 
 function isColour(actual: Rgb, expected: Rgb): boolean {
@@ -90,14 +97,14 @@ function isColour(actual: Rgb, expected: Rgb): boolean {
   );
 }
 
-async function layer(colour: Rgb, caption?: string): Promise<SlideLayer<BitmapPicture>> {
-  const picture = await solidBitmap(colour);
+async function layer(colour: Rgb, caption?: string): Promise<SlideLayer<PixelPicture>> {
+  const picture = solidPixels(colour);
   return caption === undefined
     ? { kind: "picture", picture, motion: standingStill(WHOLE_PICTURE) }
     : { kind: "picture", picture, motion: standingStill(WHOLE_PICTURE), caption };
 }
 
-async function slideFrame(colour: Rgb, caption?: string): Promise<RenderFrame<BitmapPicture>> {
+async function slideFrame(colour: Rgb, caption?: string): Promise<RenderFrame<PixelPicture>> {
   return { kind: "slide", slide: await layer(colour, caption), endFade: 0, look: "none" };
 }
 
@@ -159,7 +166,7 @@ describe("WebGlRenderer captions", () => {
 
   it("pushes the caption in with its slide on push-left, not fixed on the screen", async () => {
     const { drawAndRead } = await setUp();
-    const frame: RenderFrame<BitmapPicture> = {
+    const frame: RenderFrame<PixelPicture> = {
       kind: "transition",
       effect: "push-left",
       progress: 0.5,
@@ -177,7 +184,7 @@ describe("WebGlRenderer captions", () => {
 
   it("fades the caption with its slide on crossfade", async () => {
     const { drawAndRead } = await setUp();
-    const frame: RenderFrame<BitmapPicture> = {
+    const frame: RenderFrame<PixelPicture> = {
       kind: "transition",
       effect: "crossfade",
       progress: 1,
@@ -214,16 +221,11 @@ describe("WebGlRenderer captions", () => {
   });
 
   it("deletes the caption's texture when its slide's picture is released", async () => {
-    const { renderer, drawAndRead, gl } = await setUp();
+    const { renderer, drawAndRead, gl, textureCreations } = await setUp();
     const frame = await slideFrame(BLUE, CAPTION);
-    const created: WebGLTexture[] = [];
-    const createTexture = gl.createTexture.bind(gl);
-    vi.spyOn(gl, "createTexture").mockImplementation(() => {
-      const texture = createTexture();
-      created.push(texture);
-      return texture;
-    });
+    const createdBefore = textureCreations.length;
     drawAndRead(frame, GRADIENT_CORNER);
+    const created = textureCreations.slice(createdBefore).map(({ result }) => result);
     expect(created.length).toBeGreaterThan(0);
     expect(created.every((texture) => gl.isTexture(texture))).toBe(true);
 

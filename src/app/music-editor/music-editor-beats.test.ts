@@ -85,24 +85,9 @@ describe("musicEditorView, the picture changes", () => {
     expect(view.slideChanges.every((change) => !change.offBeat)).toBe(true);
     expect(view.beatTicks).toEqual([]);
     expect(view.pictureChanges).toMatchObject({ kind: "beats", onTheBeat: false });
-    expect(view.note).toEqual({
-      kind: "shared",
-      automaticCount: 4,
-      shareMs: 5000,
-      onTheBeat: false,
-    });
   });
 
-  it("notes the shares as varying while the pictures change on the beat", () => {
-    expect(firstSongView(slideshow({}), FOUND).note).toEqual({
-      kind: "shared",
-      automaticCount: 4,
-      shareMs: 5000,
-      onTheBeat: true,
-    });
-  });
-
-  it("puts the change before and after an own duration on the beat too, within its slack", () => {
+  it("puts the change before and after a chosen duration on the beat too, within its slack", () => {
     const view = firstSongView(slideshow({}, [undefined, 3000, undefined, undefined]), FOUND);
 
     expect(view.slideChanges).toEqual([
@@ -113,7 +98,7 @@ describe("musicEditorView, the picture changes", () => {
     expect(view.pictureChanges).toMatchObject({ ownDurationNumbers: [] });
   });
 
-  it("names an own duration with no automatic picture left after it, whose change still falls between beats", () => {
+  it("names a chosen duration with no automatic picture left after it, whose change still falls between beats", () => {
     const view = firstSongView(slideshow({}, [undefined, 3000, 3000]), FOUND);
 
     expect(view.pictureChanges).toMatchObject({ ownDurationNumbers: [2] });

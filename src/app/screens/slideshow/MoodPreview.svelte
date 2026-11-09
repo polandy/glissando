@@ -8,7 +8,6 @@
   import { bareFocus, NO_FOCUS_KNOWN } from "../../focus/pictures-focus";
   import { getTranslator } from "../../i18n/context";
   import { storedSongLoudness } from "../../loudness/music-loudness-composed";
-  import { browserObjectUrls } from "../../media/object-urls";
   import { loadPlayerMusic } from "../../routes/route-loading";
   import {
     moodPreviewSlideshow,
@@ -23,7 +22,7 @@
    * units composed under `mood`, looping, silent until the "Sound" toggle is on. The caller
    * leaves this out while the slideshow has no pictures. `moodBeats` is the same pass-aware map
    * the sheet's tempo row is built from (`composedSongBeats`); the caller passes a new map once
-   * the background beat pass finds a song's beats, and the preview then re-paces to it, since a
+   * the background music analysis finds a song's beats, and the preview then re-paces to it, since a
    * new `previewSlideshow` remounts the player (`{#key}` below). `onLoaded`, once given, fires
    * with the loudness once it is loaded, so the Mood sheet can draw the energy strip (ADR-0046)
    * from that and `moodBeats`, instead of loading loudness twice.
@@ -58,7 +57,7 @@
       .slice(0, PREVIEW_PICTURE_COUNT)
       .map((picture) => picture.id);
     Promise.all([
-      loadPlayerMusic(ports.store, ports.stored, browserObjectUrls.create, closed.signal),
+      loadPlayerMusic(ports.store, ports.stored, ports.objectUrls.create, closed.signal),
       ports.store.pictureFocus(previewPictureIds).then(bareFocus, (error: unknown) => {
         ports.log(error);
         return NO_FOCUS_KNOWN.found;
@@ -66,6 +65,14 @@
       storedSongLoudness(ports.store, ports.stored, ports.log),
     ]).then(([music, focus, loudness]) => {
       if (music === null) {
+        return;
+      }
+      if (closed.signal.aborted) {
+        // The sheet closed after the song URLs were made: `onDestroy` has already gone through
+        // `musicUrls`, so these are revoked here.
+        for (const url of music.urls.values()) {
+          ports.objectUrls.revoke(url);
+        }
         return;
       }
       musicUrls = music.urls;
@@ -76,7 +83,7 @@
   onDestroy(() => {
     closed.abort();
     for (const url of musicUrls.values()) {
-      browserObjectUrls.revoke(url);
+      ports.objectUrls.revoke(url);
     }
   });
 

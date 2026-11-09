@@ -15,13 +15,17 @@ function evenSlides(count: number, seconds: number) {
   };
 }
 
-function flowFor(quality: PlaybackQuality = "4k") {
+function flowFor(
+  quality: PlaybackQuality = "4k",
+  start?: { slide: number; picture: string; first?: string },
+) {
   const renditions: Partial<Record<PlaybackQuality, FakeRenditions>> = {};
   const asked: PlaybackQuality[] = [];
   const clock = new ManualClock();
   const missing: string[] = [];
   const flow = new PrepareFlow({
     ids: IDS,
+    ...(start === undefined ? {} : { startPicture: start.picture }),
     quality,
     renditionFor: (asking) => {
       asked.push(asking);
@@ -40,7 +44,7 @@ function flowFor(quality: PlaybackQuality = "4k") {
   });
   /** Settles at the next view the flow announces. */
   const nextView = () => new Promise<void>((resolve) => (viewChanged = resolve));
-  flow.setSlides(evenSlides(IDS.length, 5));
+  flow.setSlides(evenSlides(IDS.length, 5), start?.slide, start?.first);
   const fake = (of: PlaybackQuality): FakeRenditions => {
     const found = renditions[of];
     if (found === undefined) throw new Error(`no ${of} renditions were asked for`);
@@ -80,8 +84,6 @@ describe("PrepareFlow", () => {
       ready: 6,
       target: 7,
       pictureCount: 30,
-      secondsPerPicture: 6,
-      secondsPerSlide: 5,
       secondsLeft: 6,
     });
     await answer(6, 6);
@@ -98,7 +100,7 @@ describe("PrepareFlow", () => {
     await answer(3, 10);
 
     // The last four average 8 s: 8 + 29 · 3 · 1.2 = 112.4 s, 15 pictures.
-    expect(flow.view).toMatchObject({ stage: "preparing", target: 15, secondsPerPicture: 8 });
+    expect(flow.view).toMatchObject({ stage: "preparing", target: 15 });
   });
 
   it("plays at once when asked and goes on preparing behind the slides", async () => {
@@ -174,5 +176,30 @@ describe("PrepareFlow", () => {
       PictureMissingFromImmichError,
     );
     expect(missing).toEqual([]);
+  });
+
+  it("prepares from the start slide: the pictures before it are never asked for", async () => {
+    const { flow, fake, answer } = flowFor("4k", { slide: 20, picture: "p20" });
+
+    expect((await fake("4k").request(0)).id).toBe("p20");
+    await answer(0, 6);
+    await answer(1, 6);
+
+    // 6 s a picture, 5 s a slide, ten slides left: 6 + 9 · 1 · 1.2 = 16.8 s, 3 pictures.
+    expect(flow.view).toMatchObject({
+      stage: "preparing",
+      ready: 2,
+      target: 3,
+      pictureCount: 10,
+    });
+  });
+
+  it("prepares the first picture of a pair whose partner was chosen", async () => {
+    const { fake, answer } = flowFor("4k", { slide: 20, picture: "p21", first: "p20" });
+
+    expect((await fake("4k").request(0)).id).toBe("p21");
+    await answer(0, 6);
+
+    expect((await fake("4k").request(1)).id).toBe("p20");
   });
 });

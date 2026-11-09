@@ -156,7 +156,7 @@ describe("composeCards, closing card", () => {
     expect(pictureSlide(result.slides[2]).transitionToNext).toMatchObject({ effect: "crossfade" });
   });
 
-  it("fade in on, on the last picture, extends that slide and enters after its own duration", () => {
+  it("fade in on, on the last picture, extends that slide and enters after its chosen duration", () => {
     const stored = storedSlideshow({ closingCard: pictureCard("p3", true) });
     const result = compose(stored);
     expect(result.slides).toHaveLength(3);

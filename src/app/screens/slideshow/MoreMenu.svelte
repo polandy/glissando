@@ -46,10 +46,25 @@
     toggle?.focus();
   }
 
+  function moveFocus(menu: HTMLElement, key: string): void {
+    const items = [...menu.querySelectorAll<HTMLElement>('[role="menuitem"]')];
+    const current = items.indexOf(document.activeElement as HTMLElement);
+    const target = {
+      ArrowDown: (current + 1) % items.length,
+      ArrowUp: (current - 1 + items.length) % items.length,
+      Home: 0,
+      End: items.length - 1,
+    }[key];
+    items[target ?? current]?.focus();
+  }
+
   function keydown(event: KeyboardEvent): void {
-    if (event.key === "Escape") {
+    if (event.key === "Escape" || event.key === "Tab") {
       event.preventDefault();
       void close();
+    } else if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+      event.preventDefault();
+      moveFocus(event.currentTarget as HTMLElement, event.key);
     }
   }
 
@@ -128,7 +143,9 @@
           </span>
         </button>
       {/if}
-      <hr />
+      {#if storage !== null}
+        <hr />
+      {/if}
       <button
         class="item danger"
         class:two-line={onServer}
@@ -215,5 +232,10 @@
   }
   .item.danger {
     color: var(--gl-danger-text);
+  }
+  @media (pointer: coarse) {
+    .item {
+      min-height: var(--gl-hit-min);
+    }
   }
 </style>

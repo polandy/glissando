@@ -26,12 +26,13 @@ any other.
 
 A picture whose media is gone meanwhile is skipped, as is a whole slideshow gone by the time a
 scan reads its own stored focus (the injected `isGone` predicate), the scan carrying on with the
-rest; one whose detection fails is logged
+rest; one whose detection fails, or whose input cannot be decoded (an error the injected
+`failsPictureOn` predicate accepts, e.g. an undecodable server preview), is logged
 (`FocusDetectionFailedError`), keeps no focus and is tried again on the next pass — its id is
 added to `failed` for this app session and removed once a later look at it succeeds. A detection
 failing because the detector itself is gone (`FocusDetectorGoneError`: its worker crashed, sent a
-reply that could not be read, or answered `unavailable` as its face cascade did not load) ends the
-pass and is reported once; the pictures left wait for the next pass. An error from reading a
+reply that could not be read, or answered `unavailable` as its face cascade did not load — the
+lifecycle of `WorkerRequestClient`, shared with the music analyser) ends the pass and is reported once; the pictures left wait for the next pass. An error from reading a
 thumbnail or storing a result that the injected `pausesOn` predicate accepts — "try again later",
 such as a server being unreachable, rather than "this picture's detection failed" — ends the pass
 quietly (logged, not reported) and sets `paused`; the next `start()` or `lookAgain()` resumes
@@ -40,7 +41,7 @@ reported too.
 
 The pass writes only the focus record it found: its store port (`FocusPassPorts["store"]`) can
 only list slideshows, read a thumbnail and read or write a picture's focus, so it can never touch
-a picture's own motion (Ken Burns) or any other field of a slideshow record (ADR-0041). A store
+a picture's chosen motion (Ken Burns) or any other field of a slideshow record (ADR-0041). A store
 may add `detectionInput(pictureId)` in place of the thumbnail: answering a focus directly skips the
 detector; answering a `Blob` is detected the same as a thumbnail would be. A second `FocusPass`
 runs this way over the Glissando server's own slideshows, sharing one detector with the device pass

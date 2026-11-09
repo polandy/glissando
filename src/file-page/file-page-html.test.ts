@@ -15,6 +15,7 @@ const bundle: FilePageBundle = {
   cardFontDataUrls: Object.fromEntries(
     CARD_FONT_FILES.map((file) => [file.assetPath, `data:font/woff2;base64,${file.family}`]),
   ),
+  notices: [],
   languages: filePageLanguages(),
 };
 

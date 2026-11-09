@@ -2,14 +2,14 @@ import { songIntakeStoringIn } from "../music-editor/testing/song-intake-device"
 import { createStorageMusicEditorDetailsStore } from "../music-editor/music-editor-details";
 import { createStorageFineSettingsFoldStore } from "../screens/slideshow/fine-settings-fold";
 import { createMemoryStorage } from "../testing/memory-storage";
-import { beatPassFindingNone } from "../../library/testing/beat-pass-finding-none";
-import { loudnessPassFindingNone } from "../../library/testing/loudness-pass-finding-none";
+import { analysisPassFindingNone } from "../../library/testing/music-analysis-pass-finding-none";
 import type { FocusPass } from "../../library/focus-pass";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { MusicOutput } from "../../player";
 import { browserMusicEditorAudio } from "../music-editor/music-editor-audio";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
+import { createMountSlot, storedPicture } from "../testing/picture-fixtures";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { reactiveProps } from "../testing/reactive-props.svelte";
 import { Toaster } from "../toast/toaster";
@@ -18,28 +18,20 @@ import { fakeHtmlExportDevice } from "../html-export/testing/fake-html-export-po
 import { FakeExportPorts } from "../video-export/testing/fake-export-ports";
 
 /** Two pictures, "a" and "b"; the stored pictures are empty blobs, never real photos. */
-export const SHOW: StoredSlideshow = {
+const SHOW: StoredSlideshow = {
   id: "show",
   title: "Juli 2025",
   createdAt: "2025-07-02T00:00:00Z",
-  pictures: ["a", "b"].map((id) => ({
-    id,
-    capturedAt: "2025-07-01T10:00:00Z",
-    width: 100,
-    height: 100,
-    fileName: `${id}.jpg`,
-    colours: { veil: "#404040", accent: "#C0C0C0" },
-  })),
+  pictures: ["a", "b"].map((id) => storedPicture(id)),
   secondsPerPicture: 5,
   songs: [],
 };
 
-let destroy = () => {};
+const mountSlot = createMountSlot();
 
 /** Unmounts the route the last `mountRoute` mounted. */
 export function unmountRoute(): void {
-  destroy();
-  destroy = () => {};
+  mountSlot.release();
 }
 
 /** A store holding `SHOW`, its pictures as empty blobs. */
@@ -59,23 +51,28 @@ export function mountRoute(
   editingPictureId: string | null,
 ) {
   const errors: unknown[] = [];
+  /** What each draw of the route's `random` returned, in order. */
+  const randomDraws: number[] = [];
   const toaster = new Toaster(new FakeScheduler());
   const musicOutput = new MusicOutput(() => null);
   const props = reactiveProps({
     store,
     focusPass,
-    beatPass: beatPassFindingNone(store),
-    loudnessPass: loudnessPassFindingNone(store),
+    analysisPass: analysisPassFindingNone(store),
     toaster,
     newId: () => "claim-1",
     now: () => new Date("2026-10-08T12:00:00Z"),
+    random: () => {
+      randomDraws.push(0);
+      return 0;
+    },
     playbackQuality: "1440" as const,
     slideshowId: SHOW.id,
     exportProgress: null,
     onExport: () => Promise.resolve("saved" as const),
     videoExport: new FakeExportPorts(),
     htmlExport: fakeHtmlExportDevice(),
-    playing: false,
+    playing: null,
     editingPictureId,
     editingMusic: false,
     musicAudio: browserMusicEditorAudio(musicOutput),
@@ -85,6 +82,7 @@ export function mountRoute(
     songIntake: songIntakeStoringIn(store, (error) => errors.push(error)),
     onBack: () => {},
     onPlay: () => {},
+    onPlayFrom: () => {},
     onAddPictures: () => {},
     addedPictureIds: [],
     onEdit: () => {},
@@ -109,6 +107,6 @@ export function mountRoute(
     },
   });
   const mounted = mountWithTranslator(SlideshowRoute, props);
-  destroy = mounted.destroy;
-  return { target: mounted.target, props, errors, toaster };
+  mountSlot.hold(mounted.destroy);
+  return { target: mounted.target, props, errors, toaster, randomDraws };
 }

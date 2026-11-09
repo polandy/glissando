@@ -119,6 +119,13 @@ export interface MusicPlayback {
   play(atSeconds: number): Promise<void>;
   /** From 0 (silent) to 1 (as recorded). */
   setVolume(volume: number): void;
+  /**
+   * Where the music is in its file while it really plays; null while it is paused, seeking, or
+   * has too little data buffered to play on (starting up or stalled).
+   */
+  playingSeconds(): number | null;
+  /** Moves the music to `atSeconds` without restarting it. */
+  seek(atSeconds: number): void;
   pause(): void;
   dispose(): void;
 }

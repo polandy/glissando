@@ -122,6 +122,29 @@
     right: 4px;
     bottom: 4px;
   }
+  /* Above the handles, so the chip's touch pad is its own; inside the picture, so nothing clips it. */
+  @media (pointer: coarse) {
+    .chip {
+      z-index: 1;
+    }
+    .chip::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: max(100%, var(--gl-hit-min));
+      height: max(100%, var(--gl-hit-min));
+      transform: translate(-50%, -50%);
+    }
+    [data-key="from"] .chip {
+      top: calc(var(--gl-hit-min) / 3);
+    }
+    /* Clear of the other frame's corner handle, whose hit area reaches this far in. */
+    [data-key="to"] .chip {
+      right: calc((var(--handle-hit) + var(--handle)) / 2);
+      bottom: calc(var(--gl-hit-min) / 3);
+    }
+  }
   /* Centred on the active border's corner. */
   .handle {
     --offset: calc(var(--handle) / -2 - var(--active-border) / 2);

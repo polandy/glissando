@@ -42,7 +42,6 @@ describe("the player layer", () => {
   it("still plays, aiming at the middle, when the stored focus cannot be read", async () => {
     const store = new FocusUnreadableStore();
     await store.putPicture("a", { display: new Blob([]), thumbnail: new Blob([]) });
-    const reported: unknown[] = [];
     const logged: unknown[] = [];
     const listenedFor: string[] = [];
     const mounted = mountWithTranslator(PlayerLayer, {
@@ -51,14 +50,14 @@ describe("the player layer", () => {
       musicOutput: new MusicOutput(() => null),
       decodeClipSound: () => Promise.resolve(null),
       onClose: () => {},
-      onError: (error: unknown) => reported.push(error),
       log: (error: unknown) => logged.push(error),
-      beatPass: { listenFor: (musicId: string) => listenedFor.push(musicId) },
+      analysisPass: { listenFor: (musicId: string) => listenedFor.push(musicId) },
       home: "device",
       missing: new SvelteSet<string>(),
       onPictureMissing: () => {},
       playbackQuality: "1440",
       clock: () => 0,
+      startPicture: null,
     });
     destroy = mounted.destroy;
 
@@ -66,7 +65,6 @@ describe("the player layer", () => {
 
     expect(counter.textContent).toBe("1 / 1");
     expect(logged).toEqual([new Error("the focus could not be read")]);
-    expect(reported).toEqual([]);
     expect(listenedFor).toEqual([]);
   });
 
@@ -83,18 +81,55 @@ describe("the player layer", () => {
       musicOutput: new MusicOutput(() => null),
       decodeClipSound: () => Promise.resolve(null),
       onClose: () => {},
-      onError: () => {},
       log: () => {},
-      beatPass: { listenFor: (musicId: string) => listenedFor.push(musicId) },
+      analysisPass: { listenFor: (musicId: string) => listenedFor.push(musicId) },
       home: "server",
       missing: new SvelteSet<string>(),
       onPictureMissing: () => {},
       playbackQuality: "1440",
       clock: () => 0,
+      startPicture: null,
     });
     destroy = mounted.destroy;
 
     expect(listenedFor).toEqual(["tune"]);
+  });
+
+  it("shows the failure with a way out when the music cannot be read", async () => {
+    const unreadable = new Error("the music could not be read");
+    class MusicUnreadableStore extends MemoryLibraryStore {
+      override musicBlob(): Promise<Blob> {
+        return Promise.reject(unreadable);
+      }
+    }
+    const logged: unknown[] = [];
+    let closed = 0;
+    const mounted = mountWithTranslator(PlayerLayer, {
+      store: new MusicUnreadableStore(),
+      stored: {
+        ...SHOW,
+        songs: [{ id: "tune", fileName: "tune.mp3", durationMs: 5000, mimeType: "audio/mpeg" }],
+      },
+      musicOutput: new MusicOutput(() => null),
+      decodeClipSound: () => Promise.resolve(null),
+      onClose: () => closed++,
+      log: (error: unknown) => logged.push(error),
+      analysisPass: { listenFor: () => {} },
+      home: "device",
+      missing: new SvelteSet<string>(),
+      onPictureMissing: () => {},
+      playbackQuality: "1440",
+      clock: () => 0,
+      startPicture: null,
+    });
+    destroy = mounted.destroy;
+
+    const alert = await whenRendered(mounted.target, "[role=alert]");
+    alert.querySelector("button")?.click();
+
+    expect(alert.textContent).toContain("Die Diashow konnte nicht abgespielt werden.");
+    expect(logged).toEqual([unreadable]);
+    expect(closed).toBe(1);
   });
 });
 
@@ -131,14 +166,14 @@ function mountServerLayer(store: MemoryLibraryStore, missing = new SvelteSet<str
     musicOutput: new MusicOutput(() => null),
     decodeClipSound: () => Promise.resolve(null),
     onClose: () => {},
-    onError: () => {},
     log: () => {},
-    beatPass: { listenFor: () => {} },
+    analysisPass: { listenFor: () => {} },
     home: "server",
     missing,
     onPictureMissing: (id: string) => missing.add(id),
     playbackQuality: "1440",
     clock: () => 0,
+    startPicture: null,
   });
   destroy = mounted.destroy;
   return { ...mounted, missing };
@@ -217,14 +252,14 @@ describe("the pictures the player layer loads ahead", () => {
       musicOutput: new MusicOutput(() => null),
       decodeClipSound: () => Promise.resolve(null),
       onClose: () => {},
-      onError: () => {},
       log: () => {},
-      beatPass: { listenFor: () => {} },
+      analysisPass: { listenFor: () => {} },
       home,
       missing: new SvelteSet<string>(),
       onPictureMissing: () => {},
       playbackQuality: "1440",
       clock: () => 0,
+      startPicture: null,
     });
     destroy = mounted.destroy;
 

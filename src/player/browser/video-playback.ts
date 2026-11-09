@@ -1,6 +1,8 @@
-import { VideoPlaybackError, type LiveFrame, type VideoPlayback } from "../ports";
+import { VideoPlaybackError } from "../ports";
 import { ClipSoundTrack } from "./clip-sound-track";
 import type { ClipSoundOutput } from "./music-output";
+import { HAVE_CURRENT_DATA, HAVE_FUTURE_DATA, playingSecondsOf } from "./media-position";
+import { DOM_EXCEPTION, isDomException } from "../../dom-exception/dom-exception";
 
 /** A clip further than this from where the slide clock puts it is seeked. */
 export const VIDEO_SEEK_DRIFT_MS = 2000;
@@ -18,11 +20,7 @@ const SAME_TIME_MS = 1;
  * A clip at most this far from its place when `play` starts it is not seeked: a start a frame or
  * two behind the clock is caught up by `follow`, but a seek right at the start is a visible hitch.
  */
-export const VIDEO_START_TOLERANCE_MS = 250;
-const HAVE_CURRENT_DATA = 2;
-const HAVE_FUTURE_DATA = 3;
-/** What a media element's `play()` rejects with when a later `pause()` interrupts it. */
-const INTERRUPTED_PLAY = "AbortError";
+const VIDEO_START_TOLERANCE_MS = 250;
 const READY_EVENTS = ["seeked", "loadeddata", "canplay", "playing"] as const;
 
 /** The parts of the music output a clip's sound uses (ADR-0009). */
@@ -32,14 +30,35 @@ export interface VideoOutput {
   clipSoundOutput(): ClipSoundOutput | null;
 }
 
+/** What a clip's playback uses of its `<video>`; an `HTMLVideoElement` is one. */
+export type VideoElementPort = Pick<
+  HTMLVideoElement,
+  | "currentTime"
+  | "muted"
+  | "playsInline"
+  | "playbackRate"
+  | "preload"
+  | "readyState"
+  | "seeking"
+  | "paused"
+  | "src"
+  | "error"
+  | "play"
+  | "pause"
+  | "load"
+  | "removeAttribute"
+  | "addEventListener"
+>;
+
 /**
  * One clip played by an `HTMLVideoElement`, which also is the frame the renderers draw. The
  * element is always muted — iOS and iPadOS let only one media element with sound play at a time,
  * so an audible `<video>` would pause the music for the rest of the show (ADR-0035). The clip's
  * own sound, if any, plays through a `ClipSoundTrack` on the music's Web Audio context instead.
+ * `frame` hands out the element itself, so with an `HTMLVideoElement` this is a `VideoPlayback`.
  */
-export class VideoElementPlayback implements VideoPlayback {
-  readonly #element: HTMLVideoElement;
+export class VideoElementPlayback<Element extends VideoElementPort> {
+  readonly #element: Element;
   readonly #sound: ClipSoundTrack | null;
   readonly #sourceReady: Promise<void>;
   readonly #release: () => void;
@@ -57,7 +76,7 @@ export class VideoElementPlayback implements VideoPlayback {
    * decoding it; `endMs` is the clip's own file-time clamp, past which its sound never plays.
    */
   constructor(
-    element: HTMLVideoElement,
+    element: Element,
     volume: number,
     endMs: number,
     output: VideoOutput,
@@ -116,7 +135,7 @@ export class VideoElementPlayback implements VideoPlayback {
       await this.#element.play();
     } catch (error) {
       // A pause before the start lands is not a refusal.
-      if (error instanceof DOMException && error.name === INTERRUPTED_PLAY) {
+      if (isDomException(error, DOM_EXCEPTION.aborted)) {
         return;
       }
       throw new VideoPlaybackError(error);
@@ -127,14 +146,11 @@ export class VideoElementPlayback implements VideoPlayback {
     this.#sound?.follow(clipMs);
     // Until it really plays, a clip lags the clock only by its start-up; a seek then would restart
     // that start-up and make the clip stutter.
-    if (
-      this.#element.seeking ||
-      this.#element.paused ||
-      this.#element.readyState < HAVE_FUTURE_DATA
-    ) {
+    const playingSeconds = playingSecondsOf(this.#element);
+    if (playingSeconds === null) {
       return;
     }
-    const aheadMs = this.#element.currentTime * MS_PER_SECOND - clipMs;
+    const aheadMs = playingSeconds * MS_PER_SECOND - clipMs;
     if (Math.abs(aheadMs) > VIDEO_SEEK_DRIFT_MS) {
       this.#setRate(1);
       this.#moveTo(clipMs);
@@ -162,7 +178,7 @@ export class VideoElementPlayback implements VideoPlayback {
     this.#sound?.setVolume(volume);
   }
 
-  frame(): LiveFrame | null {
+  frame(): Element | null {
     return this.#hardSeekPending || this.#element.readyState < HAVE_CURRENT_DATA
       ? null
       : this.#element;

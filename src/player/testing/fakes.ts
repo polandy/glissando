@@ -179,6 +179,8 @@ export class FakeMusic implements MusicPlayback {
   readonly calls: string[] = [];
   /** The last volume set; kept apart from `calls`, which it would flood once per frame. */
   volume: number | undefined;
+  /** Where the music reports to be while it really plays; null while it does not. */
+  playingAt: number | null = null;
   /** The volume at each `play`, in order. */
   readonly volumesAtPlay: (number | undefined)[] = [];
   #refusal: Error | null = null;
@@ -194,6 +196,12 @@ export class FakeMusic implements MusicPlayback {
   }
   setVolume(volume: number): void {
     this.volume = volume;
+  }
+  playingSeconds(): number | null {
+    return this.playingAt;
+  }
+  seek(atSeconds: number): void {
+    this.calls.push(`seek@${atSeconds}`);
   }
   pause(): void {
     this.calls.push("pause");

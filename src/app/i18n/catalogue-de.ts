@@ -4,6 +4,7 @@ import { deMusic } from "./catalogue-de-music.ts";
 import { deTiming } from "./catalogue-de-timing.ts";
 import { deTransitions } from "./catalogue-de-transitions.ts";
 import { deLook } from "./catalogue-de-look.ts";
+import { deSelection } from "./catalogue-de-selection.ts";
 import { deMood } from "./catalogue-de-mood.ts";
 import { dePortrait } from "./catalogue-de-portrait.ts";
 import { deImmich } from "./catalogue-de-immich.ts";
@@ -23,6 +24,7 @@ import { deFrame } from "./catalogue-de-frame.ts";
 import { deCards } from "./catalogue-de-cards.ts";
 import { deChapters } from "./catalogue-de-chapters.ts";
 import { deFilePage } from "./catalogue-de-file-page.ts";
+import { deExportErrors } from "./catalogue-de-export-errors.ts";
 import { deSampleMusicCredit } from "./catalogue-de-sample-music-credit.ts";
 import { deSampleMusicPicker } from "./catalogue-de-sample-music-picker.ts";
 import type { Message } from "./messages.ts";
@@ -42,6 +44,11 @@ export const de = {
   "common.breadcrumb": "Navigationspfad",
   "common.next": "Weiter",
   "common.unexpectedError": "Etwas ist schiefgegangen. Bitte versuche es noch einmal.",
+  "common.storageUnavailable":
+    "Glissando kann seinen Speicher in diesem Browser nicht öffnen. Lade die Seite neu — hilft das nicht, prüfe, ob diese Seite Daten speichern darf.",
+  "common.newerVersionOpen":
+    "Eine neuere Version von Glissando ist in einem anderen Tab geöffnet. Lade diesen Tab neu, um sie zu verwenden.",
+  "common.reload": "Neu laden",
 
   "units.seconds": "{seconds} s",
   "units.pictures": { one: "{count} Bild", other: "{count} Bilder" },
@@ -56,6 +63,7 @@ export const de = {
   "start.library": "Bibliothek",
   "start.yourSlideshows": "Deine Diashows",
   "start.withMusic": "mit Musik",
+  "start.created": "Erstellt am {date}",
   "start.searchingSubjects": "Motive werden gesucht",
   "start.searchingAgain": "Motive werden erneut gesucht",
   "start.searchProgress": "{done} von {total}",
@@ -87,6 +95,7 @@ export const de = {
   "settings.documentation": "Dokumentation",
   "settings.sourceCode": "Quellcode auf GitHub",
   "settings.licenses": "Open-Source-Lizenzen",
+  "settings.selfHosting": "Selbst hosten und Immich",
   "settings.version": "Version",
   "settings.versionName": "Glissando {version}",
   "settings.update": "Neu laden zum Aktualisieren",
@@ -96,23 +105,25 @@ export const de = {
   "slideshow.dateRange": "{from} – {to}",
   "slideshow.music": "Musik",
   "slideshow.noMusic": "Keine",
-  "slideshow.kenBurns": "Ken Burns",
+  "slideshow.kenBurns": "Bewegung",
   "slideshow.automatic": "automatisch",
   "slideshow.transitions": "Übergänge",
   "slideshow.look": "Look",
   "slideshow.mood": "Stimmung",
   "slideshow.play": "Abspielen",
-  "slideshow.fineSettings": "Feineinstellungen",
+  "slideshow.fineSettings": "Weitere Einstellungen",
   "slideshow.pictures": "Bilder",
   "slideshow.sortedByDate": "Nach Aufnahmedatum sortiert",
   "slideshow.pictureLabel": "Bild {number}, aufgenommen am {date}",
-  "slideshow.ownOrder": "Eigene Reihenfolge",
-  "slideshow.reorderHintWide": "ziehen oder antippen",
-  "slideshow.reorderHintNarrow": "antippen zum Umsortieren",
+  "slideshow.ownOrder": "Deine Reihenfolge",
+  "slideshow.reorderHintWide": "Ziehen zum Umsortieren",
+  "slideshow.reorderHintNarrow": "Halten und ziehen zum Umsortieren",
   "slideshow.select": "Auswählen",
   "slideshow.shuffle": "Mischen",
   "slideshow.shuffled": "{count} Bilder gemischt",
-  "slideshow.removePicture": "Bild {number} entfernen",
+  "slideshow.sortByDate": "Nach Datum sortieren",
+  "slideshow.sortByDateLabel": "Nach Aufnahmedatum sortieren",
+  "slideshow.sortedByDateToast": "{count} Bilder nach Aufnahmedatum sortiert",
   "slideshow.removed": { one: "Bild entfernt", other: "{count} Bilder entfernt" },
   "slideshow.undo": "Rückgängig",
   "slideshow.selection": "Auswahl",
@@ -130,7 +141,7 @@ export const de = {
     "Mindestens ein Bild bleibt. Um alle loszuwerden, die ganze Diashow löschen.",
   "slideshow.rename": "Titel umbenennen",
   "slideshow.titleInput": "Titel",
-  "slideshow.titleHint": "Enter speichert · Esc verwirft · leer = automatischer Titel",
+  "slideshow.titleHint": "Enter speichert · Esc bricht ab · leer = automatischer Titel",
   "slideshow.more": "Mehr",
   "slideshow.focus": "Gesichter und Motive\u00a0…",
   "slideshow.focusFailedHint": {
@@ -140,9 +151,9 @@ export const de = {
   "slideshow.delete": "Diashow löschen\u00a0…",
   "slideshow.deleteTitle": "„{title}“ löschen?",
   "slideshow.deleteText": {
-    one: "Die Diashow und ihr Bild werden von diesem Gerät entfernt. Deine Originalfotos bleiben, wo sie sind. Das lässt sich nicht rückgängig machen.",
+    one: "Die Diashow und ihr Bild werden von diesem Gerät entfernt. Deine Bilder bleiben, wo sie sind. Das lässt sich nicht rückgängig machen.",
     other:
-      "Die Diashow und ihre {count} Bilder werden von diesem Gerät entfernt. Deine Originalfotos bleiben, wo sie sind. Das lässt sich nicht rückgängig machen.",
+      "Die Diashow und ihre {count} Bilder werden von diesem Gerät entfernt. Deine Bilder bleiben, wo sie sind. Das lässt sich nicht rückgängig machen.",
   },
   "slideshow.keep": "Behalten",
   "slideshow.deleteConfirm": "Löschen",
@@ -168,13 +179,13 @@ export const de = {
   "focusSheet.statusSubject": "Motive",
   "focusSheet.statusImmich": "Gesichter von Immich",
   "focusSheet.statusScenery": "Landschaft",
-  "focusSheet.statusNone": "Nichts gefunden",
-  "focusSheet.statusOutdated": "Ältere Erkennung",
+  "focusSheet.statusNone": "Ganz gezeigt",
+  "focusSheet.statusOutdated": "Früher angesehen",
   "focusSheet.statusFailed": "Fehlgeschlagen",
   "focusSheet.statusWaiting": "Noch nicht",
   "focusSheet.statusWaitingForServer": "Wartet auf Server",
   "focusSheet.statusLooking": "Wird gesucht",
-  "focusSheet.ownMotion": "Eigene Bewegung",
+  "focusSheet.ownMotion": "Gewählte Bewegung",
   "focusSheet.tryAgain": "Die {count} erneut versuchen",
   "focusSheet.lookAgainAll": {
     one: "Das Bild erneut ansehen",
@@ -194,8 +205,8 @@ export const de = {
   "import.crumbMusic": "Musik",
   "import.picturesTitle": "Welche Bilder?",
   "import.picturesText":
-    "Glissando sortiert sie nach Aufnahmedatum und verkleinert sie fürs Gerät. Deine Originale bleiben unverändert.",
-  "import.pickPictures": "Medien auswählen",
+    "Glissando sortiert sie nach Aufnahmedatum und verkleinert sie fürs Gerät. Deine Bilder bleiben unverändert.",
+  "import.pickPictures": "Bilder auswählen",
   "import.or": "oder",
   "import.pickFolder": "einen Ordner wählen",
   "import.dropHint": "auf dem Desktop auch hierher ziehen",
@@ -212,7 +223,7 @@ export const de = {
   "import.addFolder": "Ein Ordner",
   "import.queueHeader": "Import läuft · {done} von {count} fertig",
   "import.queueLeft": "{count} übrig",
-  "import.pickImmich": { one: "Immich · {count} Foto", other: "Immich · {count} Fotos" },
+  "import.pickImmich": { one: "Immich · {count} Bild", other: "Immich · {count} Bilder" },
   "import.pickProgress": "{done} / {total}",
   "import.pickWaiting": "wartet",
   "import.pickDone": "{count} ✓",
@@ -235,13 +246,17 @@ export const de = {
     one: "{count} Datei konnte nicht als Bild gelesen werden und wurde übersprungen:",
     other: "{count} Dateien konnten nicht als Bild gelesen werden und wurden übersprungen:",
   },
+  "import.tooLarge": {
+    one: "{count} Bild ist zu groß und wurde übersprungen:",
+    other: "{count} Bilder sind zu groß und wurden übersprungen:",
+  },
   "import.undecodable": {
-    one: "{count} Bild konnte nicht dekodiert werden und wurde übersprungen:",
-    other: "{count} Bilder konnten nicht dekodiert werden und wurden übersprungen:",
+    one: "{count} Bild konnte nicht gelesen werden und wurde übersprungen:",
+    other: "{count} Bilder konnten nicht gelesen werden und wurden übersprungen:",
   },
   "import.notDownloaded": {
-    one: "{count} Foto konnte nicht von Immich geladen werden und wurde übersprungen:",
-    other: "{count} Fotos konnten nicht von Immich geladen werden und wurden übersprungen:",
+    one: "{count} Bild konnte nicht von Immich geladen werden und wurde übersprungen:",
+    other: "{count} Bilder konnten nicht von Immich geladen werden und wurden übersprungen:",
   },
   "import.skippedFiles": "{files}.",
   "import.skippedRest": {
@@ -262,12 +277,12 @@ export const de = {
   "import.musicFormats": "Eine oder mehrere Dateien · MP3, M4A, FLAC, WAV, Ogg, AIFF, WMA\u00a0…",
   "import.ownMusicTitle": "Eigene Musik",
   "import.chooseFiles": "Dateien wählen",
-  "import.soundtrackTitle": "Soundtrack",
-  "import.soundtrackEmpty": "Noch keine Musik — füge oben einen Titel oder eigene Songs hinzu.",
+  "import.soundtrackTitle": "Musik",
+  "import.soundtrackEmpty": "Noch keine Musik — füge oben einen Song hinzu.",
   "import.trackMeta": "{duration} · {format}",
   "import.paceMood": "Stimmung {mood}",
   "import.paceWithMusic":
-    "etwa {seconds} je Bild, auf den Phrasen der Musik. Ändern lässt sie sich in der Diashow.",
+    "etwa {seconds} je Bild, passend zur Musik. Ändern lässt sie sich in der Diashow.",
   "import.paceWithoutMusic": "etwa {seconds} je Bild. Ändern lässt sie sich in der Diashow.",
   "import.secondsShorter": "Kürzer",
   "import.secondsLonger": "Länger",
@@ -289,13 +304,14 @@ export const de = {
   "import.backToPictures": "Bilder",
   "import.create": "Diashow erstellen",
   "import.createWithoutMusic": "Ohne Musik erstellen",
-  "import.discardTitle": "Auswahl verwerfen?",
+  "import.titleLabel": "Titel",
+  "import.titleHint": "Du kannst ihn später auf der Diashow-Seite ändern.",
+  "import.discardTitle": "Auswahl entfernen?",
   "import.discardText": "Die gewählten Bilder werden nicht gespeichert.",
   "import.keepChoosing": "Weiter auswählen",
-  "import.discard": "Verwerfen",
+  "import.discard": "Entfernen",
   "import.creatingTitle": "Diashow wird erzeugt\u00a0…",
-  "import.creatingText": "Reihenfolge nach Aufnahmedatum · Ken Burns · Übergänge",
-  "import.created": "Diashow erstellt — tippe auf Abspielen",
+  "import.creatingText": "Deine Bilder werden geordnet, mit Bewegung und Übergängen",
 
   "storage.persistRefusedTitle": "Glissando darf nichts dauerhaft speichern",
   "storage.persistRefusedText":
@@ -355,11 +371,11 @@ export const de = {
   "pwa.firefoxDesktop.note":
     "Als eigenes Fenster im Dock oder in der Taskleiste: öffne Glissando in Chrome, Edge oder Safari und installiere es dort.",
 
-  "glissandoFile.exportRunning": "Wird exportiert\u00a0… {percent}\u00a0%",
-  "glissandoFile.exportAfterRunning": "Erst wenn der laufende Export fertig ist",
-  "glissandoFile.exportIndicator": "Exportiere „{title}“\u00a0… {percent}\u00a0%",
+  "glissandoFile.exportRunning": "Wird gespeichert\u00a0… {percent}\u00a0%",
+  "glissandoFile.exportAfterRunning": "Erst wenn das laufende Speichern fertig ist",
+  "glissandoFile.exportIndicator": "Speichere „{title}“\u00a0… {percent}\u00a0%",
   "glissandoFile.downloaded": "„{fileName}“ heruntergeladen · {size}",
-  "glissandoFile.exportFailed": "Export fehlgeschlagen: zu wenig Speicher auf dem Gerät.",
+  "glissandoFile.exportFailed": "Speichern fehlgeschlagen: zu wenig Speicher auf dem Gerät.",
   "glissandoFile.tryAgain": "Erneut versuchen",
   "glissandoFile.sheetText":
     "Die ganze Diashow – Bilder, Musik, alle Einstellungen – in einer .glissando-Datei. Öffne sie in Glissando auf einem anderen Gerät, um sie anzusehen oder weiterzubearbeiten.",
@@ -383,10 +399,10 @@ export const de = {
   "glissandoFile.cancelled": "Öffnen abgebrochen, nichts gespeichert.",
   "glissandoFile.foreignTitle": "„{name}“ ist keine Glissando-Diashow.",
   "glissandoFile.foreignText":
-    "Glissando öffnet hier nur .glissando-Dateien, die es selbst exportiert hat. Bilder kommen über „Neue Diashow“ hinein.",
+    "Glissando öffnet hier nur .glissando-Dateien, die es selbst gespeichert hat. Bilder kommen über „Neue Diashow“ hinein.",
   "glissandoFile.damagedTitle": "„{name}“ ist beschädigt.",
   "glissandoFile.damagedText":
-    "Die Datei ist unvollständig oder Teile davon lassen sich nicht lesen, vielleicht wurde sie nicht fertig kopiert oder heruntergeladen. Exportiere die Diashow auf dem anderen Gerät noch einmal.",
+    "Die Datei ist unvollständig oder Teile davon lassen sich nicht lesen, vielleicht wurde sie nicht fertig kopiert oder heruntergeladen. Speichere die Diashow auf dem anderen Gerät noch einmal.",
   "glissandoFile.newerTitle": "„{name}“ stammt aus einer neueren Glissando-Version.",
   "glissandoFile.newerText":
     "Diese Version kann die Datei noch nicht lesen. Lade die App neu, um die neueste Version zu holen, und öffne die Datei dann noch einmal.",
@@ -420,6 +436,7 @@ export const de = {
   ...deTiming,
   ...deTransitions,
   ...deLook,
+  ...deSelection,
   ...deMood,
   ...dePortrait,
   ...deImmich,
@@ -440,6 +457,9 @@ export const de = {
   ...deCards,
   ...deChapters,
   ...deFilePage,
+  ...deExportErrors,
   ...deSampleMusicCredit,
   ...deSampleMusicPicker,
+  "route.loading": "Lädt …",
+  "start.searchShort": "Motive {done}/{total}",
 } as const satisfies Record<string, Message>;

@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { ImmichAlbum, ImmichPhoto } from "../../immich/immich-client";
   import type { PhotoFeed } from "../../immich/photo-feed";
+  import type { Crumb } from "../components/crumbs";
   import Header from "../components/Header.svelte";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
@@ -39,7 +40,7 @@
   }: {
     browser: ImmichBrowser;
     /** The crumbs of the screen it was opened from. */
-    parentCrumbs: readonly string[];
+    parentCrumbs: readonly Crumb[];
     /** Photos already in the slideshow or already taken in: shown, never selected. */
     alreadyIn?: AlreadyIn;
     /** One album's photos; the tabs without it. */

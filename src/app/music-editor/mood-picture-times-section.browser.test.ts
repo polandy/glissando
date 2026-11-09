@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
+import { createRawSnippet } from "svelte";
 import { createTranslator } from "../i18n/translator";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import MoodPictureTimesSection from "./MoodPictureTimesSection.svelte";
@@ -9,12 +10,17 @@ afterEach(() => {
   unmounts = [];
 });
 
-function mount(fittedShareMs?: number) {
+const NOTICE_TEXT = "the one outcome line";
+
+function mount(withNotice: boolean) {
+  const notice = createRawSnippet(() => ({
+    render: () => `<p class="length-notice">${NOTICE_TEXT}</p>`,
+  }));
   const mounted = mountWithTranslator(
     MoodPictureTimesSection,
     {
       moodPictureLength: { mood: "calm", beatsPerMinute: 60 },
-      fittedShareMs,
+      ...(withNotice ? { notice } : {}),
       onSetOwnPictureTimes: () => {},
     },
     { current: createTranslator("en") },
@@ -24,15 +30,16 @@ function mount(fittedShareMs?: number) {
 }
 
 describe("MoodPictureTimesSection", () => {
-  it("notes the shrunk share once the mood's pictures fit a shorter music", () => {
-    const target = mount(3_300);
+  it("renders the outcome line it is given, and no boxed paragraph of its own", () => {
+    const target = mount(true);
 
-    expect(target.textContent).toContain("Shortened to 3.3 s to fit the music");
+    expect(target.textContent).toContain(NOTICE_TEXT);
+    expect(target.textContent).not.toContain("Shortened to");
   });
 
-  it("shows no such note while the mood's pictures do not need to shrink", () => {
-    const target = mount(undefined);
+  it("renders no outcome line without one", () => {
+    const target = mount(false);
 
-    expect(target.textContent).not.toContain("Shortened to");
+    expect(target.textContent).not.toContain(NOTICE_TEXT);
   });
 });

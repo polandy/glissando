@@ -1,13 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { NO_BEATS } from "../../../beats";
-import type { BeatPassState } from "../../../library/beat-pass";
-import { DRUMS, NO_CLEAR_BEAT } from "../../../library/testing/beat-pass-fixtures";
+import type { MusicAnalysisPassState } from "../../../library/music-analysis-pass";
+import {
+  DRUMS,
+  NO_CLEAR_BEAT,
+  SILENT,
+} from "../../../library/testing/music-analysis-pass-fixtures";
 import type { SongBeats } from "../../../compose/playlist";
 import { EVEN_PICTURE_CHANGES } from "../../../library/own-music";
 import type { StoredMusic } from "../../../library/stored-slideshow";
 import { composedSongBeats, slideshowMoodBpm } from "./mood-tempo";
 
-const IDLE_PASS: BeatPassState = {
+const IDLE_PASS: MusicAnalysisPassState = {
   running: false,
   listening: new Set(),
   found: new Map(),
@@ -37,7 +41,10 @@ describe("slideshowMoodBpm", () => {
   });
 
   it("takes the tempo from the background pass before it is stored", () => {
-    const pass: BeatPassState = { ...IDLE_PASS, found: new Map([["a", DRUMS]]) };
+    const pass: MusicAnalysisPassState = {
+      ...IDLE_PASS,
+      found: new Map([["a", { beats: DRUMS, loudness: SILENT }]]),
+    };
 
     const bpm = slideshowMoodBpm({ songs: [song("a")] }, new Map(), pass);
 
@@ -72,7 +79,10 @@ describe("composedSongBeats", () => {
 
   it("is overtaken by the background pass once it finds a song's beats", () => {
     const stored: SongBeats = new Map([["a", NO_CLEAR_BEAT]]);
-    const pass: BeatPassState = { ...IDLE_PASS, found: new Map([["a", DRUMS]]) };
+    const pass: MusicAnalysisPassState = {
+      ...IDLE_PASS,
+      found: new Map([["a", { beats: DRUMS, loudness: SILENT }]]),
+    };
 
     const beats = composedSongBeats({ songs: [song("a")] }, stored, pass);
 

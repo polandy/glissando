@@ -33,9 +33,9 @@ export function createSubEditors(
     pictureSettings: new PictureSettingsEditor(ports, undos.reset, current, apply),
     pictureList: new PictureListEditor(ports, undos, current, apply),
     musicSettings: new MusicSettingsEditor(undos.songRemoval, ports, undos.reset, current, apply),
-    cardSettings: new CardSettingsEditor(ports, current, apply),
-    video: new VideoSettingsEditor(current, apply),
-    chapters: new ChapterSettingsEditor(current, apply),
+    cardSettings: new CardSettingsEditor(ports, undos.reset, current, apply),
+    video: new VideoSettingsEditor(ports, undos.reset, current, apply),
+    chapters: new ChapterSettingsEditor(ports, undos.reset, current, apply),
     look: new LookSettingsEditor(ports, undos.reset, current, apply),
     mood: new MoodSettingsEditor(ports, undos.reset, current, apply),
   };

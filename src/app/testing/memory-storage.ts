@@ -1,4 +1,4 @@
-import type { KeyValueStorage } from "../start/first-launch";
+import type { KeyValueStorage } from "../storage/storage-port";
 
 /** A `localStorage` stand-in that forgets with the test. */
 export function createMemoryStorage(initial: Record<string, string> = {}): KeyValueStorage {

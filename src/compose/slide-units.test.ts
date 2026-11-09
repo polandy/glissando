@@ -66,13 +66,13 @@ describe("slideUnits", () => {
     expect(units).toEqual([{ pictureIndices: [0] }, { pictureIndices: [1] }]);
   });
 
-  it("keeps a portrait picture with an own duration single", () => {
+  it("keeps a portrait picture with a chosen duration single", () => {
     const units = slideUnits([portrait("a", { durationMs: 8000 }), portrait("b")], undefined);
 
     expect(units).toEqual([{ pictureIndices: [0] }, { pictureIndices: [1] }]);
   });
 
-  it("keeps a portrait picture with an own transition single", () => {
+  it("keeps a portrait picture with a chosen transition single", () => {
     const units = slideUnits([portrait("a", { transition: "cut" }), portrait("b")], undefined);
 
     expect(units).toEqual([{ pictureIndices: [0] }, { pictureIndices: [1] }]);
@@ -114,14 +114,14 @@ describe("slideOfPicture", () => {
 });
 
 describe("timedUnit", () => {
-  it("is the pair weight for a pair, which never has an own duration", () => {
+  it("is the pair weight for a pair, which never has a chosen duration", () => {
     const pictures = [portrait("a"), portrait("b")];
     const [pair] = slideUnits(pictures, undefined) as [SlideUnit];
 
     expect(timedUnit(pictures, pair)).toEqual({ weight: PAIR_WEIGHT });
   });
 
-  it("keeps a single picture's own duration", () => {
+  it("keeps a single picture's chosen duration", () => {
     const pictures = [landscape("a"), portrait("b", { durationMs: 4000 })];
     const [, single] = slideUnits(pictures, undefined) as [SlideUnit, SlideUnit];
 

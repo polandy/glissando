@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import {
-  CREATED_TOAST,
+  expectSlideshowScreen,
   chooseFiles,
   choosePictures,
   definitionOf,
@@ -8,6 +8,7 @@ import {
   openImport,
   picturesTakenOn,
 } from "./support/app";
+import { expectCapturedDates } from "./support/picture-dates";
 import { openApp } from "./support/browser";
 import { silentTrack, textFile } from "./support/media";
 
@@ -40,19 +41,17 @@ test("E2E-005 importing pictures and music creates a slideshow ordered by captur
     page.getByText("1 Datei konnte nicht als Bild gelesen werden und wurde übersprungen:"),
   ).toBeVisible();
   await expect(page.getByText(/notes\.txt\./)).toBeVisible();
-  await expect(page.getByRole("listitem").locator(".date")).toHaveText([
-    "12.07.2025",
-    "14.07.2025",
-    "20.07.2025",
-  ]);
+  await expectCapturedDates(page, ["12.07.2025", "14.07.2025", "20.07.2025"]);
   await expect(next).toBeEnabled();
 
   await next.click();
   await expect(page.getByRole("heading", { name: "Welche Musik?" })).toBeVisible();
   // Every new slideshow starts on Calm (ADR-0050), so the pace line names it and its own 7 s.
-  await expect(page.locator(".pace")).toHaveText(
-    "Stimmung Ruhig · etwa 7 s je Bild. Ändern lässt sie sich in der Diashow.",
-  );
+  await expect(
+    page.getByText("Stimmung Ruhig · etwa 7 s je Bild. Ändern lässt sie sich in der Diashow.", {
+      exact: true,
+    }),
+  ).toBeVisible();
   await expect(definitionOf(page, "Bilder")).toHaveText("3");
   await expect(definitionOf(page, "je Bild")).toHaveText("7 s");
   await expect(definitionOf(page, "Gesamt")).toHaveText("0:21");
@@ -64,9 +63,12 @@ test("E2E-005 importing pictures and music creates a slideshow ordered by captur
   await expect(page.getByText("0:09 · WAV")).toBeVisible();
   // The 9 s song is too short to shrink the pictures down to (ADR-0047's floor keeps each one at
   // least ⅔ of Calm's 7 s), so they keep their own pace and the music just ends before they do.
-  await expect(page.locator(".pace")).toHaveText(
-    "Stimmung Ruhig · etwa 7 s je Bild, auf den Phrasen der Musik. Ändern lässt sie sich in der Diashow.",
-  );
+  await expect(
+    page.getByText(
+      "Stimmung Ruhig · etwa 7 s je Bild, passend zur Musik. Ändern lässt sie sich in der Diashow.",
+      { exact: true },
+    ),
+  ).toBeVisible();
   await expect(definitionOf(page, "je Bild")).toHaveText("7 s");
   await expect(definitionOf(page, "Gesamt")).toHaveText("0:21");
 
@@ -75,7 +77,7 @@ test("E2E-005 importing pictures and music creates a slideshow ordered by captur
   await expect(page.getByRole("heading", { name: "Juli 2025" })).toBeVisible();
   await expect(page.getByText("12.07.2025 – 20.07.2025")).toBeVisible();
   await expect(page.getByRole("button", { name: /^Musik Sommerwind\.wav/ })).toBeVisible();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
 });
 
 test.describe("Abbrechen with pictures chosen", () => {
@@ -83,22 +85,24 @@ test.describe("Abbrechen with pictures chosen", () => {
     await openImport(page);
     await choosePictures(page, await picturesTakenOn(page, ["2025-07-12", "2025-07-14"]), 2);
     await page.getByRole("button", { name: "Abbrechen" }).click();
-    await expect(page.getByRole("dialog", { name: "Auswahl verwerfen?" })).toBeVisible();
+    await expect(page.getByRole("dialog", { name: "Auswahl entfernen?" })).toBeVisible();
   });
 
   test("E2E-006 Weiter auswählen keeps the chosen pictures", async ({ page }) => {
     await page.getByRole("button", { name: "Weiter auswählen" }).click();
 
-    await expect(page.getByRole("dialog", { name: "Auswahl verwerfen?" })).toBeHidden();
+    await expect(page.getByRole("dialog", { name: "Auswahl entfernen?" })).toBeHidden();
     await expect(page.getByRole("heading", { name: "Welche Bilder?" })).toBeVisible();
-    await expect(page.getByRole("listitem").locator(".date")).toHaveText([
-      "12.07.2025",
-      "14.07.2025",
-    ]);
+    await expectCapturedDates(page, ["12.07.2025", "14.07.2025"]);
   });
 
-  test("E2E-007 Verwerfen returns to start and stores nothing", async ({ page }) => {
-    await page.getByRole("button", { name: "Verwerfen" }).click();
+  test("E2E-007 Entfernen in the discard dialog returns to start and stores nothing", async ({
+    page,
+  }) => {
+    await page
+      .getByRole("dialog", { name: "Auswahl entfernen?" })
+      .getByRole("button", { name: "Entfernen" })
+      .click();
     await expect(page.getByRole("heading", { name: "Bilder rein, Diashow raus." })).toBeVisible();
 
     await page.reload();
@@ -106,6 +110,27 @@ test.describe("Abbrechen with pictures chosen", () => {
     await expect(page.getByRole("heading", { name: "Bilder rein, Diashow raus." })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Deine Diashows" })).toBeHidden();
   });
+});
+
+test("E2E-098 the browser's back asks before dropping the chosen pictures and Weiter auswählen keeps them", async ({
+  page,
+}) => {
+  await openImport(page);
+  await choosePictures(page, await picturesTakenOn(page, ["2025-07-12", "2025-07-14"]), 2);
+  const discardDialog = page.getByRole("dialog", { name: "Auswahl entfernen?" });
+
+  await page.goBack();
+  await expect(discardDialog).toBeVisible();
+  await page.getByRole("button", { name: "Weiter auswählen" }).click();
+
+  await expect(discardDialog).toBeHidden();
+  await expect(page.getByRole("heading", { name: "Welche Bilder?" })).toBeVisible();
+  await expectCapturedDates(page, ["12.07.2025", "14.07.2025"]);
+
+  await page.goBack();
+  await expect(discardDialog).toBeVisible();
+  await page.getByRole("button", { name: "Weiter auswählen" }).click();
+  await expect(discardDialog).toBeHidden();
 });
 
 test.describe("Removing chosen pictures", () => {
@@ -121,24 +146,23 @@ test.describe("Removing chosen pictures", () => {
   test("E2E-037 a removed picture stays out of the created slideshow, and Undo puts removals back", async ({
     page,
   }) => {
-    const tiles = page.getByRole("listitem").locator(".date");
     // Tile 2 (13.07.2025): removing it leaves 12.07.2025 and 14.07.2025, the latter now tile 2.
-    await page.getByRole("button", { name: "Bild 2 entfernen" }).click();
+    await page.getByRole("button", { name: "Bild 2, aufgenommen am 13.07.2025" }).press("Delete");
     await expect(page.getByRole("status")).toContainText("Bild entfernt");
     await expect(page.getByText("2 Bilder", { exact: true })).toBeVisible();
 
-    // Delete/Backspace remove the focused tile itself (its keydown sits on the tile, not the mark).
+    // Delete removes the focused tile itself.
     await page.getByRole("button", { name: "Bild 2, aufgenommen am 14.07.2025" }).press("Delete");
     await expect(page.getByRole("status")).toContainText("2 Bilder entfernt");
-    await expect(tiles).toHaveText(["12.07.2025"]);
+    await expectCapturedDates(page, ["12.07.2025"]);
     await page.getByRole("status").getByRole("button", { name: "Rückgängig" }).click();
-    await expect(tiles).toHaveText(["12.07.2025", "13.07.2025", "14.07.2025"]);
+    await expectCapturedDates(page, ["12.07.2025", "13.07.2025", "14.07.2025"]);
 
-    await page.getByRole("button", { name: "Bild 1 entfernen" }).click();
+    await page.getByRole("button", { name: "Bild 1, aufgenommen am 12.07.2025" }).press("Delete");
     await page.getByRole("button", { name: "Weiter" }).click();
     await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
 
-    await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+    await expectSlideshowScreen(page);
     await expect(page.getByText("13.07.2025 – 14.07.2025")).toBeVisible();
   });
 });

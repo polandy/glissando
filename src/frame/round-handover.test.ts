@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   RoundHandover,
   type FrameRoundPlayer,
@@ -6,17 +6,34 @@ import {
   type RoundOutcome,
 } from "./round-handover";
 
-/** A player stand-in whose "ended" and "playing" events the test fires by hand. */
+/** A player stand-in whose "canplay", "playing", "waiting" and "ended" events the test fires by hand. */
 class FakePlayer extends EventTarget implements FrameRoundPlayer {
-  readonly play = vi.fn();
-  readonly pause = vi.fn();
-  readonly destroy = vi.fn();
+  playCalls = 0;
+  pauseCalls = 0;
+  destroyCalls = 0;
+
+  play(): void {
+    this.playCalls += 1;
+  }
+
+  pause(): void {
+    this.pauseCalls += 1;
+  }
+
+  destroy(): void {
+    this.destroyCalls += 1;
+  }
 
   end(): void {
     this.dispatchEvent(new Event("ended"));
   }
 
+  /** The first frame is drawn; a player does this once its picture loaded, before any play(). */
   showFirstPicture(): void {
+    this.dispatchEvent(new Event("canplay"));
+  }
+
+  startPlaying(): void {
     this.dispatchEvent(new Event("playing"));
   }
 
@@ -41,7 +58,7 @@ function fakePorts(players: readonly FakePlayer[]): RoundHandoverPorts & { calls
 }
 
 describe("RoundHandover", () => {
-  it("starts the first round and prepares the next one right away", () => {
+  it("starts the first round and prepares the next one right away, without playing it", () => {
     const [first, second] = [new FakePlayer(), new FakePlayer()];
     const ports = fakePorts([first, second]);
     const handover = new RoundHandover(ports);
@@ -49,9 +66,22 @@ describe("RoundHandover", () => {
     handover.start();
 
     expect(handover.state.player).toBe(first);
-    expect(first.play).toHaveBeenCalledOnce();
-    expect(second.play).toHaveBeenCalledOnce();
+    expect(first.playCalls).toBe(1);
     expect(ports.calls).toBe(2);
+    expect(second.playCalls).toBe(0);
+  });
+
+  it("plays the prepared round only once it is swapped in, so it starts from its first picture", () => {
+    const [first, second] = [new FakePlayer(), new FakePlayer()];
+    const handover = new RoundHandover(fakePorts([first, second]));
+    handover.start();
+    second.showFirstPicture();
+    expect(second.playCalls).toBe(0); // ready, but its turn has not come
+
+    first.end();
+
+    expect(handover.state.player).toBe(second);
+    expect(second.playCalls).toBe(1);
   });
 
   it("reports no pictures when the album is empty from the start", () => {
@@ -69,15 +99,17 @@ describe("RoundHandover", () => {
 
   it("swaps to the prepared round as soon as the current one ends, if it is already ready", () => {
     const [first, second, third] = [new FakePlayer(), new FakePlayer(), new FakePlayer()];
-    const handover = new RoundHandover(fakePorts([first, second, third]));
+    const ports = fakePorts([first, second, third]);
+    const handover = new RoundHandover(ports);
     handover.start();
     second.showFirstPicture();
 
     first.end();
 
     expect(handover.state.player).toBe(second);
-    expect(first.destroy).toHaveBeenCalledOnce();
-    expect(third.play).toHaveBeenCalledOnce(); // the next round is already being prepared
+    expect(first.destroyCalls).toBe(1);
+    expect(ports.calls).toBe(3); // the next round is already being prepared, unplayed
+    expect(third.playCalls).toBe(0);
   });
 
   it("keeps the ended round's last frame until the prepared round is ready", () => {
@@ -85,15 +117,15 @@ describe("RoundHandover", () => {
     const handover = new RoundHandover(fakePorts([first, second]));
     handover.start();
 
-    first.end(); // "second" has not fired "playing" yet
+    first.end(); // "second" has not drawn its first picture yet
 
     expect(handover.state.player).toBe(first);
-    expect(first.destroy).not.toHaveBeenCalled();
+    expect(first.destroyCalls).toBe(0);
 
     second.showFirstPicture();
 
     expect(handover.state.player).toBe(second);
-    expect(first.destroy).toHaveBeenCalledOnce();
+    expect(first.destroyCalls).toBe(1);
   });
 
   it("skip() hands over early, the same way a natural end does", () => {
@@ -113,12 +145,59 @@ describe("RoundHandover", () => {
     handover.start();
 
     handover.pause();
-    expect(first.pause).toHaveBeenCalledOnce();
+    expect(first.pauseCalls).toBe(1);
     expect(handover.state.paused).toBe(true);
 
     handover.resume();
-    expect(first.play).toHaveBeenCalledTimes(2);
+    expect(first.playCalls).toBe(2);
     expect(handover.state.paused).toBe(false);
+  });
+
+  it("a skip while paused shows the next round's first picture and leaves it paused; resume plays it", () => {
+    const [first, second] = [new FakePlayer(), new FakePlayer()];
+    const handover = new RoundHandover(fakePorts([first, second]));
+    handover.start();
+    second.showFirstPicture();
+    handover.pause();
+
+    handover.skip();
+
+    expect(handover.state.player).toBe(second);
+    expect(handover.state.paused).toBe(true);
+    expect(second.playCalls).toBe(0);
+
+    handover.resume();
+
+    expect(second.playCalls).toBe(1);
+    expect(handover.state.paused).toBe(false);
+  });
+
+  it("a round ending naturally while paused hands over to the next round and leaves it paused", () => {
+    const [first, second] = [new FakePlayer(), new FakePlayer()];
+    const handover = new RoundHandover(fakePorts([first, second]));
+    handover.start();
+    second.showFirstPicture();
+    handover.pause();
+
+    first.end();
+
+    expect(handover.state.player).toBe(second);
+    expect(handover.state.paused).toBe(true);
+    expect(second.playCalls).toBe(0);
+  });
+
+  it("a skip while paused that waits for the prepared round leaves it paused once it is ready", () => {
+    const [first, second] = [new FakePlayer(), new FakePlayer()];
+    const handover = new RoundHandover(fakePorts([first, second]));
+    handover.start();
+    handover.pause();
+    handover.skip();
+
+    second.showFirstPicture();
+
+    expect(handover.state.player).toBe(second);
+    expect(handover.state.paused).toBe(true);
+    expect(second.playCalls).toBe(0);
   });
 
   it("tears down the current and prepared players on destroy, and stops reacting to them", () => {
@@ -128,8 +207,8 @@ describe("RoundHandover", () => {
 
     handover.destroy();
 
-    expect(first.destroy).toHaveBeenCalledOnce();
-    expect(second.destroy).toHaveBeenCalledOnce();
+    expect(first.destroyCalls).toBe(1);
+    expect(second.destroyCalls).toBe(1);
     expect(handover.state.player).toBeNull();
 
     // A late event from a torn-down player must not resurrect it as the current one.
@@ -146,7 +225,7 @@ describe("RoundHandover", () => {
     handover.start();
     expect(handover.state.waiting).toBe(true); // play() was called, but not "playing" yet
 
-    first.showFirstPicture();
+    first.startPlaying();
 
     expect(handover.state.waiting).toBe(false);
   });
@@ -155,12 +234,12 @@ describe("RoundHandover", () => {
     const [first, second] = [new FakePlayer(), new FakePlayer()];
     const handover = new RoundHandover(fakePorts([first, second]));
     handover.start();
-    first.showFirstPicture();
+    first.startPlaying();
 
     first.stall();
     expect(handover.state.waiting).toBe(true);
 
-    first.showFirstPicture();
+    first.startPlaying();
     expect(handover.state.waiting).toBe(false);
   });
 
@@ -168,9 +247,9 @@ describe("RoundHandover", () => {
     const [first, second] = [new FakePlayer(), new FakePlayer()];
     const handover = new RoundHandover(fakePorts([first, second]));
     handover.start();
-    first.showFirstPicture();
+    first.startPlaying();
 
-    first.end(); // "second" has not fired "playing" yet
+    first.end(); // "second" has not drawn its first picture yet
 
     expect(handover.state.waiting).toBe(true);
 
@@ -191,7 +270,7 @@ describe("RoundHandover", () => {
     const [first, second] = [new FakePlayer(), new FakePlayer()];
     const handover = new RoundHandover(fakePorts([first, second]));
     handover.start();
-    first.showFirstPicture();
+    first.startPlaying();
     second.showFirstPicture();
     first.end(); // already ready, so "second" swaps in at once
 

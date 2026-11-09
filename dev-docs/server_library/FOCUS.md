@@ -1,6 +1,6 @@
 # Focus on the server
 
-A second `FocusPass` (`main.ts`), over `ServerSlideshowStore`, looks for the focus of server
+A second `FocusPass` (`wire-server.ts`), over `ServerSlideshowStore`, looks for the focus of server
 slideshows' pictures the same way the device pass does ([FOCUS_SEARCH.md](../library/FOCUS_SEARCH.md))
 — newest slideshow first, one picture at a time — but reads `pictureFocusForPass`, not
 `pictureFocus`: a focus this session has `putPictureFocus`'d but the server has not yet confirmed

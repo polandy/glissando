@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
   import type { SampleTrackId } from "../../sample-music/sample-tracks";
+  import { MAX_MUSIC_MEGABYTES, MAX_MUSIC_MINUTES } from "../../import/music-limits";
+  import type { UnusableMusic } from "../import/music-pick";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
   import type { SampleSongRow } from "../sample-music/sample-song-pick";
@@ -25,6 +27,7 @@
     onRemove,
     onDismiss,
     onRemoveSampleRow,
+    addRow,
   }: {
     songs: readonly PlaylistSongView[];
     /** Without it, a row selects nothing. */
@@ -39,10 +42,25 @@
     /** Takes an unusable file's, or a failed sample download's, row away. */
     onDismiss: (key: number) => void;
     onRemoveSampleRow: (trackId: SampleTrackId) => void;
+    /** The list's last row: the one control that adds a song. */
+    addRow?: Snippet;
   } = $props();
 
   const { t } = getTranslator();
   const PERCENT = 100;
+
+  /** What an unusable file's row says: the limit it is over, or that it cannot be read. */
+  function unusableStatus(reason: UnusableMusic["reason"]): string {
+    switch (reason) {
+      case "tooLarge":
+        return t("music.songTooLarge", { megabytes: MAX_MUSIC_MEGABYTES });
+      case "tooLong":
+        return t("music.songTooLong", { minutes: MAX_MUSIC_MINUTES });
+      case "unreadable":
+      case "protected":
+        return t("music.songUnusable");
+    }
+  }
 
   const rowElements: HTMLElement[] = $state([]);
   const grips: Record<string, HTMLButtonElement> = $state({});
@@ -136,7 +154,7 @@
       song.kind === "converting"
         ? t("music.songConverting", { percent: Math.round(song.progress * PERCENT) })
         : song.kind === "unusable"
-          ? t("music.songUnusable")
+          ? unusableStatus(song.reason)
           : undefined}
     <PendingRow
       title={song.pickedName}
@@ -158,6 +176,9 @@
       onRemove={() => onRemoveSampleRow(row.trackId)}
     />
   {/each}
+  {#if addRow !== undefined}
+    <li class="add-row">{@render addRow()}</li>
+  {/if}
 </ol>
 
 <style>
@@ -167,6 +188,9 @@
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+  .add-row {
+    display: grid;
   }
   .song {
     display: grid;

@@ -1,17 +1,17 @@
-import type { ExifGps } from "../import/exif-gps";
 import {
+  ImmichDownloadTooLargeError,
   ImmichRequestFailedError,
   ImmichUnavailableError,
   type ImmichAlbum,
   type ImmichClient,
   type ImmichFace,
-  type ImmichPhoto,
   type ImmichPhotoPage,
   type ImmichStatus,
   type ImmichThumbnailSize,
   type ImmichUnavailableKind,
 } from "./immich-client";
 import { ImmichJsonReader } from "./immich-json";
+import { IMAGE_ASSET_TYPE, readPhotoPage } from "./photo-page-reader";
 
 /** Photos per page of a library or album listing. */
 export const PAGE_SIZE = 60;
@@ -21,18 +21,12 @@ const VERSION_PATH = "api/server/version";
 const ALBUMS_PATH = "api/albums";
 const SEARCH_PATH = "api/search/metadata";
 const FACES_PATH = "api/faces";
-const IMAGE_ASSET_TYPE = "IMAGE";
-const VIDEO_ASSET_TYPE = "VIDEO";
-const MILLISECONDS_PER_SECOND = 1000;
-const SECONDS_PER_MINUTE = 60;
-const SECONDS_PER_HOUR = 3600;
-/** Immich writes a video's length as "H:MM:SS.ffffff". */
-const DURATION_PATTERN = /^(\d+):(\d{2}):(\d{2}(?:\.\d+)?)$/;
 const NEWEST_FIRST = "desc";
 const LIST_THUMBNAIL_SIZE: ImmichThumbnailSize = "thumbnail";
 const JSON_MEDIA_TYPE = "application/json";
 /** What `fetch` returns for a redirect under `redirect: "manual"`. */
 const OPAQUE_REDIRECT = "opaqueredirect";
+const CONTENT_LENGTH_HEADER = "content-length";
 const HTTP_NOT_FOUND = 404;
 
 /** Answers of the Glissando server or Immich that the user is told as an `ImmichStatus`. */
@@ -108,35 +102,11 @@ export class HttpImmichClient implements ImmichClient {
       order: NEWEST_FIRST,
       size: PAGE_SIZE,
       page: query.page,
+      // The search leaves the EXIF block out unless asked; the place and GPS are read from it.
+      withExif: true,
       ...(query.albumId === undefined ? {} : { albumIds: [query.albumId] }),
     });
-    const assets = reader.record(reader.record(answer, "a body").assets, '"assets"');
-    const records = reader
-      .array(assets.items, '"assets.items"')
-      .map((value) => reader.record(value, "an asset"));
-    const photos = records.flatMap((asset): ImmichPhoto[] => {
-      const type = reader.optionalString(asset, "type");
-      if (type === VIDEO_ASSET_TYPE && !withVideos) return [];
-      if (type !== null && type !== IMAGE_ASSET_TYPE && type !== VIDEO_ASSET_TYPE) return [];
-      const photo: ImmichPhoto = {
-        id: reader.string(asset, "id"),
-        fileName: reader.string(asset, "originalFileName"),
-        takenAt: reader.string(asset, "localDateTime"),
-        size: photoSize(
-          reader.optionalNumber(asset, "width"),
-          reader.optionalNumber(asset, "height"),
-        ),
-      };
-      return [
-        type === VIDEO_ASSET_TYPE
-          ? {
-              ...photo,
-              video: { durationMs: durationMs(reader.optionalString(asset, "duration")) },
-            }
-          : photo,
-      ];
-    });
-    return { photos, nextPage: reader.optionalCountingString(assets, "nextPage") };
+    return readPhotoPage(reader, answer, withVideos);
   }
 
   thumbnailUrl(photoId: string): string {
@@ -151,8 +121,14 @@ export class HttpImmichClient implements ImmichClient {
     return (await this.#download(`${assetPath(photoId)}/original`, signal)).blob();
   }
 
-  async video(photoId: string, signal?: AbortSignal): Promise<Blob> {
-    const response = await this.#download(`${assetPath(photoId)}/video/playback`, signal);
+  async video(photoId: string, maxBytes: number, signal?: AbortSignal): Promise<Blob> {
+    const path = `${assetPath(photoId)}/video/playback`;
+    const response = await this.#download(path, signal);
+    const announced = response.headers.get(CONTENT_LENGTH_HEADER);
+    if (announced !== null && Number(announced) > maxBytes) {
+      await response.body?.cancel();
+      throw new ImmichDownloadTooLargeError(`GET ${path}`, Number(announced), maxBytes);
+    }
     return response.blob();
   }
 
@@ -171,19 +147,6 @@ export class HttpImmichClient implements ImmichClient {
         y2: reader.number(face, "boundingBoxY2"),
       };
     });
-  }
-
-  async gps(photoId: string): Promise<ExifGps | null> {
-    const path = assetPath(photoId);
-    const reader = new ImmichJsonReader(`GET ${path}`);
-    const answer = await this.#json("GET", path);
-    const asset = reader.record(answer, "a body");
-    const exifValue = asset.exifInfo;
-    if (exifValue === undefined || exifValue === null) return null;
-    const exif = reader.record(exifValue, '"exifInfo"');
-    const latitude = reader.optionalNumber(exif, "latitude");
-    const longitude = reader.optionalNumber(exif, "longitude");
-    return latitude === null || longitude === null ? null : { latitude, longitude };
   }
 
   /** Immich's version, or null when the route is not Immich (no route, or a static host). */
@@ -260,11 +223,6 @@ export class HttpImmichClient implements ImmichClient {
   }
 }
 
-function photoSize(width: number | null, height: number | null): ImmichPhoto["size"] {
-  // Immich answers 0 for a size it could not read.
-  return width === null || height === null || width <= 0 || height <= 0 ? null : { width, height };
-}
-
 function assetPath(photoId: string): string {
   return `api/assets/${encodeURIComponent(photoId)}`;
 }
@@ -275,14 +233,4 @@ function thumbnailPath(photoId: string, size: ImmichThumbnailSize): string {
 
 function isJson(response: Response): boolean {
   return response.headers.get("content-type")?.startsWith(JSON_MEDIA_TYPE) ?? false;
-}
-
-/** A video's length in ms; null where Immich has none (it answers "0:00:00.00000" then). */
-function durationMs(text: string | null): number | null {
-  const parts = text === null ? null : DURATION_PATTERN.exec(text);
-  if (parts === null) return null;
-  const [, hours, minutes, seconds] = parts;
-  const total =
-    Number(hours) * SECONDS_PER_HOUR + Number(minutes) * SECONDS_PER_MINUTE + Number(seconds);
-  return total > 0 ? Math.round(total * MILLISECONDS_PER_SECOND) : null;
 }

@@ -23,6 +23,7 @@ async function startPage(): Promise<void> {
     api: createTvApi((url, init) => fetch(url, init)),
     openEvents: (url: string) => new EventSource(url),
     scheduler: browserScheduler,
+    log: (error: unknown) => console.error(error),
   };
   if (!isTvPath(location.pathname)) {
     return startShareLinkPage(languages[language], language, ports);

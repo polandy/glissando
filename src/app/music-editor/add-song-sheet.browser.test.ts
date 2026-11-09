@@ -8,6 +8,7 @@ import {
   type SamplePreviewPorts,
 } from "../sample-music/sample-preview";
 import { mountEditor, slideshowOfSongs, song, unmountEditor } from "./music-editor-harness";
+import { buttonNamed } from "../testing/by-role";
 
 afterEach(() => unmountEditor());
 
@@ -44,16 +45,6 @@ function samplePreviewWith(overrides: Partial<SamplePreviewPorts> = {}): SampleP
   });
 }
 
-const buttonNamed = (name: string): HTMLButtonElement => {
-  const found = [...document.querySelectorAll("button")].find(
-    (button) =>
-      button.getAttribute("aria-label") === name ||
-      button.textContent?.replace(/\s+/g, " ").trim() === name,
-  );
-  if (found === undefined) throw new Error(`no button named "${name}"`);
-  return found;
-};
-
 const dialog = (): HTMLDialogElement | null => document.querySelector("dialog");
 
 const cardFor = (title: string): HTMLElement => {
@@ -68,7 +59,7 @@ describe("MusicEditorScreen, the 'Add a song' sheet", () => {
   it("opens from the empty playlist's call to action, the sample block unfolded already", () => {
     mountEditor(slideshowOfSongs([]), undefined, undefined, samplePreviewWith());
 
-    buttonNamed("Song hinzufügen").click();
+    buttonNamed(document, "Song hinzufügen").click();
     flushSync();
 
     expect(dialog()?.open).toBe(true);
@@ -79,7 +70,7 @@ describe("MusicEditorScreen, the 'Add a song' sheet", () => {
   it("opens from the playlist's own 'Add a song' button too", () => {
     mountEditor(slideshowOfSongs([song("a", 60_000)]), undefined, undefined, samplePreviewWith());
 
-    buttonNamed("Song hinzufügen").click();
+    buttonNamed(document, "Song hinzufügen").click();
     flushSync();
 
     expect(dialog()?.open).toBe(true);
@@ -88,7 +79,7 @@ describe("MusicEditorScreen, the 'Add a song' sheet", () => {
   it("offers no sheet, only the file picker, with sample music off", () => {
     mountEditor(slideshowOfSongs([]));
 
-    buttonNamed("Song hinzufügen").click();
+    buttonNamed(document, "Song hinzufügen").click();
     flushSync();
 
     expect(dialog()).toBeNull();
@@ -96,7 +87,7 @@ describe("MusicEditorScreen, the 'Add a song' sheet", () => {
 
   it("shows no tab at all, both blocks together", () => {
     mountEditor(slideshowOfSongs([]), undefined, undefined, samplePreviewWith());
-    buttonNamed("Song hinzufügen").click();
+    buttonNamed(document, "Song hinzufügen").click();
     flushSync();
 
     expect(dialog()?.querySelector('[role="tablist"]')).toBeNull();
@@ -111,7 +102,7 @@ describe("MusicEditorScreen, the 'Add a song' sheet", () => {
       undefined,
       samplePreviewWith(),
     );
-    buttonNamed("Song hinzufügen").click();
+    buttonNamed(document, "Song hinzufügen").click();
     flushSync();
 
     cardFor("Hold the Frame").querySelector<HTMLButtonElement>(".plus")?.click();
@@ -132,7 +123,7 @@ describe("MusicEditorScreen, the 'Add a song' sheet", () => {
       undefined,
       samplePreviewWith(),
     );
-    buttonNamed("Song hinzufügen").click();
+    buttonNamed(document, "Song hinzufügen").click();
     flushSync();
 
     cardFor("Hold the Frame").querySelector<HTMLButtonElement>(".plus")?.click();
@@ -143,10 +134,10 @@ describe("MusicEditorScreen, the 'Add a song' sheet", () => {
 
   it("closes with Done", () => {
     const { calls } = mountEditor(slideshowOfSongs([]), undefined, undefined, samplePreviewWith());
-    buttonNamed("Song hinzufügen").click();
+    buttonNamed(document, "Song hinzufügen").click();
     flushSync();
 
-    buttonNamed("Fertig").click();
+    buttonNamed(document, "Fertig").click();
     flushSync();
 
     expect(dialog()).toBeNull();
@@ -155,7 +146,7 @@ describe("MusicEditorScreen, the 'Add a song' sheet", () => {
 
   it("closes with Escape", () => {
     mountEditor(slideshowOfSongs([]), undefined, undefined, samplePreviewWith());
-    buttonNamed("Song hinzufügen").click();
+    buttonNamed(document, "Song hinzufügen").click();
     flushSync();
     const sheet = dialog();
 

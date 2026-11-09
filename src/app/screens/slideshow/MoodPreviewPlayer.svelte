@@ -52,7 +52,7 @@
   });
 </script>
 
-<div bind:this={stage} class="stage"></div>
+<div bind:this={stage} class="stage" data-testid="mood-preview-stage"></div>
 
 <style>
   .stage {

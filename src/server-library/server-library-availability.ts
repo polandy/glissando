@@ -33,7 +33,7 @@ export interface ServerLibraryAvailabilityOptions {
 /** What the discovery answered last; `unknown` before its first answer. */
 type Discovery = "unknown" | "discovered" | "absent";
 
-/** A discovery that could not reach the server, which keeps the last answer. */
+/** A discovery the server did not answer (out of reach, failing, asking for a sign-in). */
 const UNREACHABLE = Symbol("unreachable");
 /** A discovery that failed unexpectedly, which counts as no library. */
 const FAILED = Symbol("failed");

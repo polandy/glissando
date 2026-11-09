@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { FakeClock, FakeFrameScheduler } from "../../../../player/testing/fakes";
 import { PreviewPlayer } from "./preview-play";
+import { settleMicrotasks } from "../../../../testing/settle-microtasks";
 
 function setUp() {
   const clock = new FakeClock();
@@ -40,7 +41,7 @@ describe("PreviewPlayer", () => {
     after(1600);
     // The ticker schedules one more frame right after the tick that reached the target;
     // stopping it happens a microtask later, once that frame actually exists to cancel.
-    await Promise.resolve();
+    await settleMicrotasks();
 
     expect(frames.hasPendingFrame).toBe(false);
   });

@@ -14,15 +14,15 @@ export {
 } from "./picture-layout-summary";
 export { autoKenBurns, KEN_BURNS_EASING } from "./auto-ken-burns";
 export { pairKenBurns, pictureKenBurns } from "./picture-ken-burns";
-export {
-  autoTransitionEffect,
-  transitionDurationMs,
-  MAX_TRANSITION_DURATION_MS,
-  TRANSITION_SHARE_OF_SLIDE,
-} from "./auto-transition";
+export { autoTransitionEffect, transitionDurationMs } from "./auto-transition";
 export { automaticTransition, pictureTransition, slideshowTransition } from "./picture-transition";
 export { slideshowLook } from "./slideshow-look";
 export { titleForCaptureRange } from "./title-for-capture-range";
+export {
+  distinctTitleForCaptureRange,
+  typedTitleOrAutomatic,
+  type ExistingSlideshow,
+} from "./distinct-title-for-capture-range";
 export { dayRangeForCaptureRange } from "./day-range-for-capture-range";
 export {
   buildStoredSlideshow,

@@ -27,12 +27,14 @@ export interface SlideshowEditorPorts {
   readonly lastPictureText: () => string;
   /** Why removing every picture of a selection is refused instead. */
   readonly everyPictureText: () => string;
-  /** The undo toast's text after a picture's own motion was dropped. */
+  /** The undo toast's text after a picture's chosen motion was dropped. */
   readonly motionAutomaticText: () => string;
-  /** The undo toast's text after a picture's own duration was dropped. */
-  readonly durationAutomaticText: () => string;
-  /** The undo toast's text after a picture's own transition was dropped. */
-  readonly transitionAutomaticText: () => string;
+  /** The undo toast's text after a picture's chosen duration was dropped. */
+  /** The undo toast's text after a picture's chosen transition was dropped. */
+  /** The undo toast's text after a picture's chosen duration and transition were dropped together. */
+  readonly timingAutomaticText: () => string;
+  /** The undo toast's text after a picture's caption was cleared. */
+  readonly captionClearedText: () => string;
   /** The undo toast's text after the slideshow's default transition went back to crossfade. */
   readonly slideshowTransitionResetText: () => string;
   /** The undo toast's text after the portrait pictures setting went back to automatic. */
@@ -46,10 +48,24 @@ export interface SlideshowEditorPorts {
    * or seconds per picture) silently left an active mood, turning it to Custom (ADR-0045 `leaveMood`).
    */
   readonly moodNowCustomText: () => string;
+  /** The undo toast's text after the title slide was removed. */
+  readonly openingCardRemovedText: () => string;
+  /** The undo toast's text after the closing slide was removed. */
+  readonly closingCardRemovedText: () => string;
+  /** The undo toast's text after an added chapter was deleted. */
+  readonly chapterDeletedText: () => string;
+  /** The undo toast's text after a chapter's title went back to automatic. */
+  readonly chapterTitleResetText: () => string;
+  /** The undo toast's text after a chapter's subtitle went back to automatic. */
+  readonly chapterSubtitleResetText: () => string;
+  /** The undo toast's text after a video clip's settings were reset. */
+  readonly clipResetText: () => string;
   /** The undo toast's text after a song was removed. */
   readonly songRemovedText: () => string;
   /** The undo toast's text after `count` pictures were shuffled. */
   readonly shuffledText: (count: number) => string;
+  /** The undo toast's text after `count` pictures were sorted by capture date. */
+  readonly sortedByDateText: (count: number) => string;
   /** Uniform in [0, 1); what a shuffle draws its order from. */
   readonly random: () => number;
   /** The title from the capture dates, which an emptied title falls back to. */

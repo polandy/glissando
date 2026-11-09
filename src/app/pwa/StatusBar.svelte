@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separated from "../components/Separated.svelte";
   import type { StatusBarAction, StatusBarView } from "../../pwa/status-bar-view";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
@@ -40,8 +41,8 @@
 <footer class="status" class:update={view.status === "updateReady"}>
   <span class="text">
     <span class="dot" class:warning={WARNING_STATUSES.has(view.status)}></span>
-    <span class="wide">{t(text.wide)}</span>
-    <span class="narrow">{t(text.narrow)}</span>
+    <span class="wide"><Separated text={t(text.wide)} /></span>
+    <span class="narrow"><Separated text={t(text.narrow)} /></span>
   </span>
   {#if action.kind === "reload"}
     <button class="btn primary small" type="button" onclick={() => onAction(action)}>
@@ -131,8 +132,9 @@
     color: var(--gl-accent);
   }
   @container (max-width: 720px) {
+    /* The right side keeps room for the touch pad of the hint's small close button (base.css). */
     .status {
-      padding: 6px 6px 6px 16px;
+      padding: 6px 8px 6px 16px;
     }
     .wide {
       display: none;

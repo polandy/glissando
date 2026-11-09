@@ -4,7 +4,7 @@ Local-first **slideshow software**: a web app, installable as a PWA, made for of
 
 - Scope, product principles, MVP and ordered roadmap: `dev-docs/SCOPE.md`
 - Stack — TypeScript, Svelte 5, Vite; framework-free WebGL2 player engine: `dev-docs/adr/0001-stack.md`
-- Brand, palette "Sorbet", font: `dev-docs/BRAND.md`
+- Brand, palette "Sorbet", font: `dev-docs/BRAND.md`; the words the UI uses: `dev-docs/COPY.md`
 
 This file is loaded in full by every session and every subagent, so it holds the rules and
 pointers only. Detail lives in `dev-docs/`. **Don't grow it** — move detail out, keep a pointer.

@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { ImmichAlbum, ImmichPhoto } from "../../immich/immich-client";
+  import type { Crumb } from "../components/crumbs";
   import type { PictureIntake } from "../import/picture-intake";
   import type { ImmichBrowser } from "./immich-browser";
   import { alreadyInAmong } from "./immich-view";
@@ -25,7 +26,7 @@
   }: {
     intake: PictureIntake;
     browser: ImmichBrowser;
-    parentCrumbs: readonly string[];
+    parentCrumbs: readonly Crumb[];
     albumId: string | null;
     thumbnailUrl: (photoId: string) => string;
     onBack: () => void;

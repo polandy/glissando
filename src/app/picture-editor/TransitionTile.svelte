@@ -15,7 +15,6 @@
     elapsedMs,
     radio = $bindable(),
     onPick,
-    onKeydown,
   }: {
     /** The alternating choice shows the effects in turn, one per loop. */
     choice: SlideshowTransition;
@@ -30,7 +29,6 @@
     elapsedMs: number;
     radio?: HTMLButtonElement | undefined;
     onPick: () => void;
-    onKeydown: (event: KeyboardEvent) => void;
   } = $props();
 
   const { t } = getTranslator();
@@ -65,7 +63,6 @@
   tabindex={checked ? 0 : -1}
   data-choice={choice}
   onclick={onPick}
-  onkeydown={onKeydown}
 >
   <span class="mini" bind:clientWidth={width} bind:clientHeight={height} aria-hidden="true">
     {#each [{ url: pictureUrl, look: looks.from }, { url: nextPictureUrl, look: looks.to }] as layer, index (index)}

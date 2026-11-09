@@ -1,5 +1,6 @@
 import type { LibraryStore } from "../../../library/library-store";
 import type { StoredSlideshow } from "../../../library/stored-slideshow";
+import type { ObjectUrlPorts } from "../../media/object-urls";
 import type { DecodeClipSound, MusicOutput } from "../../../player";
 
 /**
@@ -12,6 +13,8 @@ export interface MoodPreviewPorts {
     "playbackPictureBlob" | "videoBlob" | "musicBlob" | "pictureFocus" | "musicLoudness"
   >;
   readonly stored: StoredSlideshow;
+  /** The song URLs the preview makes and revokes. */
+  readonly objectUrls: Pick<ObjectUrlPorts, "create" | "revoke">;
   readonly musicOutput: MusicOutput;
   readonly decodeClipSound: DecodeClipSound;
   /** Logs a focus or loudness that could not be read: the preview plays on without it. */

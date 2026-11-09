@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separated from "../components/Separated.svelte";
   import { onDestroy } from "svelte";
   import {
     SAMPLE_TRACKS,
@@ -47,6 +48,7 @@
 
   const { t } = getTranslator();
   const moreId = $props.id();
+  const titleId = `${moreId}-title`;
 
   // svelte-ignore state_referenced_locally
   let expanded = $state(initiallyExpanded);
@@ -65,7 +67,7 @@
   );
   $effect(() => {
     let left = false;
-    Promise.all(
+    void Promise.all(
       SAMPLE_TRACKS.map(
         async (track) => [track.id, await preview.hasTrackOnDevice(track.id)] as const,
       ),
@@ -118,11 +120,11 @@
   />
 {/snippet}
 
-<div class="block">
+<section class="block" aria-labelledby={titleId}>
   <div class="header">
-    <h2 class="block-title">{t("sampleMusicPicker.blockTitle")}</h2>
+    <h2 class="block-title" id={titleId}>{t("sampleMusicPicker.blockTitle")}</h2>
     <p class="block-subtitle">
-      {t("sampleMusicPicker.blockSubtitle", { count: SAMPLE_TRACKS.length })}
+      <Separated text={t("sampleMusicPicker.blockSubtitle", { count: SAMPLE_TRACKS.length })} />
     </p>
   </div>
   {#if !online}
@@ -133,14 +135,14 @@
       {@render card(track)}
     {/each}
   </ul>
-  <div class="more" id={moreId} class:open={expanded}>
+  <div class="more" id={moreId} class:open={expanded} data-testid="sample-more">
     <div class="more-inner">
       <ul class="grid">
         {#each rest as track (track.id)}
           {@render card(track)}
         {/each}
       </ul>
-      <p class="footer">{t("sampleMusicPicker.footer")}</p>
+      <p class="footer"><Separated text={t("sampleMusicPicker.footer")} /></p>
     </div>
   </div>
   <button
@@ -155,7 +157,7 @@
       : t("sampleMusicPicker.showAll", { count: SAMPLE_TRACKS.length })}
     <span class="chevron" class:open={expanded}><Icon name="chevronDown" /></span>
   </button>
-</div>
+</section>
 
 <style>
   .block {

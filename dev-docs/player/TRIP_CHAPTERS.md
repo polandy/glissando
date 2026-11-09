@@ -102,7 +102,7 @@ instead of cutting to a second, separately-framed slide:
   opening title, as the mockup shows it;
 - `revealAtMs` is set to `CHAPTER_SLIDE_MS - CARD_REVEAL_MS`, so the veil and text are gone by the
   time the chapter's nominal duration has elapsed, leaving the picture to play on, plain, for the
-  rest of its own duration.
+  rest of its chosen duration.
 
 The `CHAPTER_SLIDE_MS` a chapter adds carries forward into every later picture's own beat and
 energy snap too (`DURATIONS.md`, "On the beat"): a boundary after the chapter lands on the beat

@@ -8,7 +8,7 @@ import { Toaster } from "../toast/toaster";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 
 /** A picture with no detected colour, for ports a test does not care about colours. */
-export const NO_COLOURS: PictureColours = { veil: "#404040", accent: "#C0C0C0" };
+const NO_COLOURS: PictureColours = { veil: "#404040", accent: "#C0C0C0" };
 
 export const INTAKE_NOW = new Date("2026-10-08T12:00:00Z");
 
@@ -22,7 +22,7 @@ export const videoFile = (name: string, capturedAt: string): File =>
   Object.assign(new File([name], name, { type: "video/mp4" }), { capturedAt });
 
 /** A photo from the fake Immich, read like a file. */
-export function fakeImmichSource(photo: ImmichPhoto): PictureSource {
+function fakeImmichSource(photo: ImmichPhoto): PictureSource {
   return {
     fileName: photo.fileName,
     mimeType: "image/jpeg",
@@ -92,8 +92,11 @@ export function fakeIntakePorts(
         display: new Blob([`display ${file.name}`]),
         thumbnail: new Blob([`thumbnail ${file.name}`]),
       }),
-    captureDate: (file) => Promise.resolve((file as File & { capturedAt: string }).capturedAt),
-    gps: () => Promise.resolve(null),
+    exif: (file) =>
+      Promise.resolve({
+        capturedAt: (file as File & { capturedAt: string }).capturedAt,
+        gps: null,
+      }),
     resolvePlace: () => Promise.resolve(null),
     videoClips: {
       captureDate: (file) => Promise.resolve((file as File & { capturedAt: string }).capturedAt),

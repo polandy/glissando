@@ -6,6 +6,7 @@
 import type { StoredPicture } from "../library/stored-slideshow";
 import type { OutcomePorts } from "./picture-import-outcome";
 import type { PictureIdentity } from "../library/picture-identity";
+import type { ImportPick } from "./picture-import-picks";
 import type { VideoRefusal } from "./video-refusal";
 
 /** Why a picture was skipped as a duplicate: one of the known ones, or one this import took in. */
@@ -13,10 +14,17 @@ export type DuplicateReason = "alreadyIn" | "chosenTwice";
 
 /**
  * "unreadable": the bytes could not be read; "undecodable": they could not be decoded into pixels;
+ * "tooLarge": the picture is over the byte or pixel limit and was not decoded;
  * a video is refused as "videoUnplayable", "videoTooLarge" or "videoTooShort".
  */
 export type SkipReason =
-  "unsupported" | "unreadable" | "undecodable" | "notDownloaded" | VideoRefusal | DuplicateReason;
+  | "unsupported"
+  | "unreadable"
+  | "undecodable"
+  | "tooLarge"
+  | "notDownloaded"
+  | VideoRefusal
+  | DuplicateReason;
 
 export interface SkippedFile {
   readonly fileName: string;
@@ -45,3 +53,31 @@ export class PictureImportFailedError extends Error {
     this.name = "PictureImportFailedError";
   }
 }
+
+export interface PictureImportState {
+  /** Picture files accepted so far; files dropped at full storage leave the count. */
+  readonly total: number;
+  /** Accepted files processed, stored or skipped, so progress "done of total" reaches total. */
+  readonly done: number;
+  /** By capture date ascending, ties by file name. */
+  readonly pictures: readonly StoredPicture[];
+  /** One per `add()` call (or Immich selection), in pick order. */
+  readonly picks: readonly ImportPick[];
+  readonly skipped: readonly SkippedFile[];
+  readonly storageFull: boolean;
+  readonly busy: boolean;
+  /** An unexpected error ended the import; `settled()` rejects with it. */
+  readonly failed: boolean;
+}
+
+/** An import with nothing picked yet. */
+export const EMPTY_IMPORT: PictureImportState = {
+  total: 0,
+  done: 0,
+  pictures: [],
+  picks: [],
+  skipped: [],
+  storageFull: false,
+  busy: false,
+  failed: false,
+};

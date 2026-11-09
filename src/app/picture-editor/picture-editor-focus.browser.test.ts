@@ -31,6 +31,15 @@ describe("PictureEditorScreen, the focus of the automatic motion", () => {
     );
   });
 
+  it("keeps the focus line out of the picture block and ends the motion section with it", () => {
+    mountEditor(view());
+
+    expect(element(".well-column").querySelector(".focus-line")).toBeNull();
+    const motion = element(".motion");
+    expect(motion.lastElementChild).toBe(focusLine());
+    expect(focusLine().querySelector("button.action")).not.toBeNull();
+  });
+
   it("says quietly that no subject was found and the motion stays centred", () => {
     mountEditor(
       view({
@@ -72,7 +81,7 @@ describe("PictureEditorScreen, the focus of the automatic motion", () => {
     expect(marker()).toBeNull();
   });
 
-  it("hides the marker while the picture has its own motion and brings it back with the automatic one", () => {
+  it("hides the marker while the picture has its chosen motion and brings it back with the automatic one", () => {
     const automatic = view({ focus: { kind: "subject", box: FACE, foundBy: "face" } });
     const { update } = mountEditor(automatic);
 

@@ -17,7 +17,7 @@
   import { glideTiles, tilePositions } from "./tile-glide";
   import type { TileDragState } from "./tile-drag-types";
 
-  /** The pictures in play order as tiles: select, remove, and reorder by drag or keyboard. */
+  /** The pictures in play order as tiles: select and reorder by drag or keyboard. */
   let {
     pictures,
     look,
@@ -27,7 +27,6 @@
     onSelectionChange,
     onOpen,
     onView,
-    onRemove,
     onRemoveGroup,
     onShiftGroup,
     onMoveGroup,
@@ -40,7 +39,6 @@
     arranging = true,
     suppressCards = false,
     placeholderCount = 0,
-    lastRemovable = false,
     chapters = [],
     onOpenChapter = () => undefined,
   }: PictureStripProps = $props();
@@ -59,6 +57,13 @@
 
   export function focusClosingCard(): void {
     closingTile?.focus();
+  }
+
+  /** The chapter's sheet closed: focus goes back to its tile, when the chapter still has one. */
+  export function focusChapter(anchorPictureId: string): void {
+    strip
+      .querySelector<HTMLElement>(`[data-chapter-anchor="${CSS.escape(anchorPictureId)}"] button`)
+      ?.focus();
   }
 
   /** Remembers where the tiles are; the returned function glides them from there once the order changed. */
@@ -82,8 +87,6 @@
   });
   let suppressNextClick = false;
   let lastPointerWasTouch = false;
-  const lastPicture = $derived(pictures.length < 2);
-  const removable = $derived(lastRemovable || !lastPicture);
   const order = $derived(pictures.map((picture) => picture.id));
   const tileById = $derived(new Map(pictures.map((picture) => [picture.id, picture])));
   // Hidden automatic chapters are omitted entirely (TRIP_CHAPTERS.md): the strip never shows them.
@@ -110,8 +113,10 @@
     onSuppressClick: () => (suppressNextClick = true),
   });
 
-  // A selected tile stays in view, clear of the selection bar (the tiles' scroll margin).
+  // A selected tile stays in view, clear of the selection bar (the tiles' scroll margin), also
+  // when a move changes the order and carries it away.
   $effect(() => {
+    void order;
     if (selection.ids.size === 1) {
       const [id] = selection.ids;
       strip
@@ -212,7 +217,13 @@
 
 <LookFilterDefs prefix={filterPrefix} />
 
-<ol class="strip" bind:this={strip} onpointerdown={pointerDown} oncontextmenu={contextmenu}>
+<ol
+  class="strip"
+  aria-label={t("slideshow.pictures")}
+  bind:this={strip}
+  onpointerdown={pointerDown}
+  oncontextmenu={contextmenu}
+>
   {#if !suppressCards}
     <CardTile
       bind:this={openingTile}
@@ -241,11 +252,9 @@
           ? "after"
           : "before"
         : null}
-      {removable}
       onPick={(event) => clickTile(event, picture.id)}
       onOpen={() => openOnDoubleClick(picture.id)}
       onKeydown={(event) => keydown(event, picture.id, index)}
-      onRemove={() => onRemove(picture.id)}
     />
   {/each}
   {#each { length: placeholderCount }, index (index)}

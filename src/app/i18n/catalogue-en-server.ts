@@ -16,10 +16,10 @@ export const enServer: Pick<Catalogue, keyof typeof deServer> = {
   "server.whereDeviceText": "Pictures are downloaded and stored here. Plays offline.",
   "server.whereServer": "Glissando server",
   "server.whereServerText": "Pictures stay in Immich. Plays on every device at home, online.",
-  "server.whereChosen": "Chosen for this slideshow. Clear the pictures to change it.",
+  "server.whereChosen": "Chosen for this slideshow. Remove the pictures to change it.",
   "server.devicePictures": "Pictures from this device",
   "server.deviceDisabled":
-    "A server slideshow only links photos from Immich. Upload these to Immich first, or save this slideshow on this device.",
+    "A server slideshow only links pictures from Immich. Upload these to Immich first, or save this slideshow on this device.",
   "server.linked":
     "Linked from Immich. Nothing is downloaded now; playing loads the pictures from Immich.",
   "server.creating": "Saving on your Glissando server …",
@@ -92,7 +92,7 @@ export const enServer: Pick<Catalogue, keyof typeof deServer> = {
     other: "{count} pictures are only on this device",
   },
   "server.onlyHereText":
-    "A server slideshow links photos from Immich and stores no pictures or video clips itself. These are only on this device:",
+    "A server slideshow links pictures from Immich and stores no pictures or video clips itself. These are only on this device:",
   "server.onlyHereHint":
     "Upload them to Immich and add them from there, or save the slideshow without them.",
   "server.saveWithout": { one: "Save without this one", other: "Save without these {count}" },
@@ -107,24 +107,22 @@ export const enServer: Pick<Catalogue, keyof typeof deServer> = {
   "settings.playbackQualityAuto": "Automatic",
   "settings.playbackQualityAutoHint":
     "Currently {quality} · this screen has {pixels} pixels on its short edge",
-  "settings.playbackQuality1440": "1440 pixels",
-  "settings.playbackQuality1440Hint": "Starts at once, sharp on phones and laptops",
-  "settings.playbackQuality4k": "4K",
-  "settings.playbackQuality4kHint": "Sharp on large screens; prepares pictures before it starts",
+  "settings.playbackQualityStandardHint": "1440 px · Starts at once, sharp on phones and laptops",
+  "settings.playbackQualityLargeHint":
+    "4K · Sharp on large screens; prepares pictures before it starts",
   "prepare.quality1440": "1440",
   "prepare.quality4k": "4K",
   "prepare.measuringTitle": "Checking the connection …",
-  "prepare.measuringLine":
-    "Loading the first {count} pictures in {quality} to measure how long one takes.",
+  "prepare.measuringLine": "Checking how fast {count} pictures load in {quality}.",
   "prepare.measuring": "Measuring",
   "prepare.ofMeasuring": "of {total}",
   "prepare.preparingTitle": "Preparing pictures",
   "prepare.preparingLine":
-    "{quality} · a picture takes ~{picture} here and is shown for {slide}. So the slideshow plays without stopping, Glissando prepares {target} of {count} pictures first.",
+    "{quality} · So the slideshow plays without stopping, Glissando prepares {target} of {count} pictures first.",
   "prepare.progressLabel": "Prepared pictures",
   "prepare.ofPictures": "of {total} pictures",
   "prepare.startsIn": "starts in",
   "prepare.startNow": "Start now",
-  "prepare.playInPreview": "Play in 1440",
+  "prepare.playInPreview": "Play sooner, a little less sharp",
   "prepare.footnote": "Starts by itself once enough pictures are ready.",
 };

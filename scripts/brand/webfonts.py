@@ -1,8 +1,8 @@
 """Fetches, hash-verifies and subsets the self-hosted OFL variable webfonts.
 
-Each FontSource pins one Google Fonts variable font to an exact commit and file hash, and
-instances the axes the app actually uses (a pin collapses an axis, a range keeps it variable)
-before subsetting to the Latin set and writing a woff2. Imported by build.py.
+Each FontSource pins one Google Fonts variable font and its licence to an exact commit and
+file hashes, and instances the axes the app actually uses (a pin collapses an axis, a range
+keeps it variable) before subsetting to the Latin set and writing a woff2. Imported by build.py.
 """
 
 import hashlib
@@ -32,6 +32,7 @@ class FontSource:
     source_commit: str  # commit SHA the font file and its OFL.txt are fetched from
     source_file: str  # URL-encoded filename at that path, e.g. "Baloo2%5Bwght%5D.ttf"
     source_sha256: str  # expected sha256 of the downloaded font file; build fails loudly otherwise
+    license_sha256: str  # expected sha256 of the family's OFL.txt; build fails loudly otherwise
     license_name: str  # output filename for this family's licence, e.g. "OFL.txt"
     axis_limits: dict[str, AxisLimit]  # how each variable axis is instanced for the webfont
     output_name: str  # output woff2 filename
@@ -46,15 +47,22 @@ def fetch(source: FontSource, name: str) -> bytes:
         return response.read()
 
 
-def load_verified_source(source: FontSource) -> bytes:
-    data = fetch(source, source.source_file)
+def fetch_verified(source: FontSource, name: str, expected_sha256: str, what: str) -> bytes:
+    data = fetch(source, name)
     digest = hashlib.sha256(data).hexdigest()
-    if digest != source.source_sha256:
+    if digest != expected_sha256:
         sys.exit(
-            f"{source.family_dir} font source hash mismatch: "
-            f"expected {source.source_sha256}, got {digest}"
+            f"{source.family_dir} {what} hash mismatch: expected {expected_sha256}, got {digest}"
         )
     return data
+
+
+def load_verified_source(source: FontSource) -> bytes:
+    return fetch_verified(source, source.source_file, source.source_sha256, "font source")
+
+
+def load_verified_license(source: FontSource) -> bytes:
+    return fetch_verified(source, LICENSE_SOURCE_FILE, source.license_sha256, "licence")
 
 
 def parse_unicodes(spec: str) -> list[int]:
@@ -102,5 +110,5 @@ def build_all(sources: list[FontSource], unicodes: list[int], font_dir: Path) ->
         data = load_verified_source(source)
         raw_sources[source.family_dir] = data
         build_webfont(source, data, unicodes, font_dir)
-        (font_dir / source.license_name).write_bytes(fetch(source, LICENSE_SOURCE_FILE))
+        (font_dir / source.license_name).write_bytes(load_verified_license(source))
     return raw_sources

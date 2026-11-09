@@ -157,6 +157,7 @@ function mountStep(session: ImportSession, samplePreview?: SamplePreview): HTMLE
     MusicStep,
     {
       session,
+      existingSlideshows: [],
       loadThumbnail: () => Promise.resolve(new Blob()),
       onBack: () => undefined,
       onCreate: () => undefined,

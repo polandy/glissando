@@ -51,173 +51,6 @@ describe("uploading music", () => {
   });
 });
 
-describe("music beats", () => {
-  it("answers beats null for music no device has listened to yet", () => {
-    const library = libraryHarness();
-    const musicId = library.uploadMusic();
-    const response = library.send("GET", `${MUSIC}/${musicId}/beats`);
-    expect(response.status).toBe(200);
-    expect(response.json).toEqual({ beats: null });
-  });
-
-  it("answers 404 for beats of music the server does not have", () => {
-    const library = libraryHarness();
-    const response = library.send("GET", `${MUSIC}/00000000-0000-4000-8000-000000000009/beats`);
-    expect(response.status).toBe(404);
-  });
-
-  it("puts beats, then reads them back", () => {
-    const library = libraryHarness();
-    const musicId = library.uploadMusic();
-    const beats = { kind: "beats", beatsMs: [0, 500, 1000], beatsPerMinute: 120 };
-
-    const put = library.send("PUT", `${MUSIC}/${musicId}/beats`, { body: beats });
-    expect(put.status).toBe(204);
-
-    const read = library.send("GET", `${MUSIC}/${musicId}/beats`);
-    expect(read.status).toBe(200);
-    expect(read.json).toEqual({ beats });
-  });
-
-  it("replaces beats put again", () => {
-    const library = libraryHarness();
-    const musicId = library.uploadMusic();
-    library.send("PUT", `${MUSIC}/${musicId}/beats`, {
-      body: { kind: "beats", beatsMs: [0, 500], beatsPerMinute: 120 },
-    });
-
-    library.send("PUT", `${MUSIC}/${musicId}/beats`, { body: { kind: "none" } });
-
-    const read = library.send("GET", `${MUSIC}/${musicId}/beats`);
-    expect(read.json).toEqual({ beats: { kind: "none" } });
-  });
-
-  it("answers 404 putting beats for music the server does not have", () => {
-    const library = libraryHarness();
-    const response = library.send("PUT", `${MUSIC}/00000000-0000-4000-8000-000000000009/beats`, {
-      body: { kind: "none" },
-    });
-    expect(response.status).toBe(404);
-  });
-
-  it("refuses an invalid beats body with 400 invalidBeats", () => {
-    const library = libraryHarness();
-    const musicId = library.uploadMusic();
-    const response = library.send("PUT", `${MUSIC}/${musicId}/beats`, {
-      body: { kind: "beats", beatsMs: [500, 0], beatsPerMinute: 120 },
-    });
-    expect(response.status).toBe(400);
-    expect(response.json["error"]).toBe("invalidBeats");
-  });
-
-  it("refuses a beats put over MAX_DOCUMENT_BYTES with 413", () => {
-    const library = libraryHarness();
-    const musicId = library.uploadMusic();
-    const response = library.handle({
-      method: "PUT",
-      path: `${MUSIC}/${musicId}/beats`,
-      headers: { "content-type": "application/json" },
-      body: { kind: "tooLarge" },
-    });
-    expect(response.status).toBe(413);
-  });
-
-  it("refuses a beats put that is not JSON with 415 notJson", () => {
-    const library = libraryHarness();
-    const musicId = library.uploadMusic();
-    const response = library.send("PUT", `${MUSIC}/${musicId}/beats`, {
-      body: { kind: "none" },
-      headers: { "content-type": "text/plain" },
-    });
-    expect(response.status).toBe(415);
-    expect(response.json["error"]).toBe("notJson");
-  });
-});
-
-describe("music loudness", () => {
-  it("answers loudness null for music not measured yet", () => {
-    const library = libraryHarness();
-    const musicId = library.uploadMusic();
-    const response = library.send("GET", `${MUSIC}/${musicId}/loudness`);
-    expect(response.status).toBe(200);
-    expect(response.json).toEqual({ loudness: null });
-  });
-
-  it("answers 404 for loudness of music the server does not have", () => {
-    const library = libraryHarness();
-    const response = library.send("GET", `${MUSIC}/00000000-0000-4000-8000-000000000009/loudness`);
-    expect(response.status).toBe(404);
-  });
-
-  it("puts loudness, then reads it back", () => {
-    const library = libraryHarness();
-    const musicId = library.uploadMusic();
-    const loudness = { blockLoudnessDb: [-20, null], hopPeaksDbfs: [-6, -4, null, -3, -2] };
-
-    const put = library.send("PUT", `${MUSIC}/${musicId}/loudness`, { body: loudness });
-    expect(put.status).toBe(204);
-
-    const read = library.send("GET", `${MUSIC}/${musicId}/loudness`);
-    expect(read.status).toBe(200);
-    expect(read.json).toEqual({ loudness });
-  });
-
-  it("replaces loudness put again", () => {
-    const library = libraryHarness();
-    const musicId = library.uploadMusic();
-    library.send("PUT", `${MUSIC}/${musicId}/loudness`, {
-      body: { blockLoudnessDb: [-20], hopPeaksDbfs: [-6, -4, -3, -2] },
-    });
-
-    const relevelled = { blockLoudnessDb: [-16], hopPeaksDbfs: [-5, -4, -3, -1] };
-    library.send("PUT", `${MUSIC}/${musicId}/loudness`, { body: relevelled });
-
-    const read = library.send("GET", `${MUSIC}/${musicId}/loudness`);
-    expect(read.json).toEqual({ loudness: relevelled });
-  });
-
-  it("answers 404 putting loudness for music the server does not have", () => {
-    const library = libraryHarness();
-    const response = library.send("PUT", `${MUSIC}/00000000-0000-4000-8000-000000000009/loudness`, {
-      body: { blockLoudnessDb: [], hopPeaksDbfs: [] },
-    });
-    expect(response.status).toBe(404);
-  });
-
-  it("refuses an invalid loudness body with 400 invalidLoudness", () => {
-    const library = libraryHarness();
-    const musicId = library.uploadMusic();
-    const response = library.send("PUT", `${MUSIC}/${musicId}/loudness`, {
-      body: { blockLoudnessDb: [-20, -18], hopPeaksDbfs: [-6] },
-    });
-    expect(response.status).toBe(400);
-    expect(response.json["error"]).toBe("invalidLoudness");
-  });
-
-  it("refuses a loudness put over MAX_DOCUMENT_BYTES with 413", () => {
-    const library = libraryHarness();
-    const musicId = library.uploadMusic();
-    const response = library.handle({
-      method: "PUT",
-      path: `${MUSIC}/${musicId}/loudness`,
-      headers: { "content-type": "application/json" },
-      body: { kind: "tooLarge" },
-    });
-    expect(response.status).toBe(413);
-  });
-
-  it("refuses a loudness put that is not JSON with 415 notJson", () => {
-    const library = libraryHarness();
-    const musicId = library.uploadMusic();
-    const response = library.send("PUT", `${MUSIC}/${musicId}/loudness`, {
-      body: { blockLoudnessDb: [], hopPeaksDbfs: [] },
-      headers: { "content-type": "text/plain" },
-    });
-    expect(response.status).toBe(415);
-    expect(response.json["error"]).toBe("notJson");
-  });
-});
-
 describe("body limits", () => {
   it("allows 200 MiB of music and 2 MiB everywhere else", () => {
     expect(maxBodyBytes(MUSIC)).toBe(200 * MIB);
@@ -273,17 +106,28 @@ describe("music no slideshow references", () => {
     expect(library.send("GET", `${MUSIC}/${song}`).status).toBe(200);
   });
 
-  it("is deleted on an upload once it is older than the grace period, never before", () => {
+  it("is deleted on the first upload after the grace period passed without one, never before", () => {
     const library = libraryHarness();
     const stale = library.uploadMusic();
     library.advanceClock(HOUR_MS);
-    const recent = library.uploadMusic();
+    library.uploadMusic();
     expect(library.send("GET", `${MUSIC}/${stale}`).status).toBe(200);
 
-    library.advanceClock(1);
-    library.uploadMusic();
-    expect(library.send("GET", `${MUSIC}/${recent}`).status).toBe(200);
+    library.advanceClock(HOUR_MS + 1);
+    const later = library.uploadMusic();
+    expect(library.send("GET", `${MUSIC}/${later}`).status).toBe(200);
     expect(library.send("GET", `${MUSIC}/${stale}`).status).toBe(404);
+  });
+
+  it("is kept while uploads follow one another within the grace period, as in a slow multi-song save", () => {
+    const library = libraryHarness();
+    const first = library.uploadMusic();
+    library.advanceClock(HOUR_MS - 1);
+    const second = library.uploadMusic();
+    library.advanceClock(HOUR_MS - 1);
+    library.uploadMusic();
+    expect(library.send("GET", `${MUSIC}/${first}`).status).toBe(200);
+    expect(library.send("GET", `${MUSIC}/${second}`).status).toBe(200);
   });
 
   it("is kept past the grace period while a slideshow names it", () => {

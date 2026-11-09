@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { PageWordsError } from "../share-page/read-share-words";
-import { folderProblemText, readFileWords, type FilePageWords } from "./file-page-words";
+import {
+  folderProblemDetails,
+  folderProblemText,
+  readFileWords,
+  type FilePageWords,
+} from "./file-page-words";
 
 const WORDS: FilePageWords = {
   eyebrow: "Slideshow",
@@ -24,7 +29,9 @@ const WORDS: FilePageWords = {
   chooseFolder: "Choose folder",
   noManifest: "No glissando.json",
   missing: "Lacks {files}.",
-  damaged: "Broken: {reason}",
+  damaged: "Broken",
+  showDetails: "Show details",
+  hideDetails: "Hide details",
   foreign: "Not a slideshow",
   newer: "Too new",
 };
@@ -39,10 +46,16 @@ describe("folderProblemText", () => {
     expect(text).toBe("Lacks pictures/0002.png, music/track-1.m4a.");
   });
 
-  it("gives the reason a damaged glissando.json is damaged, as it is", () => {
-    const text = folderProblemText(WORDS, { kind: "damaged", reason: "<b>{files}</b>" });
+  it("keeps a damaged glissando.json's reason out of the sentence", () => {
+    const problem = { kind: "damaged", reason: "no JSON at 1:2" } as const;
 
-    expect(text).toBe("Broken: <b>{files}</b>");
+    expect(folderProblemText(WORDS, problem)).toBe("Broken");
+    expect(folderProblemDetails(problem)).toBe("no JSON at 1:2");
+  });
+
+  it("has details for a damaged file only", () => {
+    expect(folderProblemDetails({ kind: "noManifest" })).toBeNull();
+    expect(folderProblemDetails({ kind: "missing", files: ["a"] })).toBeNull();
   });
 
   it("has its own words for no, a foreign and a newer glissando.json", () => {

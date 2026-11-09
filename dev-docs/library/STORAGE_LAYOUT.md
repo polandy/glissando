@@ -1,11 +1,8 @@
 # Storage layout
 
-One IndexedDB database, `glissando` (schema version 8; version 1 lacked `imports`, version 2
-`focus`, version 3 `beats`, version 5 cleared the slideshow records for the picture colours
-(ADR-0033), version 6 added `videos`, version 7 added `loudness`, version 8 dropped and recreated
-`focus` so every picture, including one stored as "none" before objects or scenery, is looked at
-by the current detector (ADR-0041) — each other upgrade only adds its store, existing data stays
-as it is). A slideshow record holds `songs` (ADR-0023); one holding a single `music` is not read,
+One IndexedDB database, `glissando` (schema version 8). An older version is not migrated: its
+upgrade drops every store and creates the current set, so the library starts empty (no production
+instance yet). A slideshow record holds `songs` (ADR-0023); one holding a single `music` is not read,
 and such a database is cleared by hand:
 
 | Object store | Key      | Value                                                                                                                                       |
@@ -26,7 +23,7 @@ edit of the record as stored), so an edit (or an Undo) from a tab still showing 
 slideshow deleted elsewhere never brings it back; that tab goes back to start with the toast
 "This slideshow no longer exists." `ownOrder` marks pictures the user reordered. A picture's
 optional `kenBurns` (`{ from, to }`, two framings as in the player's JSON: zoom 1 to
-`MAX_OWN_KEN_BURNS_ZOOM` = 3, centre 0..1) is its own motion from the picture editor; absent, the
+`MAX_OWN_KEN_BURNS_ZOOM` = 3, centre 0..1) is its chosen motion from the picture editor; absent, the
 motion is automatic (ADR-0006). `setPictureKenBurns` validates it before it is stored
 (`checkOwnKenBurns`, failing loud with the field and value); records without it need no
 migration. A picture's optional `caption` is the one line shown with it in the player, stored

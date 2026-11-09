@@ -31,12 +31,12 @@ describe("MoodSheet energy pacing", () => {
   });
 
   it("stores the energy switch at once, like a mood tile", () => {
-    const { onEnergyPacing } = setUp(details());
+    const { energyPacings } = setUp(details());
 
     energySwitch()?.click();
     flushSync();
 
-    expect(onEnergyPacing).toHaveBeenCalledWith(true);
+    expect(energyPacings).toEqual([true]);
   });
 
   it("shows the switch's own hint and the mood's energy hint once it is on", () => {
@@ -46,7 +46,7 @@ describe("MoodSheet energy pacing", () => {
       "Slower when it's quiet, quicker when it's loud, a strong change at a drop",
     );
     expect(hint()).toBe(
-      "The mood sets the average pace; the energy makes it slower in quiet passages and quicker in loud ones. Pictures with their own duration, transition or motion keep them.",
+      "The mood sets the average pace; the energy makes it slower in quiet passages and quicker in loud ones. Pictures with a chosen picture length, transition or motion keep them.",
     );
   });
 
@@ -54,7 +54,7 @@ describe("MoodSheet energy pacing", () => {
     setUp(details({ energyPacing: true }), previewPorts({ energyPacing: true }));
 
     expect(hint()).toBe(
-      "Your picture times stay the average. With “Fill the music” the slideshow still ends with the song. Pictures with their own duration keep it.",
+      "Your picture length stays the average. With “Fill the music” the slideshow still ends with the song. Pictures with a chosen picture length keep it.",
     );
   });
 
@@ -138,6 +138,6 @@ describe("MoodSheet energy pacing", () => {
 
     await whenRendered(target, ".stage");
 
-    expect(setText("At a drop or chorus")).toBe("Cut on the beat");
+    expect(setText("When the music picks up")).toBe("Cut on the beat");
   });
 });

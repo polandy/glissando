@@ -7,6 +7,7 @@ import ShareFlowHost from "../screens/slideshow/share/testing/ShareFlowHost.svel
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { COPIED_FEEDBACK_MS, ShareLinkSession } from "./share-link-session";
 import { FakeShareLinkApi } from "./testing/fake-share-link-api";
+import { buttonNamed } from "../testing/by-role";
 
 const LINK: ShareLink = { token: "q7Rk2vN8xT4mWp1Lc9Hb3A", createdAt: "2026-10-11T09:30:00.000Z" };
 const SLIDESHOW = details(
@@ -54,7 +55,7 @@ async function mountControl({
     newHtmlExport: () => {
       throw new Error("not used");
     },
-    onClosed: () => {},
+    onClose: () => {},
   });
   destroy = mounted.destroy;
   const { target } = mounted;
@@ -66,13 +67,7 @@ async function mountControl({
     flushSync();
   }
   const dialog = () => target.querySelector("dialog");
-  const button = (text: string): HTMLButtonElement => {
-    const found = [...target.querySelectorAll("button")].find(
-      (candidate) => candidate.textContent?.trim() === text,
-    );
-    if (found === undefined) throw new Error(`no button "${text}" in ${target.innerText}`);
-    return found;
-  };
+  const button = (text: string) => buttonNamed(target, text);
   const click = async (text: string) => {
     button(text).click();
     await settle();

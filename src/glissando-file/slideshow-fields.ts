@@ -22,11 +22,9 @@ import {
 import { MAX_SECONDS_PER_PICTURE, MIN_SECONDS_PER_PICTURE } from "../library/stored-slideshow";
 import { GRADED_SLIDESHOW_LOOKS, type GradedSlideshowLook } from "../player/looks/slideshow-look";
 import {
-  DEFAULT_TRANSITION_FROM_VERSION,
   ENERGY_PACING_FROM_VERSION,
   LOOK_FROM_VERSION,
   MOOD_FROM_VERSION,
-  PICTURE_LENGTH_FROM_VERSION,
   REPEAT_MUSIC_FROM_VERSION,
   TRIP_CHAPTERS_FROM_VERSION,
   type ManifestMusic,
@@ -34,7 +32,7 @@ import {
   type ManifestSlideshow,
 } from "./glissando-manifest";
 import { readManifestAddedChapters, readManifestChapterEdits } from "./manifest-chapters";
-import { readManifestCard, TITLE_CARDS_FROM_VERSION } from "./manifest-card";
+import { readManifestCard } from "./manifest-card";
 import { readOwnMusic } from "./slideshow-fields-media";
 import { DocumentFormatError, readDateTime, readText, type JsonObject } from "./document-values";
 
@@ -64,10 +62,11 @@ export function slideshowKeys(version: number): string[] {
     "songs",
     "betweenSongs",
     ...(version >= REPEAT_MUSIC_FROM_VERSION ? ["repeatMusic"] : []),
-    ...(version >= DEFAULT_TRANSITION_FROM_VERSION ? ["transition"] : []),
-    ...(version >= PICTURE_LENGTH_FROM_VERSION ? ["pictureLength"] : []),
+    "transition",
+    "pictureLength",
     "portraitPictures",
-    ...(version >= TITLE_CARDS_FROM_VERSION ? ["openingCard", "closingCard"] : []),
+    "openingCard",
+    "closingCard",
     ...(version >= TRIP_CHAPTERS_FROM_VERSION
       ? ["automaticChaptersOff", "chapterEdits", "addedChapters"]
       : []),

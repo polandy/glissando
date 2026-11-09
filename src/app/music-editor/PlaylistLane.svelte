@@ -1,7 +1,7 @@
 <script lang="ts">
+  import Separated from "../components/Separated.svelte";
   import { MILLISECONDS_PER_SECOND } from "../../player";
   import { getTranslator } from "../i18n/context";
-  import AddSongsButton from "./AddSongsButton.svelte";
   import type { PlaylistView } from "./playlist-view";
   import { songColour } from "./song-colour";
   import { percentOf } from "./waveform-scale";
@@ -12,20 +12,11 @@
    * boundary (with the details; otherwise the blocks meet at the middle of each overlap), the
    * slideshow's end marked where it comes before the playlist's; under it, the pictures' changes
    * and, while the pictures outlast the playlist and it does not repeat, the time they would play
-   * on in silence, with a card offering to fix it (ADR-0023, ADR-0047).
+   * on in silence (ADR-0023, ADR-0047). What to do about that is the picture-length notice's.
    */
-  let {
-    playlist,
-    onRepeatMusic,
-    onAddSongs,
-  }: {
-    playlist: PlaylistView;
-    /** `undefined`: the playlist plays once. */
-    onRepeatMusic: (repeatMusic: true | undefined) => void;
-    onAddSongs: (files: readonly File[]) => void;
-  } = $props();
+  let { playlist }: { playlist: PlaylistView } = $props();
 
-  const { t, formatDuration, formatTenthSeconds } = getTranslator();
+  const { t, formatDuration } = getTranslator();
   const HALF = 2;
 
   const spanMs = $derived(Math.max(playlist.slideshowMs, playlist.playlistMs));
@@ -35,19 +26,20 @@
   const endsEarly = $derived(playlist.slideshowMs < playlist.playlistMs);
   /** The pictures outlast the playlist and it does not repeat (ADR-0047): by how much. */
   const short = $derived(playlist.overMs !== undefined);
-  const fitted = $derived(playlist.fittedShareMs !== undefined);
   /** How long a song starting at `atMs` overlaps the one before; its number follows the overlap. */
   const overlapIntoMs = (atMs: number) =>
     playlist.crossfades.find((crossfade) => crossfade.atMs === atMs)?.ms ?? 0;
 </script>
 
-<div class="playlist-timeline">
+<div class="playlist-timeline" data-testid="playlist-timeline">
   <div class="lane-label">
     <span>
-      {t("music.playlistLane", {
-        count: playlist.songCount,
-        duration: duration(playlist.playlistMs),
-      })}
+      <Separated
+        text={t("music.playlistLane", {
+          count: playlist.songCount,
+          duration: duration(playlist.playlistMs),
+        })}
+      />
     </span>
     {#if playlist.repeatMusic}
       <span>{t("music.playlistRepeats")}</span>
@@ -55,10 +47,11 @@
       <span>{playlist.crossfade ? t("music.crossfadesHatched") : t("music.sequence")}</span>
     {/if}
   </div>
-  <div class="playlist-lane" aria-hidden="true">
+  <div class="playlist-lane" data-testid="playlist-lane" aria-hidden="true">
     {#each playlist.songs as song (song.atMs)}
       <span
         class="block mono"
+        data-testid="playlist-block"
         class:unreached={!song.reached}
         class:meeting={!playlist.details}
         style:left={pct(song.laneAtMs)}
@@ -72,7 +65,11 @@
       >
     {/each}
     {#each playlist.crossfades as crossfade (crossfade.atMs)}
-      <span class="crossfade" style:left={pct(crossfade.atMs)} style:width={pct(crossfade.ms)}
+      <span
+        class="crossfade"
+        data-testid="playlist-crossfade"
+        style:left={pct(crossfade.atMs)}
+        style:width={pct(crossfade.ms)}
       ></span>
     {/each}
     {#if endsEarly}
@@ -82,23 +79,17 @@
   </div>
   <div class="lane-label">
     <span>
-      {t("music.slideshowLaneTotal", {
-        count: playlist.slideChangesMs.length + 1,
-        duration: duration(playlist.slideshowMs),
-      })}
-    </span>
-    <span>
-      {#if endsEarly}
-        {t("music.laneFadesOut")}
-      {:else if playlist.repeatMusic}
-        {t("music.laneRepeats")}
-      {:else if !short}
-        {t("music.laneEndsWith")}
-      {/if}
+      <Separated
+        text={t("music.slideshowLaneTotal", {
+          count: playlist.slideChangesMs.length + 1,
+          duration: duration(playlist.slideshowMs),
+        })}
+      />
     </span>
   </div>
   <div class="slides" aria-hidden="true">
-    <span class="runs" style:width={pct(playlist.slideshowMs)}></span>
+    <span class="runs" data-testid="playlist-slideshow-runs" style:width={pct(playlist.slideshowMs)}
+    ></span>
     {#each playlist.slideChangesMs as atMs (atMs)}
       <i style:left={pct(atMs)}></i>
     {/each}
@@ -113,21 +104,6 @@
   <div class="scale mono" aria-hidden="true">
     <span>{duration(0)}</span><span>{duration(spanMs / HALF)}</span><span>{duration(spanMs)}</span>
   </div>
-  {#if fitted}
-    <p class="fit-note mint">
-      {t("music.laneFitted", { seconds: formatTenthSeconds(seconds(playlist.fittedShareMs ?? 0)) })}
-    </p>
-  {:else if short}
-    <div class="fit-note lemon">
-      <p>{t("music.laneOutlasts", { time: duration(playlist.overMs ?? 0) })}</p>
-      <div class="actions">
-        <button type="button" class="btn small primary" onclick={() => onRepeatMusic(true)}>
-          {t("music.repeatMusic")}
-        </button>
-        <AddSongsButton label={t("music.addSong")} onAdd={onAddSongs} />
-      </div>
-    </div>
-  {/if}
 </div>
 
 <style>
@@ -224,25 +200,5 @@
     justify-content: space-between;
     color: var(--gl-muted);
     font-size: var(--gl-size-caption);
-  }
-  .fit-note {
-    display: grid;
-    gap: 8px;
-    padding: 10px 12px;
-    border-radius: var(--gl-radius);
-    font-size: var(--gl-size-meta);
-  }
-  .fit-note.mint {
-    background: color-mix(in srgb, var(--gl-mint) 22%, var(--gl-surface));
-  }
-  .fit-note.lemon {
-    background: color-mix(in srgb, var(--gl-lemon) 22%, var(--gl-surface));
-  }
-  .fit-note p {
-    margin: 0;
-  }
-  .fit-note .actions {
-    display: flex;
-    gap: 8px;
   }
 </style>

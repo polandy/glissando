@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it } from "vitest";
-import type { BitmapPicture } from "../browser/bitmap-loader";
+import type { PixelPicture } from "../browser/pixel-loader";
 import type { RenderFrame, SlideLayer } from "../ports";
 import {
   BLUE,
   RED,
-  solidBitmap,
-  solidBitmapOfSize,
+  solidPixels,
+  solidPixelsOfSize,
   standingStill,
   viewportBox,
   type Rgb,
@@ -31,7 +31,7 @@ function setUp(viewport: { width: number; height: number }) {
   }
   const renderer = new WebGlRenderer(canvas, gl, () => undefined, { pixelRatio: () => 1 });
   const drawAndRead = (
-    frame: RenderFrame<BitmapPicture>,
+    frame: RenderFrame<PixelPicture>,
     xFromLeft: number,
     yFromTop: number,
   ): Rgb => {
@@ -54,15 +54,15 @@ afterEach(() => box.remove());
 describe("WebGlRenderer: pairs and the blurred fill (ADR-0028)", () => {
   it("draws a pair side by side on a landscape screen, image left and partner right, with a black gap", async () => {
     const { drawAndRead } = setUp({ width: 200, height: 100 });
-    const red = await solidBitmap(RED);
-    const blue = await solidBitmap(BLUE);
-    const layer: SlideLayer<BitmapPicture> = {
+    const red = solidPixels(RED);
+    const blue = solidPixels(BLUE);
+    const layer: SlideLayer<PixelPicture> = {
       kind: "picture",
       picture: red,
       motion: STILL,
       partner: { picture: blue, motion: STILL },
     };
-    const frame: RenderFrame<BitmapPicture> = {
+    const frame: RenderFrame<PixelPicture> = {
       kind: "slide",
       slide: layer,
       endFade: 0,
@@ -76,15 +76,15 @@ describe("WebGlRenderer: pairs and the blurred fill (ADR-0028)", () => {
 
   it("stacks a pair on a portrait screen, image on top and partner below", async () => {
     const { drawAndRead } = setUp({ width: 100, height: 200 });
-    const red = await solidBitmap(RED);
-    const blue = await solidBitmap(BLUE);
-    const layer: SlideLayer<BitmapPicture> = {
+    const red = solidPixels(RED);
+    const blue = solidPixels(BLUE);
+    const layer: SlideLayer<PixelPicture> = {
       kind: "picture",
       picture: red,
       motion: STILL,
       partner: { picture: blue, motion: STILL },
     };
-    const frame: RenderFrame<BitmapPicture> = {
+    const frame: RenderFrame<PixelPicture> = {
       kind: "slide",
       slide: layer,
       endFade: 0,
@@ -98,8 +98,8 @@ describe("WebGlRenderer: pairs and the blurred fill (ADR-0028)", () => {
   it("shows a portrait picture whole, over a darkened backdrop, on a 16:9 screen", async () => {
     const { drawAndRead } = setUp({ width: 1920, height: 1080 });
     // 3:4, far past the third-hidden threshold that switches cover to the blurred fill.
-    const picture = await solidBitmapOfSize(RED, { width: 300, height: 400 });
-    const frame: RenderFrame<BitmapPicture> = {
+    const picture = solidPixelsOfSize(RED, { width: 300, height: 400 });
+    const frame: RenderFrame<PixelPicture> = {
       kind: "slide",
       slide: { kind: "picture", picture, motion: STILL },
       endFade: 0,
@@ -118,8 +118,8 @@ describe("WebGlRenderer: pairs and the blurred fill (ADR-0028)", () => {
 
   it("covers the whole screen, no backdrop, when fit is cover", async () => {
     const { drawAndRead } = setUp({ width: 1920, height: 1080 });
-    const picture = await solidBitmapOfSize(RED, { width: 300, height: 400 });
-    const frame: RenderFrame<BitmapPicture> = {
+    const picture = solidPixelsOfSize(RED, { width: 300, height: 400 });
+    const frame: RenderFrame<PixelPicture> = {
       kind: "slide",
       slide: { kind: "picture", picture, motion: STILL, fit: "cover" },
       endFade: 0,
@@ -132,8 +132,8 @@ describe("WebGlRenderer: pairs and the blurred fill (ADR-0028)", () => {
 
   it("covers a 4:3 picture on a 16:9 screen without a backdrop: little enough of it is hidden", async () => {
     const { drawAndRead } = setUp({ width: 1920, height: 1080 });
-    const picture = await solidBitmapOfSize(RED, { width: 400, height: 300 });
-    const frame: RenderFrame<BitmapPicture> = {
+    const picture = solidPixelsOfSize(RED, { width: 400, height: 300 });
+    const frame: RenderFrame<PixelPicture> = {
       kind: "slide",
       slide: { kind: "picture", picture, motion: STILL },
       endFade: 0,

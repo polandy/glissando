@@ -6,7 +6,9 @@
   duration and transition into the next picture (mockup:
   https://polandy.github.io/glissando-assets/mockups/slide-timing/, ADR-0008). Its times are the
   player's: the automatic changes land on the beats of whichever song plays
-  (`beats/playlist-beats.ts`, ADR-0023). Breadcrumb "Library / title / Picture 3"; header right ‹ previous picture, "3 / 8" (mono, hidden
+  (`beats/playlist-beats.ts`, ADR-0023). Breadcrumb "Library / title / Picture 3"; header right a primary "Play from here" button
+  (play icon; icon-only with an aria-label below 720 px container width) that plays the slideshow
+  from this picture (not in the clip editor), then ‹ previous picture, "3 / 8" (mono, hidden
   up to 720 px), › next picture (looking disabled at the ends). Back (arrow or browser) returns to
   the slideshow screen with that picture selected. Desktop: a dark well with the whole picture
   left, a 340 px panel right; up to 720 px one view spans the width on top — the well (as high
@@ -32,7 +34,7 @@ left to right as it is read; leaving the editor stops the reading. With Sound Of
 faint; a clip without a sound track shows "No sound in this clip" instead, and a sound that cannot
 be read (a damaged file, an unsupported codec, a browser without an audio decoder, such as a page
 served over plain http) shows a warning icon with "Sound can't be read here"; the error is logged
-and the excerpt still works. "In the film" length
+and the excerpt still works. "In the slideshow" length
 (0.5 s to 5 min), Sound On/Off with a volume slider (0–100, step 5), "Music quieter meanwhile", a
 note that the transition runs inside the excerpt's end, Reset and Done. There is no Ken Burns or
 duration section: the excerpt is the slide's length. Slideshow tiles show the length badge.
@@ -43,6 +45,5 @@ duration section: the excerpt is the slide's length. Slideshow tiles show the le
 | [Preview](picture-editor/PREVIEW.md)                           | Playing the motion in the well                   |
 | [Panel, automatic and own](picture-editor/PANEL.md)            | The panel's Ken Burns section, automatic vs. own |
 | [Caption](picture-editor/CAPTION.md)                           | The caption field                                |
-| [Duration](picture-editor/DURATION.md)                         | A picture's own duration                         |
-| [Transition](picture-editor/TRANSITION.md)                     | The transition into the next picture             |
+| [Timing](picture-editor/TIMING.md)                             | Picture length, transition, one way back         |
 | [Layout](picture-editor/LAYOUT.md)                             | The "Always alone" switch (ADR-0028)             |

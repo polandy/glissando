@@ -33,7 +33,7 @@ const tile = (choice: string) => {
 const pill = () => text(sheet()?.querySelector(".state") ?? null);
 const resetButton = () => buttonNamed("Zurück auf Automatisch");
 
-/** Portrait pictures lives inside the "Fine settings" fold, closed by default (ADR-0048); open
+/** Portrait pictures lives inside the "More settings" fold, closed by default (ADR-0048); open
  * it so the row is rendered and can take focus back once its sheet closes. */
 function openFineSettings(): void {
   const toggle = document.querySelector<HTMLButtonElement>(".toggle");
@@ -76,15 +76,15 @@ describe("SlideshowScreen, the portrait pictures sheet", () => {
     openSheet();
 
     expect(sheet()?.open).toBe(true);
-    expect(pill()).toBe("Vorgabe");
+    expect(pill()).toBe("Automatisch");
     expect(tile("automatic").getAttribute("aria-checked")).toBe("true");
     expect(document.activeElement).toBe(tile("automatic"));
     expect(
       ["automatic", "one-at-a-time", "fill-screen"].map((choice) => text(tile(choice))),
     ).toEqual([
-      "Automatisch Zwei aufeinanderfolgende Hochformatbilder werden nebeneinander gezeigt; ein einzelnes, das ein breiter Bildschirm stark beschneiden würde, bekommt eine unscharfe Füllung.",
-      "Einzeln Jedes Bild wird einzeln gezeigt; eines, das ein breiter Bildschirm stark beschneiden würde, bekommt eine unscharfe Füllung.",
-      "Bildschirm füllen Jedes Bild füllt den Bildschirm wie bisher, auch wenn das Kopf oder Füße abschneidet.",
+      "Automatisch Zwei Hochformatbilder stehen nebeneinander; ein einzelnes, das der Zuschnitt stark beschneiden würde, bekommt eine unscharfe Füllung.",
+      "Einzeln Jedes Bild wird einzeln gezeigt; eines, das der Zuschnitt stark beschneiden würde, bekommt eine unscharfe Füllung.",
+      "Bildschirm füllen Jedes Bild füllt den Bildschirm, auch wenn das Kopf oder Füße abschneidet.",
     ]);
   });
 
@@ -95,7 +95,7 @@ describe("SlideshowScreen, the portrait pictures sheet", () => {
 
     expect(tile("fill-screen").getAttribute("aria-checked")).toBe("true");
     expect(document.activeElement).toBe(tile("fill-screen"));
-    expect(pill()).toBe("Eigene Wahl");
+    expect(pill()).toBe("Gewählt");
   });
 
   it("stores one at a time at once", () => {
@@ -107,7 +107,7 @@ describe("SlideshowScreen, the portrait pictures sheet", () => {
 
     expect(calls.portraitPictureChoices).toEqual(["one-at-a-time"]);
     expect(tile("one-at-a-time").getAttribute("aria-checked")).toBe("true");
-    expect(pill()).toBe("Eigene Wahl");
+    expect(pill()).toBe("Gewählt");
   });
 
   it("resets to automatic instead of storing a choice for it", () => {
@@ -148,7 +148,7 @@ describe("SlideshowScreen, the portrait pictures sheet", () => {
     resetButton().click();
 
     expect(calls.portraitPictureResets).toBe(1);
-    expect(pill()).toBe("Vorgabe");
+    expect(pill()).toBe("Automatisch");
     expect(resetButton().getAttribute("aria-disabled")).toBe("true");
     expect(resetButton().title).toBe("Hochformatbilder stehen schon auf Automatisch");
   });

@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { SlideshowMood } from "../../../library/slideshow-mood";
   import { getTranslator } from "../../i18n/context";
-  import { moodName } from "./mood-text";
+  import { moodName, moodSubtitle } from "./mood-text";
 
   /** One tile of the Mood sheet's radiogroup: Calm, Lively or Custom, named and tagged (MOOD.md). */
   let {
@@ -9,24 +9,14 @@
     checked,
     radio = $bindable(),
     onPick,
-    onKeydown,
   }: {
     mood: SlideshowMood | undefined;
     checked: boolean;
     radio?: HTMLButtonElement | undefined;
     onPick: () => void;
-    onKeydown: (event: KeyboardEvent) => void;
   } = $props();
 
   const { t } = getTranslator();
-
-  const tagKey = $derived(
-    mood === undefined
-      ? "mood.customSubtitle"
-      : mood === "calm"
-        ? "mood.calmSubtitle"
-        : "mood.livelySubtitle",
-  );
 </script>
 
 <button
@@ -38,10 +28,9 @@
   tabindex={checked ? 0 : -1}
   data-choice={mood ?? "custom"}
   onclick={onPick}
-  onkeydown={onKeydown}
 >
   {moodName(t, mood)}
-  <span class="tag">{t(tagKey)}</span>
+  <span class="tag">{moodSubtitle(t, mood)}</span>
 </button>
 
 <style>

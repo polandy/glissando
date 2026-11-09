@@ -42,6 +42,22 @@ describe("createPlayer", () => {
     player.destroy();
   });
 
+  it("falls back to the DOM renderer, with no canvas left behind, when the WebGL2 setup fails", async () => {
+    box = viewportBox({ width: 160, height: 90 });
+    const lostAtBirth = (canvas: HTMLCanvasElement) => {
+      const gl = canvas.getContext("webgl2");
+      gl?.getExtension("WEBGL_lose_context")?.loseContext();
+      return gl;
+    };
+    const player = createPlayer(box, await oneSlideShow(), { webGl2Context: lostAtBirth });
+
+    await firstFrame(player);
+
+    expect(box.querySelector("img")).not.toBeNull();
+    expect(box.querySelector("canvas")).toBeNull();
+    player.destroy();
+  });
+
   it("routes every track through the one music output, so one unlock lets them all sound", async () => {
     box = viewportBox({ width: 160, height: 90 });
     const musicOutput = new CountingMusicOutput();

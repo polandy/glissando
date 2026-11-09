@@ -1,12 +1,16 @@
+import { settleSeek } from "./settle-seek";
 import { CaptionInset } from "./caption-inset";
 import { FramePictures } from "./frame-pictures";
 import { PlaybackTime } from "./playback-time";
 import type { Size } from "./ken-burns";
+import { PlaybackLoop } from "./playback-loop";
 import { PlayerMedia } from "./player-media";
 import type { PlayerDependencies } from "./ports";
 import { MILLISECONDS_PER_SECOND, type Slideshow } from "./slideshow";
 import { createTimeline, type Timeline } from "./timeline";
 import type { PlayerEvent } from "./player-events";
+
+const warnInConsole = (error: unknown): void => console.warn(error);
 
 /**
  * Plays a slideshow with the API of an HTML video element: `play`, `pause`, `currentTime` and
@@ -23,10 +27,8 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   #ready = false;
   #destroyed = false;
   #error: Error | null = null;
-  #frameHandle: number | null = null;
   readonly #captionInset: CaptionInset;
-  /** Bumped by every seek, play and pause, so a load finishing late cannot act on stale state. */
-  #generation = 0;
+  readonly #loop: PlaybackLoop<Picture>;
 
   constructor(slideshow: Slideshow, dependencies: PlayerDependencies<Picture>) {
     super();
@@ -45,7 +47,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     this.#captionInset = new CaptionInset({
       clock: dependencies.clock,
       frames: dependencies.frames,
-      isPlaybackDrawing: () => this.#frameHandle !== null,
+      isPlaybackDrawing: () => this.#loop.isDrawing,
       redraw: () => this.redraw(),
     });
     const reducedMotion = dependencies.reducedMotion ?? (() => false);
@@ -58,6 +60,22 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       dependencies.picturesAhead,
       this.#media.video,
     );
+    this.#loop = new PlaybackLoop({
+      time: this.#time,
+      media: this.#media,
+      pictures: this.#pictures,
+      frames: dependencies.frames,
+      draw: () => this.#draw(),
+      emit: (type) => this.#emit(type),
+      whenDrawable: (action) => this.#whenDrawable(action),
+      onEnded: () => {
+        this.#paused = true;
+        this.#ended = true;
+        this.#emit("pause");
+        this.#emit("ended");
+        this.#captionInset.follow();
+      },
+    });
     this.#whenDrawable(() => this.#draw());
   }
 
@@ -71,22 +89,22 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
 
   set currentTime(seconds: number) {
     this.#assertAlive();
-    this.#stopAdvancing();
+    this.#loop.stop();
     this.#media.restart();
     this.#time.holdAt(seconds * MILLISECONDS_PER_SECOND);
     this.#ended = false;
-    const announceSeeked = () => {
-      this.#emit("seeked");
-      this.#emit("timeupdate");
-    };
-    if (this.#paused) {
-      this.#whenDrawable(() => {
-        this.#draw();
-        announceSeeked();
-      });
-    } else {
-      this.#startAdvancing(announceSeeked);
-    }
+    settleSeek({
+      paused: this.#paused,
+      target: this,
+      whenDrawable: (action) => this.#whenDrawable(action),
+      draw: () => this.#draw(),
+      startAdvancing: (onFirstFrame) => this.#loop.start(onFirstFrame),
+    });
+  }
+
+  startAt(seconds: number): void {
+    this.currentTime = seconds;
+    this.#media.fadeMusicInFrom(seconds * MILLISECONDS_PER_SECOND);
   }
 
   get paused(): boolean {
@@ -112,20 +130,19 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       return;
     }
     if (this.#ended || this.#time.isAtEnd) {
+      this.#media.restart();
       this.#time.holdAt(0);
       this.#ended = false;
     }
     this.#paused = false;
     this.#error = null;
     this.#emit("play");
-    this.#startAdvancing();
+    this.#loop.start();
   }
 
   pause(): void {
-    if (this.#paused) {
-      return;
-    }
-    this.#stopAdvancing();
+    if (this.#paused) return;
+    this.#loop.stop();
     this.#paused = true;
     this.#emit("pause");
     this.#captionInset.follow();
@@ -155,13 +172,13 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
    */
   async renderAt(seconds: number): Promise<void> {
     this.#assertAlive();
-    this.#stopAdvancing();
+    this.#loop.stop();
     this.#paused = true;
     this.#ended = false;
     this.#time.holdAt(seconds * MILLISECONDS_PER_SECOND);
-    const generation = this.#generation;
+    const generation = this.#loop.generation;
     await Promise.all([this.#pictures.loadAroundScreen(), this.#media.load(this.#time.frameMs)]);
-    if (this.#destroyed || generation !== this.#generation) {
+    if (this.#destroyed || generation !== this.#loop.generation) {
       throw new Error(`the frame at ${seconds} s was superseded before it was drawn`);
     }
     this.#pictures.draw(this.#captionInset.current);
@@ -179,7 +196,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     if (this.#destroyed) {
       return;
     }
-    this.#stopAdvancing();
+    this.#loop.stop();
     this.#captionInset.dispose();
     this.#paused = true;
     this.#destroyed = true;
@@ -187,78 +204,6 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     this.#deps.pictures.dispose();
     this.#media.dispose();
     this.#deps.renderer.dispose();
-  }
-
-  /** Advances from the current time, after waiting for its pictures if they are missing. */
-  #startAdvancing(onFirstFrame?: () => void): void {
-    const advance = () => {
-      // Anchored after drawing, so the time the first frame takes never shows as a jump.
-      this.#draw();
-      this.#time.startAdvancing();
-      onFirstFrame?.();
-      this.#emit("playing");
-      this.#scheduleFrame();
-      this.#media.play(this.#time.frameMs);
-    };
-    if (this.#pictures.isOnScreenPlayable()) {
-      advance();
-      return;
-    }
-    this.#media.pause();
-    this.#emit("waiting");
-    this.#whenDrawable(advance);
-  }
-
-  #stopAdvancing(): void {
-    this.#generation += 1;
-    if (this.#time.stopAdvancing()) {
-      this.#media.pause();
-    }
-    if (this.#frameHandle !== null) {
-      this.#deps.frames.cancel(this.#frameHandle);
-      this.#frameHandle = null;
-    }
-  }
-
-  #scheduleFrame(): void {
-    this.#frameHandle = this.#deps.frames.request(() => this.#onAnimationFrame());
-  }
-
-  #onAnimationFrame(): void {
-    this.#frameHandle = null;
-    const timeMs = this.#time.catchUp();
-    if (this.#time.isAtEnd) {
-      this.#finish();
-      return;
-    }
-    this.#media.follow(timeMs);
-    if (!this.#pictures.areOnScreenLoaded()) {
-      this.#stopAdvancing();
-      this.#startAdvancing();
-      return;
-    }
-    this.#draw();
-    this.#pictures.prepareUpcoming();
-    this.#emit("timeupdate");
-    this.#scheduleFrame();
-  }
-
-  #finish(): void {
-    this.#stopAdvancing();
-    this.#time.holdAt(this.#time.durationMs);
-    // A late frame can land past the end before the last slide's picture was ever needed.
-    if (!this.#pictures.areOnScreenLoaded()) {
-      this.#emit("waiting");
-      this.#whenDrawable(() => this.#finish());
-      return;
-    }
-    this.#draw();
-    this.#emit("timeupdate");
-    this.#paused = true;
-    this.#ended = true;
-    this.#emit("pause");
-    this.#emit("ended");
-    this.#captionInset.follow();
   }
 
   #fail(error: Error): void {
@@ -269,9 +214,9 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
 
   /** Runs `action` once the current frame's pictures are loaded, unless the state moved on. */
   #whenDrawable(action: () => void): void {
-    const generation = this.#generation;
+    const generation = this.#loop.generation;
     this.#pictures.whenOnScreenLoaded({
-      isWanted: () => generation === this.#generation && !this.#destroyed,
+      isWanted: () => generation === this.#loop.generation && !this.#destroyed,
       onLoaded: action,
       onError: (error) => this.#fail(error),
     });
@@ -279,9 +224,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
 
   #draw(): void {
     this.#pictures.draw(this.#captionInset.current);
-    this.#pictures.loadAroundScreen().catch(() => {
-      // The buffer retries a failed picture and reports it once the frame needs it.
-    });
+    this.#pictures.loadAroundScreen().catch(warnInConsole);
     if (!this.#ready) {
       this.#ready = true;
       this.#emit("canplay");

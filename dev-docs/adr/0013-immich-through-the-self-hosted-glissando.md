@@ -29,15 +29,17 @@ a browser-side client would have to pass as well.
 What the feature needs, with the API key's permission:
 
 - `GET /api/albums` (`album.read`): name, `assetCount`, `albumThumbnailAssetId`, date range.
-- `POST /api/search/metadata` with `type: "IMAGE"`, `order: "desc"`, `size`, `page`
-  (`asset.read`): all photos newest first, page by page until `nextPage` is `null`; with
-  `albumIds` the same for one album. `GET /api/albums/{id}` no longer lists assets in v3.
+- `POST /api/search/metadata` with `type: "IMAGE"`, `order: "desc"`, `size`, `page`,
+  `withExif: true` (`asset.read`): all photos newest first, page by page until `nextPage` is
+  `null`; with `albumIds` the same for one album. `GET /api/albums/{id}` does not list assets in
+  v3. Each asset's `exifInfo` gives its city and the latitude and longitude that place a picture
+  the import brings in; a coordinate off the globe or at 0, 0 counts as none, as in a file's EXIF.
 - `GET /api/assets/{id}/thumbnail?size=thumbnail|preview` (`asset.view`): WebP ≈ 250 px short side;
   JPEG, long side ≤ 1440 px. `GET /api/assets/{id}/original` (`asset.download`): the file itself.
   `GET /api/assets/{id}/video/playback` (`asset.view`): a video as Immich plays it, its
   transcoded copy or else the original, downloaded whole for a video slide (ADR-0034).
-- `localDateTime` on every asset: the capture time as wall time with a `Z`, the convention
-  `captureDate()` already uses for local files.
+- `localDateTime` on every asset: the capture time as wall time with a `Z` and sub-seconds; cut
+  to whole seconds it is the convention `readPictureExif()` already uses for local files.
 - `GET /api/faces?id=` (`face.read`): boxes in pixels of `imageWidth × imageHeight`, which is the
   preview's size in display orientation (checked with an EXIF-rotated photo). No score. A photo
   without faces and a photo Immich has not yet scanned both return `[]`; nothing the key may read

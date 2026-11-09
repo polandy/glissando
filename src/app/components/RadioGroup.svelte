@@ -11,6 +11,7 @@
 
 <script lang="ts" generics="Value extends string">
   import Icon from "./Icon.svelte";
+  import Separated from "./Separated.svelte";
   import { radioIndexForKey } from "./radio-keys";
 
   let {
@@ -60,7 +61,9 @@
       {#if option.icon}<Icon name={option.icon} />{/if}
       <span class="text">
         <span class="label" id="{idPrefix}-{index}-label">{option.label}</span>
-        {#if option.hint}<span class="hint" id="{idPrefix}-{index}-hint">{option.hint}</span>{/if}
+        {#if option.hint}<span class="hint" id="{idPrefix}-{index}-hint"
+            ><Separated text={option.hint} /></span
+          >{/if}
       </span>
       {#if checked}<Icon name="check" />{/if}
     </button>
@@ -95,6 +98,11 @@
   }
   .option[aria-checked="true"] {
     background: color-mix(in srgb, var(--gl-accent) 12%, var(--gl-surface));
+  }
+  @media (pointer: coarse) {
+    .option {
+      min-height: var(--gl-hit-min);
+    }
   }
   /* The group clips its corners, so the focus ring sits inside the option. */
   .option:focus-visible {

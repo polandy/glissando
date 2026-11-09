@@ -4,6 +4,8 @@
   import { getExportStatus } from "../glissando-file/export-status";
   import { getFocusSearchStatus } from "../focus-search-status";
   import { getTranslator } from "../i18n/context";
+  import { getNavigator } from "../navigation/context";
+  import { crumbLabel, crumbTarget, isCrumbLink, type Crumb } from "./crumbs";
   import FocusSearchIndicator from "./FocusSearchIndicator.svelte";
   import Icon from "./Icon.svelte";
   import LogoMark from "./LogoMark.svelte";
@@ -14,8 +16,11 @@
     backDisabled = false,
     actions,
   }: {
-    /** From the root; the last one is the current place. None on the start screen: the brand. */
-    crumbs: readonly string[];
+    /**
+     * From the root; the last one is the current place, those before it link to their screens
+     * (see `Crumb`). None on the start screen: the brand.
+     */
+    crumbs: readonly Crumb[];
     /** Shows the back arrow; it should go back through history (see dev-docs/app/NAVIGATION.md). */
     onBack?: () => void;
     /** Greys the back arrow out while leaving would interrupt something under way. */
@@ -25,6 +30,7 @@
   } = $props();
 
   const { t } = getTranslator();
+  const navigator = getNavigator();
   const exportStatus = getExportStatus();
   const focusSearchStatus = getFocusSearchStatus();
 </script>
@@ -48,20 +54,31 @@
     {/if}
     {#each crumbs as crumb, index (index)}
       {#if index < crumbs.length - 1}
-        <span class="earlier">{crumb}</span>
-        <span class="earlier separator" aria-hidden="true">/</span>
+        {#if isCrumbLink(crumbs, index)}
+          <button
+            class={["crumb-link", index === 0 && "root"]}
+            type="button"
+            onclick={() => navigator.backTo(crumbTarget(crumbs, index, navigator.route))}
+          >
+            {crumbLabel(crumb)}
+          </button>
+        {:else}
+          <span class="earlier">{crumbLabel(crumb)}</span>
+        {/if}
+        <span class={["separator", index > 0 && "earlier"]} aria-hidden="true">/</span>
       {:else}
-        <span class="here" aria-current="page">{crumb}</span>
+        <span class="here" aria-current="page">{crumbLabel(crumb)}</span>
       {/if}
     {/each}
   </nav>
-  {#if exportStatus?.current}
-    <ExportIndicator progress={exportStatus.current} />
-  {/if}
+  {#each exportStatus?.running ?? [] as progress, index (index)}
+    <!-- One progress line under the bar: the first job's, so lines never stack. -->
+    <ExportIndicator {progress} drawsLine={index === 0} />
+  {/each}
   {#if focusSearchStatus?.current}
     <FocusSearchIndicator
       search={focusSearchStatus.current}
-      besideExport={exportStatus?.current != null}
+      besideExport={(exportStatus?.running.length ?? 0) > 0}
     />
   {/if}
   {#if actions}
@@ -94,7 +111,44 @@
     flex: none;
     white-space: nowrap;
   }
+  .crumb-link {
+    flex: none;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    white-space: nowrap;
+    cursor: pointer;
+    /* Always underlined, faintly: touch has no hover to reveal the link. */
+    text-decoration: underline;
+    text-decoration-color: var(--gl-faint);
+    text-underline-offset: 3px;
+  }
+  .crumb-link:hover {
+    color: var(--gl-ink);
+    text-decoration-color: currentColor;
+  }
+  @media (pointer: coarse) {
+    .crumb-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      position: relative;
+    }
+    /* A short label such as "Start" grows an invisible pad to a 44 px square. */
+    .crumb-link::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: max(100%, var(--gl-hit-min));
+      height: max(100%, var(--gl-hit-min));
+      transform: translate(-50%, -50%);
+    }
+  }
   .separator {
+    flex: none;
     color: var(--gl-faint);
   }
   .here {
@@ -123,7 +177,8 @@
     .bar {
       padding: 0 12px;
     }
-    .earlier {
+    .earlier,
+    .crumb-link:not(.root) {
       display: none;
     }
   }

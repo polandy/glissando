@@ -1,8 +1,8 @@
 <script lang="ts">
   import { SEQUENCE_BETWEEN_SONGS, type BetweenSongs } from "../../library/own-music";
   import { radioIndexForKey } from "../components/radio-keys";
-  import SectionHead from "../components/SectionHead.svelte";
   import { getTranslator } from "../i18n/context";
+  import InfoHead from "./InfoHead.svelte";
 
   /** How one song hands over to the next: a crossfade, the default, or one after another. */
   let {
@@ -34,7 +34,15 @@
 </script>
 
 <section class="section" aria-labelledby={HEAD_ID}>
-  <SectionHead id={HEAD_ID} icon="transition" title={t("music.betweenSongs")} own={false} />
+  <InfoHead
+    id={HEAD_ID}
+    icon="transition"
+    title={t("music.betweenSongs")}
+    infoLabel={t("music.infoBetweenSongs")}
+  >
+    <p>{t("music.crossfadeWhy")}</p>
+    <p>{t("music.sequenceWhy")}</p>
+  </InfoHead>
   <div class="choices" role="radiogroup" aria-labelledby={HEAD_ID}>
     {#each CHOICES as choice, index (choice.label)}
       {@const checked = index === selected}
@@ -51,7 +59,6 @@
       </button>
     {/each}
   </div>
-  <p class="why">{crossfade ? t("music.crossfadeWhy") : t("music.sequenceWhy")}</p>
 </section>
 
 <style>
@@ -81,10 +88,5 @@
   .choices button[aria-checked="true"] {
     background: var(--gl-surface);
     box-shadow: var(--gl-shadow);
-  }
-  .why {
-    margin: 0;
-    color: var(--gl-muted);
-    font-size: var(--gl-size-meta);
   }
 </style>

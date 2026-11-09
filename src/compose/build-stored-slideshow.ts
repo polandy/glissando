@@ -22,6 +22,8 @@ export interface BuildStoredSlideshowInput {
   readonly songs: readonly StoredMusic[];
   /** The music repeats from its first song for as long as the slideshow lasts (ADR-0047). */
   readonly repeatMusic?: true;
+  /** The title as it should be stored; absent: the month title from the capture range. */
+  readonly title?: string;
   /** Locale the title's month name is written in. */
   readonly locale: string;
 }
@@ -58,10 +60,12 @@ export function buildStoredSlideshow(input: BuildStoredSlideshowInput): StoredSl
     input.order === undefined
       ? orderByCaptureDate(input.pictures)
       : orderedById(input.pictures, input.order);
-  const title = titleForCaptureRange(
-    pictures.map((picture) => picture.capturedAt),
-    input.locale,
-  );
+  const title =
+    input.title ??
+    titleForCaptureRange(
+      pictures.map((picture) => picture.capturedAt),
+      input.locale,
+    );
 
   return {
     id: input.id,

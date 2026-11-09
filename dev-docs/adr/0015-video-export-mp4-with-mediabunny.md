@@ -50,7 +50,9 @@ write path):
   code is bundled unmodified; the build lists its name, version and licence text in
   `third-party-licenses.md` (Vite's `build.license`), which the service worker precaches and the
   settings link as "Open-source licences", so the notice is there offline too. That leaves the
-  rest of the code unaffected.
+  rest of the code unaffected. An exported HTML page travels without `third-party-licenses.md`, so
+  its head names mediabunny, its version, MPL-2.0 and the source URL
+  (`build/bundled-notices.ts`).
 - **Streamed to a file, `moov` up front.** The muxer writes in chunks to a `FileSystemWritableFileStream`:
   the file the user picks (`showSaveFilePicker`, Chromium), otherwise a file in the origin private
   file system, which is then shared or downloaded as a disk-backed `File`. The `moov` box is

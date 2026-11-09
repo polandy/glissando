@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { MusicLoudness } from "../../loudness";
-import type { LoudnessPassState } from "../../library/loudness-pass";
+import { NO_BEATS } from "../../beats";
+import type { MusicAnalysisPassState } from "../../library/music-analysis-pass";
 import { loudnessStatus } from "./music-loudness-known";
 
 const MEASURED: MusicLoudness = {
@@ -11,7 +12,7 @@ const QUIET: MusicLoudness = {
   blockMeanSquares: new Float32Array([0.001]),
   hopPeaks: new Float32Array([0.1]),
 };
-const IDLE: LoudnessPassState = {
+const IDLE: MusicAnalysisPassState = {
   running: false,
   listening: new Set(),
   found: new Map(),
@@ -20,7 +21,7 @@ const IDLE: LoudnessPassState = {
 
 describe("loudnessStatus", () => {
   it("is what the pass found, before what was stored", () => {
-    const pass = { ...IDLE, found: new Map([["drums", MEASURED]]) };
+    const pass = { ...IDLE, found: new Map([["drums", { beats: NO_BEATS, loudness: MEASURED }]]) };
 
     expect(loudnessStatus("drums", QUIET, pass)).toEqual({ kind: "known", loudness: MEASURED });
   });

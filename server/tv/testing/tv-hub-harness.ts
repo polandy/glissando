@@ -1,5 +1,6 @@
 import type { PlaybackState } from "../../../src/tv-remote/tv-protocol";
-import { CODE_ALPHABET, createTvHub, type EventSink } from "../tv-hub";
+import { createTvHub, type EventSink } from "../tv-hub";
+import { CODE_ALPHABET } from "../tv-code";
 
 export const KEY_PATTERN = /^[A-Za-z0-9_-]{22}$/;
 export const KEY_BYTES = 16;
@@ -56,9 +57,15 @@ export const playingState: PlaybackState = {
   title: "Generated test slideshow",
 };
 
+/** The session `create`/`createBound` made; a full hub fails the test. */
+export function made<Session>(session: Session | undefined): Session {
+  if (session === undefined) throw new Error("the hub is full");
+  return session;
+}
+
 /** A way A session, claimed, so it has both a key and a secret. */
 export function claimedSession(hub: ReturnType<typeof createTvHub>) {
-  const { tvKey, code } = hub.create();
+  const { tvKey, code } = made(hub.create());
   const remoteSecret = hub.claim(code);
   if (remoteSecret === undefined) throw new Error("the claim failed");
   return { tvKey, remoteSecret };

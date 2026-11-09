@@ -8,6 +8,9 @@ const MEASURED_IMMICH_VERSION = "3.3.1";
 
 export type JsonRecord = Readonly<Record<string, unknown>>;
 
+/** Whole seconds, then any sub-seconds, then the "Z" the wall time is written with. */
+const WALL_TIME_WITH_SUBSECONDS = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.\d+)?Z$/;
+
 export class ImmichJsonReader {
   readonly #request: string;
 
@@ -51,6 +54,20 @@ export class ImmichJsonReader {
       throw this.#mismatch(`"${field}"`, "a positive whole number", text);
     }
     return value;
+  }
+
+  /**
+   * An instant Immich serialises as "YYYY-MM-DDTHH:MM:SS.fffZ", cut to whole seconds: the wall-time
+   * form `readPictureExif()` writes for a file, so the same photo from both sources has one capture
+   * date (ADR-0016 compares it as text).
+   */
+  wallTime(record: JsonRecord, field: string): string {
+    const text = this.string(record, field);
+    const parts = WALL_TIME_WITH_SUBSECONDS.exec(text);
+    if (parts === null) {
+      throw this.#mismatch(`"${field}"`, 'an instant "YYYY-MM-DDTHH:MM:SS.fffZ"', text);
+    }
+    return `${parts[1]}Z`;
   }
 
   number(record: JsonRecord, field: string): number {

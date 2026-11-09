@@ -1,8 +1,8 @@
 <script lang="ts">
   import { EVEN_PICTURE_CHANGES, type PictureChanges } from "../../library/own-music";
-  import SectionHead from "../components/SectionHead.svelte";
   import { radioIndexForKey } from "../components/radio-keys";
   import { getTranslator } from "../i18n/context";
+  import InfoHead from "./InfoHead.svelte";
   import type { PictureChangesView } from "./picture-changes-view";
 
   /**
@@ -47,15 +47,30 @@
 </script>
 
 <section class="section" aria-labelledby={HEAD_ID}>
-  <SectionHead
+  <InfoHead
     id={HEAD_ID}
     icon="transition"
     title={t("music.pictureChanges")}
-    own={false}
+    infoLabel={t("music.infoPictureChanges")}
     {...view.kind === "beats"
       ? { stateText: t("music.beatsPerMinute", { bpm: view.beatsPerMinute }) }
       : {}}
-  />
+  >
+    <p>{t("music.onTheBeatHint")}</p>
+    {#if view.kind === "beats" && view.ownDurationNumbers.length > 0}
+      <p>
+        {t("music.ownDurationsOffBeat", {
+          count: view.ownDurationNumbers.length,
+          pictures: formatList(view.ownDurationNumbers.map(String)),
+        })}
+      </p>
+    {/if}
+    <p>
+      {view.kind === "beats" && view.secondsPerPicture !== undefined
+        ? t("music.evenlyHintSeconds", { seconds: formatSeconds(view.secondsPerPicture) })
+        : t("music.evenlyHint")}
+    </p>
+  </InfoHead>
   {#if view.kind === "beats"}
     <div class="choices" role="radiogroup" aria-labelledby={HEAD_ID}>
       {#each CHOICES as choice, index (choice.label)}
@@ -73,21 +88,6 @@
         </button>
       {/each}
     </div>
-    <p class="hint">
-      {#if view.onTheBeat}
-        {t("music.onTheBeatHint")}
-        {#if view.ownDurationNumbers.length > 0}
-          {t("music.ownDurationsOffBeat", {
-            count: view.ownDurationNumbers.length,
-            pictures: formatList(view.ownDurationNumbers.map(String)),
-          })}
-        {/if}
-      {:else if view.secondsPerPicture === undefined}
-        {t("music.evenlyHint")}
-      {:else}
-        {t("music.evenlyHintSeconds", { seconds: formatSeconds(view.secondsPerPicture) })}
-      {/if}
-    </p>
   {:else}
     <p class="hint">
       {#if view.kind === "listening"}<span class="pulse" aria-hidden="true"></span>{/if}

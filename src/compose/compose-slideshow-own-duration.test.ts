@@ -37,8 +37,8 @@ function storedSlideshow(overrides: Partial<StoredSlideshow> = {}): StoredSlides
   };
 }
 
-describe("composeSlideshow with an own duration and transition", () => {
-  it("plays the own duration and the own effect, at the length that duration gives", () => {
+describe("composeSlideshow with a chosen duration and transition", () => {
+  it("plays the chosen duration and the own effect, at the length that duration gives", () => {
     const [first, second] = storedSlideshow().pictures as [StoredPicture, StoredPicture];
     const stored = storedSlideshow({
       pictures: [{ ...first, durationMs: 2000, transition: "dissolve" }, second],

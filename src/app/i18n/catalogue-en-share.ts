@@ -54,4 +54,7 @@ export const enShare: Pick<Catalogue, keyof typeof deShare> = {
   "share.loadFailed": "Couldn't read the link. Your Glissando server isn't answering.",
   "share.createFailed": "Couldn't create the link. Your Glissando server isn't answering.",
   "share.turnOffFailed": "Couldn't turn off the link. Your Glissando server isn't answering.",
+  "sizeScale.small": "Small",
+  "sizeScale.standard": "Standard",
+  "sizeScale.large": "Large",
 };

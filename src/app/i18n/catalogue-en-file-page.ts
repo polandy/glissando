@@ -11,7 +11,9 @@ export const enFilePage: Pick<Catalogue, keyof typeof deFilePage> = {
     "This folder holds no glissando.json. Unpack the whole .glissando file, then choose the folder holding index.html.",
   "filePage.missing":
     "This folder lacks files the slideshow needs: {files}. Unpack the whole .glissando file again.",
-  "filePage.damaged": "glissando.json can’t be read: {reason}",
+  "filePage.damaged": "This file is damaged. Try the original file again.",
+  "filePage.showDetails": "Show details",
+  "filePage.hideDetails": "Hide details",
   "filePage.foreign": "This folder’s glissando.json is no Glissando slideshow.",
   "filePage.newer":
     "This slideshow was made with a newer Glissando than this page. Open the .glissando file in Glissando instead: https://polandy.github.io/glissando/",

@@ -1,6 +1,7 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
-import { chooseFiles, CREATED_TOAST, GERMAN_BROWSER, openImport } from "./support/app";
+import { expect, test, type Locator } from "@playwright/test";
+import { chooseFiles, expectSlideshowScreen, GERMAN_BROWSER, openImport } from "./support/app";
 import { openApp } from "./support/browser";
+import { centreOf, drag, DRAG_STEPS } from "./support/pointer";
 import { framePixels, keepDrawnFrames, meanColour } from "./support/drawn-frame";
 import { generatedClip } from "./support/clip";
 
@@ -38,11 +39,11 @@ test("E2E-059 a clip imported as a slide shows its length, opens in the clip edi
   const clip = await generatedClip(page, "clip.mp4", CLIP_COLOUR, CLIP_SECONDS);
 
   await openImport(page);
-  await chooseFiles(page, page.getByRole("button", { name: "Medien auswählen" }), [clip]);
+  await chooseFiles(page, page.getByRole("button", { name: "Bilder auswählen" }), [clip]);
   await expect(page.getByText("1 Bilder", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText("Diashow erstellt — tippe auf Abspielen");
+  await expectSlideshowScreen(page);
 
   await expect(page.getByText("Video, 0:03")).toBeAttached();
 
@@ -57,7 +58,7 @@ test("E2E-059 a clip imported as a slide shows its length, opens in the clip edi
     .getByRole("button", { name: "Bearbeiten" })
     .click();
   await expect(page.getByText("Clip 1", { exact: true })).toBeVisible();
-  await expect(page.getByText("Im Film: 3,0 s")).toBeVisible();
+  await expect(page.getByText("In der Diashow: 3,0 s")).toBeVisible();
   await page.getByRole("button", { name: "Fertig", exact: true }).click();
   await expect(page.getByText("Clip 1", { exact: true })).toBeHidden();
 
@@ -80,8 +81,6 @@ test("E2E-059 a clip imported as a slide shows its length, opens in the clip edi
 });
 
 const PLAYHEAD_CLIP_SECONDS = 8;
-/** Pointer travel split into steps, so a drag passes the editor's drag threshold as a hand does. */
-const DRAG_STEPS = 8;
 
 /** A point at `ms` of the whole clip on the strip's track, at its vertical centre. */
 async function trackPointAt(
@@ -94,26 +93,6 @@ async function trackPointAt(
     throw new Error("the excerpt strip is not shown");
   }
   return { x: box.x + (ms / sourceMs) * box.width, y: box.y + box.height / 2 };
-}
-
-/** The centre of `target` on the page. */
-async function centreOf(target: Locator): Promise<{ x: number; y: number }> {
-  const box = await target.boundingBox();
-  if (box === null) {
-    throw new Error("the drag target is not shown");
-  }
-  return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
-}
-
-async function drag(
-  page: Page,
-  from: { x: number; y: number },
-  to: { x: number; y: number },
-): Promise<void> {
-  await page.mouse.move(from.x, from.y);
-  await page.mouse.down();
-  await page.mouse.move(to.x, to.y, { steps: DRAG_STEPS });
-  await page.mouse.up();
 }
 
 test("E2E-063 the clip editor's strip shows the player's place as a draggable mark with a time chip, which a dragged handle leaves where it was", async ({
@@ -129,11 +108,11 @@ test("E2E-063 the clip editor's strip shows the player's place as a draggable ma
   const clip = await generatedClip(page, "clip.mp4", CLIP_COLOUR, PLAYHEAD_CLIP_SECONDS);
 
   await openImport(page);
-  await chooseFiles(page, page.getByRole("button", { name: "Medien auswählen" }), [clip]);
+  await chooseFiles(page, page.getByRole("button", { name: "Bilder auswählen" }), [clip]);
   await expect(page.getByText("1 Bilder", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
 
   const tile = page
     .getByRole("listitem")
@@ -146,13 +125,13 @@ test("E2E-063 the clip editor's strip shows the player's place as a draggable ma
     .click();
   await expect(page.getByText("Clip 1", { exact: true })).toBeVisible();
 
-  const track = page.locator('[aria-label="Ausschnitt wählen"] .track');
-  const chip = track.locator(".chip");
+  const track = page.getByRole("group", { name: "Ausschnitt wählen" }).getByTestId("excerpt-track");
+  const chip = track.getByTestId("excerpt-time-chip");
   const endHandle = page.getByRole("slider", { name: "Ende" });
   const scrub = page.getByRole("slider", { name: "Position im Ausschnitt" });
 
   // The mark and its chip are shown at the player's place without ever pressing play.
-  await expect(track.locator(".playhead")).toBeVisible();
+  await expect(track.getByTestId("excerpt-playhead")).toBeVisible();
   await expect(chip).toHaveText("0:00,0");
 
   // The scrub slider moves the player's place, which the strip's mark and chip follow.
@@ -163,7 +142,7 @@ test("E2E-063 the clip editor's strip shows the player's place as a draggable ma
   // scrub slider follows it back.
   await drag(
     page,
-    await centreOf(track.locator(".playhead-zone")),
+    await centreOf(track.getByTestId("excerpt-playhead-zone")),
     await trackPointAt(track, 6_000, sourceMs),
   );
   await expect(chip).toHaveText("0:06,0");

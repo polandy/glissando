@@ -1,5 +1,5 @@
 import { noVideoClips } from "./testing/import-session-fixtures";
-import { flushSync } from "svelte";
+import { flushSync, tick } from "svelte";
 import { FakePictureChecker } from "../../culling/testing/fake-picture-checker";
 import { afterEach, describe, expect, it } from "vitest";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
@@ -38,8 +38,7 @@ function session(createOnServer: ImportSessionPorts["createOnServer"]): ImportSe
         thumbnail: new Blob([file.name]),
       }),
     videoClips: noVideoClips,
-    captureDate: () => Promise.resolve("2025-07-01T10:00:00Z"),
-    gps: () => Promise.resolve(null),
+    exif: () => Promise.resolve({ capturedAt: "2025-07-01T10:00:00Z", gps: null }),
     resolvePlace: () => Promise.resolve(null),
     immichSource: () => {
       throw new Error("no Immich download in this test");
@@ -57,6 +56,7 @@ function session(createOnServer: ImportSessionPorts["createOnServer"]): ImportSe
 function mountMusicStep(importSession: ImportSession) {
   const failed: (() => void)[] = [];
   const created: string[] = [];
+  const existing = Promise.resolve([]);
   let told = () => {};
   const toldFailure = new Promise<void>((resolve) => (told = resolve));
   const route = mountWithTranslator(
@@ -64,6 +64,7 @@ function mountMusicStep(importSession: ImportSession) {
     {
       step: "music",
       session: importSession,
+      loadExistingSlideshows: () => existing,
       loadThumbnail: () => Promise.resolve(new Blob()),
       loadPicture: () => Promise.resolve(new Blob()),
       onError: (error: unknown) => {
@@ -88,22 +89,28 @@ function mountMusicStep(importSession: ImportSession) {
         told();
       },
       toaster: new Toaster(new FakeScheduler()),
+      guardLeave: () => () => undefined,
     },
     { current: createTranslator("en") },
   );
   unmounts.push(route.destroy);
+  // The step is shown once the library's slideshows are listed.
+  const stepShown = existing.then(() => tick());
   const createButton = () =>
     [...route.target.querySelectorAll("button")].find(
       (button) => button.textContent.trim() === "Create without music",
     );
-  return { target: route.target, failed, created, toldFailure, createButton };
+  return { target: route.target, failed, created, toldFailure, createButton, stepShown };
 }
 
 describe("ImportRoute, creating a server slideshow", () => {
   it("saves under the server's overlay, and tells a failure keeping the wizard to try again", async () => {
     let attempts = 0;
+    let retried = () => {};
+    const secondAttempt = new Promise<void>((resolve) => (retried = resolve));
     const importSession = session(() => {
       attempts += 1;
+      if (attempts === 2) retried();
       return Promise.reject(new ServerLibraryUnavailableError("POST /slideshows"));
     });
     importSession.chooseHome("server");
@@ -111,7 +118,9 @@ describe("ImportRoute, creating a server slideshow", () => {
     // Linking reads the photo's colours off its thumbnail (ADR-0033), so it settles later than
     // the synchronous call above.
     await importSession.intake.settled();
-    const { target, failed, created, toldFailure, createButton } = mountMusicStep(importSession);
+    const { target, failed, created, toldFailure, createButton, stepShown } =
+      mountMusicStep(importSession);
+    await stepShown;
 
     createButton()?.click();
     flushSync();
@@ -123,6 +132,7 @@ describe("ImportRoute, creating a server slideshow", () => {
     expect(created).toEqual([]);
     expect(importSession.pictures.state.pictures).toHaveLength(1);
     failed[0]?.();
+    await secondAttempt;
     expect(attempts).toBe(2);
   });
 });

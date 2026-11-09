@@ -9,6 +9,7 @@ import {
   leaveEditor,
 } from "./support/app";
 import { openApp } from "./support/browser";
+import { player } from "./support/player";
 
 test.use(GERMAN_BROWSER);
 
@@ -20,20 +21,16 @@ const SECOND_CAPTION = "Am Morgen";
 /** Long pictures, so the first is still showing while the case reads its caption. */
 const LONGEST_SECONDS_PER_PICTURE = 15;
 
-function player(page: Page) {
-  return page.getByRole("dialog", { name: TITLE });
-}
-
 /** Plays the slideshow from its first picture; the caption region speaks the shown caption. */
 async function playFirstPicture(page: Page) {
   await page.getByRole("button", { name: "Abspielen" }).last().click();
-  await expect(player(page).getByText("1 / 2", { exact: true })).toBeVisible();
-  return player(page).locator(".caption-text");
+  await expect(player(page, TITLE).getByText("1 / 2", { exact: true })).toBeVisible();
+  return player(page, TITLE).getByRole("status");
 }
 
 async function closePlayer(page: Page): Promise<void> {
   await page.keyboard.press("Escape");
-  await expect(player(page)).toBeHidden();
+  await expect(player(page, TITLE)).toBeHidden();
 }
 
 test("E2E-021 a picture's caption is stored, shown by the player, and cleared with ×", async ({
@@ -54,7 +51,7 @@ test("E2E-021 a picture's caption is stored, shown by the player, and cleared wi
   await closePlayer(page);
 
   await editPicture(page, FIRST_TILE);
-  await page.getByRole("button", { name: "Bildtitel leeren" }).click();
+  await page.getByRole("button", { name: "Bildtitel entfernen" }).click();
   await expect(captionField(page)).toHaveValue("");
   await expect(captionField(page)).toBeFocused();
   await editsStored(page);
@@ -64,9 +61,9 @@ test("E2E-021 a picture's caption is stored, shown by the player, and cleared wi
   await captionPicture(page, SECOND_TILE, SECOND_CAPTION);
   const spokenAfterClearing = await playFirstPicture(page);
   await page.keyboard.press("ArrowRight");
-  await expect(player(page).getByText("2 / 2", { exact: true })).toBeVisible();
+  await expect(player(page, TITLE).getByText("2 / 2", { exact: true })).toBeVisible();
   await expect(spokenAfterClearing).toHaveText(SECOND_CAPTION);
-  await player(page).getByRole("slider").fill("0");
-  await expect(player(page).getByText("1 / 2", { exact: true })).toBeVisible();
+  await player(page, TITLE).getByRole("slider").fill("0");
+  await expect(player(page, TITLE).getByText("1 / 2", { exact: true })).toBeVisible();
   await expect(spokenAfterClearing).toHaveText("");
 });

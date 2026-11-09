@@ -69,6 +69,11 @@
     font-size: var(--gl-size-label);
     font-weight: var(--gl-weight-medium);
   }
+  @media (pointer: coarse) {
+    .switch {
+      min-height: var(--gl-hit-min);
+    }
+  }
   .switch input {
     position: absolute;
     opacity: 0;

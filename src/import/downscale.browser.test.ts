@@ -1,6 +1,33 @@
 import { describe, expect, it } from "vitest";
 import { decodePicture, thumbnailFromImage } from "./downscale";
+import type { PictureLimits } from "./picture-limits";
 import { UnreadablePictureError } from "./unreadable-picture";
+
+const ROOMY_LIMITS: PictureLimits = {
+  bytes: Number.MAX_SAFE_INTEGER,
+  pixels: Number.MAX_SAFE_INTEGER,
+};
+
+/** Only a PNG's signature and IHDR, claiming `width` x `height`: nothing a decoder could draw. */
+function pngHeaderClaiming(width: number, height: number): File {
+  const header = new Uint8Array(33);
+  const view = new DataView(header.buffer);
+  header.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  view.setUint32(8, 13);
+  header.set([0x49, 0x48, 0x44, 0x52], 12);
+  view.setUint32(16, width);
+  view.setUint32(20, height);
+  return new File([header], "claims-a-lot.png", { type: "image/png" });
+}
+
+async function rejection(promise: Promise<unknown>): Promise<UnreadablePictureError> {
+  const error: unknown = await promise.then(
+    () => undefined,
+    (rejected: unknown) => rejected,
+  );
+  expect(error).toBeInstanceOf(UnreadablePictureError);
+  return error as UnreadablePictureError;
+}
 
 async function pngFile(width: number, height: number): Promise<File> {
   const canvas = document.createElement("canvas");
@@ -61,7 +88,80 @@ describe("decodePicture", () => {
   });
 });
 
+describe("decodePicture, picture limits", () => {
+  it("rejects a file over the byte limit as too large", async () => {
+    const file = await pngFile(300, 200);
+
+    const error = await rejection(decodePicture(file, { ...ROOMY_LIMITS, bytes: file.size - 1 }));
+
+    expect(error.stage).toBe("tooLarge");
+    expect(error.fileName).toBe("generated.png");
+  });
+
+  it("decodes a file exactly at the byte limit", async () => {
+    const file = await pngFile(300, 200);
+
+    const decoded = await decodePicture(file, { ...ROOMY_LIMITS, bytes: file.size });
+
+    expect(decoded.width).toBe(300);
+  });
+
+  it("rejects a PNG whose header claims more pixels than the limit as too large", async () => {
+    const error = await rejection(
+      decodePicture(await pngFile(300, 200), { ...ROOMY_LIMITS, pixels: 300 * 200 - 1 }),
+    );
+
+    expect(error.stage).toBe("tooLarge");
+  });
+
+  it("decodes a PNG whose header claims exactly the pixel limit", async () => {
+    const decoded = await decodePicture(await pngFile(300, 200), {
+      ...ROOMY_LIMITS,
+      pixels: 300 * 200,
+    });
+
+    expect(decoded.height).toBe(200);
+  });
+
+  it("rejects a small PNG claiming 20000 x 20000 under the default limits without decoding it", async () => {
+    const error = await rejection(decodePicture(pngHeaderClaiming(20_000, 20_000)));
+
+    expect(error.stage).toBe("tooLarge");
+  });
+});
+
 describe("thumbnailFromImage", () => {
+  it("rejects an image over the byte limit as too large", async () => {
+    const image = await pngFile(300, 200);
+
+    const error = await rejection(
+      thumbnailFromImage(image, { ...ROOMY_LIMITS, bytes: image.size - 1 }),
+    );
+
+    expect(error.stage).toBe("tooLarge");
+  });
+
+  it("rejects a PNG whose header claims more pixels than the limit as too large", async () => {
+    const error = await rejection(
+      thumbnailFromImage(await pngFile(300, 200), { ...ROOMY_LIMITS, pixels: 300 * 200 - 1 }),
+    );
+
+    expect(error.stage).toBe("tooLarge");
+  });
+
+  it("rejects a small PNG claiming 20000 x 20000 under the default limits without decoding it", async () => {
+    const error = await rejection(thumbnailFromImage(pngHeaderClaiming(20_000, 20_000)));
+
+    expect(error.stage).toBe("tooLarge");
+  });
+
+  it("wraps the failed decode of a garbage blob in UnreadablePictureError", async () => {
+    const error = await rejection(thumbnailFromImage(new Blob(["not a picture"])));
+
+    expect(error.stage).toBe("decode");
+    expect(error.cause).toBeInstanceOf(DOMException);
+  });
+
   it("downscales an image to the thumbnail bound as JPEG", async () => {
     const thumbnail = await thumbnailFromImage(await pngFile(4000, 1000));
 

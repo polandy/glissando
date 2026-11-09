@@ -2,7 +2,11 @@ import {
   moveGroup as moveGroupInSlideshow,
   shiftGroup as shiftGroupInSlideshow,
 } from "../../library/group-edits";
-import { restoreOrder, shuffleSlideshow } from "../../library/shuffle-edits";
+import {
+  restoreOrder,
+  shuffleSlideshow,
+  sortSlideshowByCaptureDate,
+} from "../../library/shuffle-edits";
 import {
   removePicture,
   renameSlideshow,
@@ -12,20 +16,25 @@ import {
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import type { Toaster } from "../toast/toaster";
 import type { AddUndo } from "./add-undo";
+import type { OrderUndo } from "./order-undo";
 import type { RemovalUndo } from "./removal-undo";
-import type { ShuffleUndo } from "./shuffle-undo";
+import type { ResetUndo } from "./reset-undo";
 
 /** What `PictureListEditor` needs from the screen to word its toasts. */
 export interface PictureListPorts {
   readonly toaster: Pick<Toaster, "show">;
   /** Why the last picture stays, and how to discard the whole slideshow instead. */
   readonly lastPictureText: () => string;
+  /** The undo toast's text after a picture's caption was cleared. */
+  readonly captionClearedText: () => string;
   /** Why removing every picture of a selection is refused instead. */
   readonly everyPictureText: () => string;
   /** The title from the capture dates, which an emptied title falls back to. */
   readonly automaticTitle: (slideshow: StoredSlideshow) => string;
   /** The undo toast's text after `count` pictures were shuffled. */
   readonly shuffledText: (count: number) => string;
+  /** The undo toast's text after `count` pictures were sorted by capture date. */
+  readonly sortedByDateText: (count: number) => string;
   /** Uniform in [0, 1); what a shuffle draws its order from. */
   readonly random: () => number;
 }
@@ -34,7 +43,8 @@ export interface PictureListPorts {
 export interface PictureListUndos {
   readonly removal: RemovalUndo;
   readonly add: AddUndo;
-  readonly shuffle: ShuffleUndo;
+  readonly order: OrderUndo;
+  readonly reset: ResetUndo;
 }
 
 /**
@@ -121,10 +131,29 @@ export class PictureListEditor {
     if (shuffled === before) {
       return;
     }
-    const previousIds = before.pictures.map((picture) => picture.id);
     this.#undos.removal.end();
     this.#apply(shuffled);
-    this.#undos.shuffle.offer(this.#ports.shuffledText(shuffled.pictures.length), () =>
+    this.#offerOrderUndo(this.#ports.shuffledText(shuffled.pictures.length), before);
+  }
+
+  /**
+   * Puts every picture back in capture-date order, which ends the user's own order; nothing
+   * happens while the order is not own. Its toast undoes just the order, like a shuffle's.
+   */
+  sortByDate(): void {
+    const before = this.#current();
+    const sorted = sortSlideshowByCaptureDate(before);
+    if (sorted === before) {
+      return;
+    }
+    this.#undos.removal.end();
+    this.#apply(sorted);
+    this.#offerOrderUndo(this.#ports.sortedByDateText(sorted.pictures.length), before);
+  }
+
+  #offerOrderUndo(text: string, before: StoredSlideshow): void {
+    const previousIds = before.pictures.map((picture) => picture.id);
+    this.#undos.order.offer(text, () =>
       this.#apply(restoreOrder(this.#current(), previousIds, before.ownOrder)),
     );
   }
@@ -137,12 +166,27 @@ export class PictureListEditor {
 
   /** Stores the caption as typed, normalised; a keystroke that changes nothing stores nothing. */
   setCaption(pictureId: string, typed: string): void {
+    this.#undos.reset.supersede(pictureId, "caption");
     const slideshow = this.#current();
     const edited = setPictureCaption(slideshow, pictureId, typed);
     const index = slideshow.pictures.findIndex((picture) => picture.id === pictureId);
     if (edited.pictures[index]?.caption !== this.#picture(pictureId).caption) {
       this.#apply(edited);
     }
+  }
+
+  /** Removes the caption at once; the toast's undo brings the previous text back. */
+  clearCaption(pictureId: string): void {
+    const previous = this.#picture(pictureId).caption;
+    if (previous === undefined) {
+      return;
+    }
+    this.setCaption(pictureId, "");
+    this.#undos.reset.offer(pictureId, "caption", this.#ports.captionClearedText(), () => {
+      if (this.#current().pictures.some((picture) => picture.id === pictureId)) {
+        this.setCaption(pictureId, previous);
+      }
+    });
   }
 
   /** Removes one picture at once, adding it to the shown removal batch. */

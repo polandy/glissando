@@ -10,6 +10,7 @@ afterEach(() => destroy());
 function mountStart(demo?: { visible: boolean; state: DemoSlideshowState; onLoad: () => void }) {
   const mounted = mountWithTranslator(StartScreen, {
     slideshows: [],
+    today: "2025-12-01T10:00:00Z",
     focusSearches: new Map(),
     serverFocusSearches: new Map(),
     onCreate: () => {},

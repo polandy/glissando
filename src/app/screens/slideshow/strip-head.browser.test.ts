@@ -12,15 +12,20 @@ afterEach(() => {
   destroy = null;
 });
 
-function mountHead(narrow: boolean, { selecting = false, onToggleSelect = () => {} } = {}) {
+function mountHead(
+  narrow: boolean,
+  { selecting = false, ownOrder = false, onToggleSelect = () => {} } = {},
+) {
   const adds: string[] = [];
   const shuffles: string[] = [];
+  const sorts: string[] = [];
   const mounted = mountWithTranslator(StripHead, {
     count: 24,
-    ownOrder: false,
+    ownOrder,
     selecting,
     onToggleSelect,
     onShuffle: () => shuffles.push("shuffle"),
+    onSortByDate: () => sorts.push("sort"),
     onAdd: () => adds.push("add"),
   });
   destroy = mounted.destroy;
@@ -29,18 +34,18 @@ function mountHead(narrow: boolean, { selecting = false, onToggleSelect = () => 
   mounted.target.style.width = narrow ? "400px" : "1000px";
   const buttons = [...mounted.target.querySelectorAll<HTMLButtonElement>("button")];
   const addButton = buttons.find(
-    (button) => button.getAttribute("aria-label") === "Medien hinzufügen",
+    (button) => button.getAttribute("aria-label") === "Bilder hinzufügen",
   );
   const selectButton = buttons.find((button) => button.getAttribute("aria-label") === "Auswählen");
   if (addButton === undefined || selectButton === undefined) {
     throw new Error("the strip head shows no Select or Add media button");
   }
-  return { button: addButton, selectButton, adds, shuffles, buttons };
+  return { button: addButton, selectButton, adds, shuffles, sorts, buttons };
 }
 
 describe("StripHead's Add media", () => {
   it.each([
-    { layout: "wide", narrow: false, label: "Medien hinzufügen" },
+    { layout: "wide", narrow: false, label: "Bilder hinzufügen" },
     { layout: "narrow", narrow: true, label: "Hinzufügen" },
   ])(
     "reads $label in the $layout layout, named in full for assistive technology",
@@ -48,7 +53,7 @@ describe("StripHead's Add media", () => {
       const { button } = mountHead(narrow);
 
       expect(button.innerText.trim()).toBe(label);
-      expect(button.getAttribute("aria-label")).toBe("Medien hinzufügen");
+      expect(button.getAttribute("aria-label")).toBe("Bilder hinzufügen");
     },
   );
 
@@ -87,6 +92,7 @@ describe("StripHead's add", () => {
       selecting: false,
       onToggleSelect: () => {},
       onShuffle: () => {},
+      onSortByDate: () => {},
       add,
     });
     destroy = mounted.destroy;
@@ -94,7 +100,7 @@ describe("StripHead's add", () => {
     expect(mounted.target.querySelector(".own-add")).not.toBeNull();
     expect(
       [...mounted.target.querySelectorAll("button")].some(
-        (button) => button.getAttribute("aria-label") === "Medien hinzufügen",
+        (button) => button.getAttribute("aria-label") === "Bilder hinzufügen",
       ),
     ).toBe(false);
   });
@@ -110,6 +116,34 @@ describe("StripHead's Shuffle", () => {
   });
 });
 
+const SORT_BY_DATE_LABEL = "Nach Aufnahmedatum sortieren";
+const sortByDateButton = (buttons: readonly HTMLButtonElement[]) =>
+  buttons.find((button) => button.getAttribute("aria-label") === SORT_BY_DATE_LABEL);
+
+describe("StripHead's Sort by date", () => {
+  it("is left out while the pictures are in date order, with Shuffle there", () => {
+    const { buttons } = mountHead(false, { ownOrder: false });
+
+    expect(buttons.some((button) => button.getAttribute("aria-label") === "Mischen")).toBe(true);
+    expect(sortByDateButton(buttons)).toBeUndefined();
+  });
+
+  it("sits between Shuffle and Select while the order is the user's own", () => {
+    const { buttons } = mountHead(false, { ownOrder: true });
+
+    const labels = buttons.map((button) => button.getAttribute("aria-label"));
+    expect(labels.slice(0, 3)).toEqual(["Mischen", SORT_BY_DATE_LABEL, "Auswählen"]);
+  });
+
+  it("asks for the capture-date order", () => {
+    const { buttons, sorts } = mountHead(false, { ownOrder: true });
+
+    sortByDateButton(buttons)?.click();
+
+    expect(sorts).toEqual(["sort"]);
+  });
+});
+
 describe("StripHead's hint", () => {
   it("does not mention holding to select, sorted by capture date", () => {
     const mounted = mountWithTranslator(StripHead, {
@@ -118,6 +152,7 @@ describe("StripHead's hint", () => {
       selecting: false,
       onToggleSelect: () => {},
       onShuffle: () => {},
+      onSortByDate: () => {},
       onAdd: () => {},
     });
     destroy = mounted.destroy;
@@ -135,17 +170,23 @@ function overlaps(a: DOMRect, b: DOMRect): boolean {
 }
 
 describe("StripHead on a 412 px phone", () => {
-  it.each(["de", "en"] as const)(
-    "keeps the eyebrow and the count clear of the buttons in %s",
-    (locale) => {
+  it.each([
+    { locale: "de", ownOrder: false, buttonCount: 3 },
+    { locale: "en", ownOrder: false, buttonCount: 3 },
+    { locale: "de", ownOrder: true, buttonCount: 4 },
+    { locale: "en", ownOrder: true, buttonCount: 4 },
+  ] as const)(
+    "keeps the eyebrow and the count clear of the buttons in $locale, own order $ownOrder",
+    ({ locale, ownOrder, buttonCount }) => {
       const mounted = mountWithTranslator(
         StripHead,
         {
           count: 248,
-          ownOrder: false,
+          ownOrder,
           selecting: false,
           onToggleSelect: () => {},
           onShuffle: () => {},
+          onSortByDate: () => {},
           onAdd: () => {},
         },
         { current: createTranslator(locale) },
@@ -160,7 +201,8 @@ describe("StripHead on a 412 px phone", () => {
         throw new Error("the strip head shows no eyebrow or count");
       }
 
-      expect(buttons).toHaveLength(3);
+      expect(buttons).toHaveLength(buttonCount);
+      expect(mounted.target.scrollWidth).toBeLessThanOrEqual(mounted.target.clientWidth);
       expect(eyebrow.scrollWidth).toBeLessThanOrEqual(eyebrow.clientWidth);
       for (const button of buttons) {
         const box = button.getBoundingClientRect();

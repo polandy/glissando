@@ -1,5 +1,7 @@
 import type { Clock, FrameScheduler, MusicPlayback } from "../ports";
 import { MusicOutput, type MusicVolume } from "./music-output";
+import { playingSecondsOf } from "./media-position";
+import { DOM_EXCEPTION, isDomException } from "../../dom-exception/dom-exception";
 
 export const performanceClock: Clock = { now: () => performance.now() };
 
@@ -7,9 +9,6 @@ export const animationFrames: FrameScheduler = {
   request: (callback) => requestAnimationFrame(() => callback()),
   cancel: (handle) => cancelAnimationFrame(handle),
 };
-
-/** What a media element's `play()` rejects with when a later `pause()` interrupts it. */
-const INTERRUPTED_PLAY = "AbortError";
 
 /** Without Web Audio: the element's own volume, which iOS ignores. */
 const elementVolumeOnly = () => null;
@@ -35,7 +34,7 @@ export class AudioElementMusic implements MusicPlayback {
     this.#audio.currentTime = atSeconds;
     // A pause before the start lands (a quick seek pauses and plays again) is not a refusal.
     return this.#audio.play().catch((error: unknown) => {
-      if (!(error instanceof DOMException && error.name === INTERRUPTED_PLAY)) {
+      if (!isDomException(error, DOM_EXCEPTION.aborted)) {
         throw error;
       }
     });
@@ -43,6 +42,14 @@ export class AudioElementMusic implements MusicPlayback {
 
   setVolume(volume: number): void {
     this.#volume.set(volume);
+  }
+
+  playingSeconds(): number | null {
+    return playingSecondsOf(this.#audio);
+  }
+
+  seek(atSeconds: number): void {
+    this.#audio.currentTime = atSeconds;
   }
 
   pause(): void {

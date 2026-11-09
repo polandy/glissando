@@ -114,6 +114,16 @@ request "$PROXY" GET /
 expect_equal "index.html is served at /" 200 "$STATUS"
 grep -q "<title>Glissando</title>" "$WORK/body" && pass "/ is Glissando's index.html" || fail "/ is Glissando's index.html"
 
+echo "# the healthcheck and the access log"
+request "$PROXY" GET /healthz
+expect_equal "/healthz answers 200" 200 "$STATUS"
+request "$PROXY" GET "/?sentinel=after-the-healthcheck"
+wait_for_log "$PROXY" "after-the-healthcheck"
+docker logs "$PROXY" 2>&1 | grep -F "after-the-healthcheck" | grep -F '"logger":"http.log.access.access"' >/dev/null &&
+	pass "an ordinary request is in the access log" || fail "an ordinary request is in the access log"
+docker logs "$PROXY" 2>&1 | grep -F '"uri":"/healthz' >/dev/null &&
+	fail "the healthcheck is logged" || pass "the healthcheck is never logged"
+
 echo "# allowed reads reach Immich, without the prefix, with only the server's key"
 allowed=(
 	"GET /immich/api/server/version /api/server/version"
@@ -143,6 +153,10 @@ forbidden=(
 	"GET /immich/api/assets/not-a-uuid-but-thirty-six-characters/video/playback"
 	"POST /immich/api/assets/$UUID/video/playback"
 	"GET /immich/api/assets/not-a-uuid-but-thirty-six-characters/original"
+	"GET /immich/api/assets/$UUID"
+	"GET /immich/api/assets/$UUID/"
+	"PUT /immich/api/assets/$UUID"
+	"DELETE /immich/api/assets/$UUID"
 	"GET /immich/api/albums/../users/me"
 	"GET /immich/api/albums/%2e%2e/users/me"
 	"GET /immich/api/server/version/../../users/me"

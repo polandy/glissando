@@ -9,7 +9,7 @@ const PICTURE_SIZE = { width: 640, height: 480 };
 const MS_PER_SECOND = 1000;
 
 /** A stereo 16-bit WAV of a sine tone of `amplitude` (0 to 1). */
-export function sineWav(amplitude: number): Blob {
+function sineWav(amplitude: number): Blob {
   const channels = 2;
   const bytesPerSample = 2;
   const frames = SAMPLE_RATE * TONE_SECONDS;

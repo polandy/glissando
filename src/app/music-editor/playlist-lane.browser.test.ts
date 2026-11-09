@@ -42,14 +42,10 @@ const playlist: PlaylistView = {
   repeatMusic: false,
 };
 
-function mount(
-  view: PlaylistView,
-  onRepeatMusic: (repeatMusic: true | undefined) => void = () => {},
-  onAddSongs: (files: readonly File[]) => void = () => {},
-) {
+function mount(view: PlaylistView) {
   const lane = mountWithTranslator(
     PlaylistLane,
-    { playlist: view, onRepeatMusic, onAddSongs },
+    { playlist: view },
     { current: createTranslator("en") },
   );
   unmounts.push(lane.destroy);
@@ -71,32 +67,11 @@ describe("PlaylistLane", () => {
     );
   });
 
-  it("shows a mint note with the shrunk share while the pictures fit the music", () => {
-    const lane = mount({ ...playlist, fittedShareMs: 3_300 });
+  it("carries no note and no buttons: the outcome line and the add control live elsewhere", () => {
+    const lane = mount({ ...playlist, overMs: 12_000, fittedShareMs: 3_300 });
 
-    const note = lane.target.querySelector(".fit-note.mint");
-    expect(note?.textContent).toContain("3.3");
-    expect(lane.target.querySelector(".fit-note.lemon")).toBeNull();
-  });
-
-  it("offers to repeat the music or add a song while the pictures outlast it", () => {
-    const repeated: (true | undefined)[] = [];
-    const lane = mount({ ...playlist, overMs: 12_000 }, (value) => repeated.push(value));
-
-    const note = lane.target.querySelector(".fit-note.lemon");
-    expect(note?.textContent).toContain("12");
-    const repeatButton = [...lane.target.querySelectorAll("button")].find((button) =>
-      button.textContent?.includes("Repeat the music"),
-    );
-    expect(repeatButton).toBeDefined();
-    repeatButton?.click();
-    expect(repeated).toEqual([true]);
-  });
-
-  it("never shows the old silence wording once the pictures outlast the music", () => {
-    const lane = mount({ ...playlist, overMs: 12_000 });
-
-    expect(lane.target.textContent).not.toContain("Last pictures in silence");
+    expect(lane.target.querySelector(".fit-note")).toBeNull();
+    expect(lane.target.querySelectorAll("button")).toHaveLength(0);
   });
 
   it("marks a repeated song's block and keys it by its start, not its song id", () => {
@@ -141,12 +116,11 @@ describe("PlaylistLane", () => {
     expect(lane.target.querySelectorAll(".crossfade")).toHaveLength(1);
   });
 
-  it("labels a repeating playlist and the slideshow's repeating lane", () => {
+  it("labels a repeating playlist", () => {
     const repeating: PlaylistView = { ...playlist, slideshowMs: 200_000, repeatMusic: true };
     const lane = mount(repeating);
 
     expect(lane.target.textContent).toContain("Repeats until the slideshow ends");
-    expect(lane.target.textContent).toContain("Music repeats");
   });
 
   describe("without the details", () => {

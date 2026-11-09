@@ -40,7 +40,7 @@ export class RemoteStreamFormatError extends Error {
 }
 
 /** A command answered other than 204, 404 `noSuchTv` or 409 `tvAway`. */
-export class RemoteCommandError extends Error {
+class RemoteCommandError extends Error {
   override readonly name = "RemoteCommandError";
 }
 

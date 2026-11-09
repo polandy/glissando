@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separator from "../components/Separator.svelte";
   import type { Snippet } from "svelte";
   import { getTranslator } from "../i18n/context";
   import DropZone from "./DropZone.svelte";
@@ -49,8 +50,7 @@
       {t("import.or")}
       <button class="btn ghost inline" type="button" onclick={onPickFolder}>
         {t("import.pickFolder")}
-      </button>
-      · {t("import.dropHint")}
+      </button><Separator />{t("import.dropHint")}
     </span>
     <span class="formats">{t("import.pictureFormats")}</span>
   </DropZone>

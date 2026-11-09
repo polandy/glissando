@@ -167,7 +167,7 @@ describe("readManifest", () => {
     ],
     ["ownOrder other than true", withSlideshow({ ownOrder: false })],
     [
-      "an own motion zoomed past the maximum",
+      "a chosen motion zoomed past the maximum",
       withSlideshow({
         pictures: [
           {
@@ -180,7 +180,7 @@ describe("readManifest", () => {
         ],
       }),
     ],
-    ["an own motion in a version 1 file", asText({ ...manifest(), formatVersion: 1 })],
+    ["a chosen motion in a version 1 file", asText({ ...manifest(), formatVersion: 1 })],
     ["a caption in a version 2 file", asText({ ...manifest(), formatVersion: 2 })],
     [
       "an empty caption",
@@ -198,7 +198,7 @@ describe("readManifest", () => {
     expect(reading.kind === "damaged" && reading.reason.length).toBeGreaterThan(0);
   });
 
-  it("names a bad own motion's path, its value and what is expected, once", () => {
+  it("names a bad chosen motion's path, its value and what is expected, once", () => {
     const text = withSlideshow({
       pictures: [
         {

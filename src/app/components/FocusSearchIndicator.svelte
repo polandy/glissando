@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { RunningSearch } from "../../library/running-search";
   import { getTranslator } from "../i18n/context";
+  import Separated from "./Separated.svelte";
+  import { SEPARATOR } from "./separator";
 
   /**
    * The background faces-and-subjects search's place in the header, in the export indicator's
@@ -12,6 +14,9 @@
   const { t } = getTranslator();
   const fraction = $derived(search.done / search.total);
   const label = $derived(t(search.again ? "start.searchingAgain" : "start.searchingSubjects"));
+  const progressLine = $derived(
+    [label, t("start.searchProgress", { done: search.done, total: search.total })].join(SEPARATOR),
+  );
 </script>
 
 <div
@@ -34,8 +39,11 @@
     />
   </svg>
   <span class="label">
-    {label} · {t("start.searchProgress", { done: search.done, total: search.total })}
+    <Separated text={progressLine} />
   </span>
+  <span class="label-short"
+    >{t("start.searchShort", { done: search.done, total: search.total })}</span
+  >
 </div>
 <!-- Beside an export, it sits on top of the export's thicker line, so both stay readable. -->
 <span
@@ -88,9 +96,16 @@
       transition: none;
     }
   }
+  .label-short {
+    display: none;
+  }
+  /* A phone has no room for the long label; the short one keeps the ring from being the only signal. */
   @container (max-width: 720px) {
     .label {
       display: none;
+    }
+    .label-short {
+      display: inline;
     }
   }
 </style>

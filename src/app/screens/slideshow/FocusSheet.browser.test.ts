@@ -1,5 +1,5 @@
 import { flushSync } from "svelte";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import type { PicturesFocus } from "../../focus/pictures-focus";
 import { mountWithTranslator } from "../../testing/mount-with-translator";
 import { reactiveProps } from "../../testing/reactive-props.svelte";
@@ -14,7 +14,7 @@ const PICTURES = [
   { id: "c", thumbnailUrl: PIXEL, ownMotion: false },
 ] as const;
 
-/** "a" has its own motion and a found face; "b" failed; "c" found scenery (ADR-0041). */
+/** "a" has its chosen motion and a found face; "b" failed; "c" found scenery (ADR-0041). */
 const FOCUS: PicturesFocus = {
   found: new Map([
     ["a", { kind: "subject", box: { x: 0.1, y: 0.1, width: 0.5, height: 0.5 }, foundBy: "face" }],
@@ -32,22 +32,20 @@ afterEach(() => {
 });
 
 function setUp(focus: PicturesFocus) {
-  const onEdit = vi.fn();
-  const onLookAgain = vi.fn();
-  const onClose = vi.fn();
+  const lookAgains: (readonly string[])[] = [];
   const props = reactiveProps({
     focus,
     pictures: PICTURES,
     search: undefined,
     passPaused: false,
     onServer: false,
-    onEdit,
-    onLookAgain,
-    onClose,
+    onEdit: () => undefined,
+    onLookAgain: (ids: readonly string[]) => lookAgains.push(ids),
+    onClose: () => undefined,
   });
   const mounted = mountWithTranslator(FocusSheet, props);
   destroy = mounted.destroy;
-  return { target: mounted.target, props, onEdit, onLookAgain, onClose };
+  return { target: mounted.target, props, lookAgains };
 }
 
 function tileTitles(target: HTMLElement): (string | null)[] {
@@ -59,8 +57,8 @@ function ownBadgeCount(target: HTMLElement): number {
 }
 
 describe("FocusSheet", () => {
-  it("shows each picture's status and marks only the own-motion one, offering to try the failure again", () => {
-    const { target, onLookAgain } = setUp(FOCUS);
+  it("shows each picture's status and marks only the chosen-motion one, offering to try the failure again", () => {
+    const { target, lookAgains } = setUp(FOCUS);
 
     expect(tileTitles(target)).toEqual(["Gesichter", "Fehlgeschlagen", "Landschaft"]);
     expect(ownBadgeCount(target)).toBe(1);
@@ -70,11 +68,10 @@ describe("FocusSheet", () => {
     );
     tryAgain?.click();
 
-    expect(onLookAgain).toHaveBeenCalledTimes(1);
-    expect(onLookAgain).toHaveBeenCalledWith(["b"]);
+    expect(lookAgains).toEqual([["b"]]);
   });
 
-  it("looking again at the failed picture updates only it, leaving the others and the own-motion badge as they were", () => {
+  it("looking again at the failed picture updates only it, leaving the others and the chosen-motion badge as they were", () => {
     const { target, props } = setUp(FOCUS);
 
     // The parent moved "b" from failed to searching; "a" and "c" keep their earlier result.
@@ -96,15 +93,14 @@ describe("FocusSheet", () => {
     ).toBe(false);
   });
 
-  it("'look again at all' asks for every picture, including the one with its own motion", () => {
-    const { target, onLookAgain } = setUp(FOCUS);
+  it("'look again at all' asks for every picture, including the one with its chosen motion", () => {
+    const { target, lookAgains } = setUp(FOCUS);
 
     const lookAgainAll = [...target.querySelectorAll("button")].find((button) =>
       button.textContent?.includes("Alle 3 Bilder erneut ansehen"),
     );
     lookAgainAll?.click();
 
-    expect(onLookAgain).toHaveBeenCalledTimes(1);
-    expect(onLookAgain).toHaveBeenCalledWith(["a", "b", "c"]);
+    expect(lookAgains).toEqual([["a", "b", "c"]]);
   });
 });

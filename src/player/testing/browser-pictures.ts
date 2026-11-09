@@ -1,6 +1,6 @@
 import type { KenBurnsAt } from "../ken-burns";
 import type { Framing, Slideshow } from "../slideshow";
-import type { BitmapPicture } from "../browser/bitmap-loader";
+import type { PixelPicture } from "../browser/pixel-loader";
 import { ImageElementLoader, type BrowserPicture } from "../browser/picture-loader";
 
 export const RED = [255, 0, 0] as const;
@@ -39,11 +39,15 @@ function pictureFrom(draw: (context: CanvasRenderingContext2D) => void): Promise
   return new ImageElementLoader().load(canvasOf(draw).toDataURL());
 }
 
-async function bitmapFrom(
-  draw: (context: CanvasRenderingContext2D) => void,
-): Promise<BitmapPicture> {
-  const bitmap = await createImageBitmap(canvasOf(draw));
-  return { bitmap, width: bitmap.width, height: bitmap.height };
+/** `canvas`'s pixels, as the decode worker hands a picture to the WebGL renderer. */
+export function pixelsOfCanvas(canvas: HTMLCanvasElement | OffscreenCanvas): PixelPicture {
+  const { width, height } = canvas;
+  const context = canvas.getContext("2d") as
+    CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null;
+  if (context === null) {
+    throw new Error("no 2D canvas context to read a test picture's pixels");
+  }
+  return { width, height, data: context.getImageData(0, 0, width, height).data };
 }
 
 function fillSolid(colour: Rgb): (context: CanvasRenderingContext2D) => void {
@@ -71,17 +75,12 @@ export function solidPicture(colour: Rgb): Promise<BrowserPicture> {
   return pictureFrom(fillSolid(colour));
 }
 
-/** Red top left, green top right, blue bottom left, white bottom right. */
-export function quadrantPicture(): Promise<BrowserPicture> {
-  return pictureFrom(fillQuadrants);
-}
-
 /** A live clip frame stand-in: a canvas of one colour, which a test repaints for the next frame. */
 export function solidCanvas(colour: Rgb): HTMLCanvasElement {
   return canvasOf(fillSolid(colour));
 }
 
-/** `quadrantPicture` as a live clip frame stand-in. */
+/** The quadrant picture (red top left, green top right, blue bottom left, white bottom right) as a live clip frame stand-in. */
 export function quadrantCanvas(): HTMLCanvasElement {
   return canvasOf(fillQuadrants);
 }
@@ -92,22 +91,21 @@ export function repaint(canvas: HTMLCanvasElement, colour: Rgb): void {
 }
 
 /** `solidPicture` as the WebGL renderer draws it. */
-export function solidBitmap(colour: Rgb): Promise<BitmapPicture> {
-  return bitmapFrom(fillSolid(colour));
+export function solidPixels(colour: Rgb): PixelPicture {
+  return pixelsOfCanvas(canvasOf(fillSolid(colour)));
 }
 
-/** `quadrantPicture` as the WebGL renderer draws it. */
-export function quadrantBitmap(): Promise<BitmapPicture> {
-  return bitmapFrom(fillQuadrants);
+/** The quadrant picture as the WebGL renderer draws it. */
+export function quadrantPixels(): PixelPicture {
+  return pixelsOfCanvas(canvasOf(fillQuadrants));
 }
 
 /** A solid-colour picture of `size`, to test layouts that depend on the picture's aspect ratio. */
-export async function solidBitmapOfSize(
+export function solidPixelsOfSize(
   colour: Rgb,
   size: { width: number; height: number },
-): Promise<BitmapPicture> {
-  const bitmap = await createImageBitmap(canvasOf(fillSolidAt(colour, size), size));
-  return { bitmap, width: bitmap.width, height: bitmap.height };
+): PixelPicture {
+  return pixelsOfCanvas(canvasOf(fillSolidAt(colour, size), size));
 }
 
 function fillSolidAt(

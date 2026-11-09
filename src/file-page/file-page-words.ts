@@ -18,8 +18,9 @@ export interface FilePageWords extends PlayerPageWords {
   readonly noManifest: string;
   /** "… {files} …". */
   readonly missing: string;
-  /** "… {reason}". */
   readonly damaged: string;
+  readonly showDetails: string;
+  readonly hideDetails: string;
   readonly foreign: string;
   readonly newer: string;
 }
@@ -34,6 +35,8 @@ const FILE_TEXT_KEYS = [
   "noManifest",
   "missing",
   "damaged",
+  "showDetails",
+  "hideDetails",
   "foreign",
   "newer",
 ] as const satisfies readonly Exclude<keyof FilePageWords, "pictures">[];
@@ -58,8 +61,13 @@ export function folderProblemText(words: FilePageWords, problem: FolderProblem):
     case "newer":
       return words.newer;
     case "damaged":
-      return fill(words.damaged, { reason: problem.reason });
+      return words.damaged;
     case "missing":
       return fill(words.missing, { files: problem.files.join(FILE_LIST_SEPARATOR) });
   }
+}
+
+/** The parser's own reason, for the fold under the sentence; only a damaged file has one. */
+export function folderProblemDetails(problem: FolderProblem): string | null {
+  return problem.kind === "damaged" ? problem.reason : null;
 }

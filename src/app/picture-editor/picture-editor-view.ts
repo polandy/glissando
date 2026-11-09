@@ -36,7 +36,7 @@ import { durationBasis, type DurationBasis } from "./picture-editor-duration-bas
 import { focusLineView, type FocusLineView } from "./focus-indication";
 
 export interface TransitionView {
-  /** The own choice, else the automatic one. */
+  /** The chosen value, else the automatic one. */
   readonly choice: TransitionChoice;
   readonly own: boolean;
   /** What the slideshow's default gives the picture's position. */
@@ -91,9 +91,9 @@ export interface PictureEditorView {
   readonly ownMotion: boolean;
   /** What the automatic motion aims at, or that the search for it is still to come. */
   readonly focus: PictureFocusStatus;
-  /** The focus line's state and action: the 10-state search status, own motion included. */
+  /** The focus line's state and action: the 10-state search status, chosen motion included. */
   readonly focusLine: FocusLineView;
-  /** How long the picture's slide shows: its own duration or the automatic one. */
+  /** How long the picture's slide shows: its chosen duration or the automatic one. */
   readonly durationMs: number;
   readonly ownDuration: boolean;
   readonly durationBasis: DurationBasis;
@@ -135,17 +135,30 @@ export function pictureEditorView(
   const units = slideUnits(pictures, stored.portraitPictures);
   const timedPictures = units.map((unit) => timedUnit(pictures, unit));
   const target = slideshowTargetSecondsPerPicture(stored, beats);
-  const filledMs = picturesFillMs(playlistMs(stored), timedPictures, target, stored.repeatMusic);
-  const durationsMs = slideDurationsMs(
-    timedPictures,
-    filledMs,
-    target ?? stored.secondsPerPicture,
-    beatsMs,
-    energy,
-  );
+  const slideDurations = (timed: typeof timedPictures) =>
+    slideDurationsMs(
+      timed,
+      picturesFillMs(playlistMs(stored), timed, target, stored.repeatMusic),
+      target ?? stored.secondsPerPicture,
+      beatsMs,
+      energy,
+    );
+  const durationsMs = slideDurations(timedPictures);
   const slideIndex = slideOfPicture(units, index);
   // One duration per slide unit; every slide index below is in range.
   const durationAt = (slide: number) => durationsMs[slide] as number;
+  // The same pipeline with this picture's chosen duration cleared: what "automatic" would give.
+  const automaticMs =
+    picture.durationMs === undefined
+      ? durationAt(slideIndex)
+      : (slideDurations(
+          units.map((unit) =>
+            timedUnit(
+              pictures.map((each) => (each.id === pictureId ? withoutDuration(each) : each)),
+              unit,
+            ),
+          ),
+        )[slideIndex] as number);
   const nextUnit = units[slideIndex + 1];
   const defaultTransition = slideshowTransition(stored);
   const automatic = automaticTransition(slideIndex, defaultTransition);
@@ -172,7 +185,7 @@ export function pictureEditorView(
     ),
     durationMs: durationAt(slideIndex),
     ownDuration: picture.durationMs !== undefined,
-    durationBasis: durationBasis(stored, units, durationsMs),
+    durationBasis: durationBasis(stored, units, durationsMs, automaticMs),
     transition: {
       choice: picture.transition ?? automatic,
       own: picture.transition !== undefined,
@@ -230,6 +243,12 @@ function layoutOf(
     blurredFill: summary.blurredFill,
     settingOverride: portraitPictures ?? null,
   };
+}
+
+function withoutDuration(picture: StoredPicture): StoredPicture {
+  const copy = { ...picture };
+  delete copy.durationMs;
+  return copy;
 }
 
 function sizeOf(picture: StoredPicture): Size {

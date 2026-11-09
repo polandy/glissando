@@ -1,55 +1,45 @@
 import type { Message } from "./messages.ts";
 
-/** German copy of a picture's own duration and transition; part of the German catalogue. */
+/** German copy of a picture's chosen picture length and transition; part of the German catalogue. */
 export const deTiming = {
-  "slideshow.pictureTimes": "Bildzeiten",
+  "slideshow.pictureTimes": "Bilddauer",
   "slideshow.musicLength": "{duration} Musik",
-  "slideshow.pictureLabelOwnDuration": ", eigene Dauer {duration}",
-  "slideshow.pictureLabelOwnTransition": ", eigener Übergang {effect}",
+  "slideshow.pictureLabelOwnDuration": ", gewählte Bilddauer {duration}",
+  "slideshow.pictureLabelOwnTransition": ", gewählter Übergang {effect}",
   "editor.endOfSlideshow": "Ende der Diashow",
   "editor.previewTransition": "{duration}, darin {effect} {length} zu Bild {next}",
   "editor.previewCut": "{duration}, dann Schnitt zu Bild {next}",
   "editor.previewEnd": "{duration}, dann endet die Diashow",
-  "editor.duration": "Dauer",
-  "editor.ownDuration": "Eigene Dauer",
-  "editor.durationShorter": "Eine halbe Sekunde kürzer",
-  "editor.durationLonger": "Eine halbe Sekunde länger",
-  "editor.durationHintAutomatic":
-    "Die Sekunden pro Bild dieser Diashow. Mit + und − wird es eine eigene Dauer.",
-  "editor.durationHintOwn":
-    "Automatisch wären es {duration}, die Sekunden pro Bild dieser Diashow.",
-  "editor.durationHintMusic": {
-    one: "Die Musik gehört dem einen Bild ohne eigene Dauer.",
-    other: "Die Musik verteilt sich gleichmäßig auf die {count} Bilder ohne eigene Dauer.",
-  },
+  "editor.timing": "Zeitablauf",
+  "editor.ownTiming": "Gewählt",
+  "editor.timingAlreadyAutomatic": "Der Zeitablauf ist schon automatisch",
+  "editor.pictureLength": "Bilddauer",
+  "editor.lengthScale": "{seconds} s",
+  "editor.lengthAutomaticMark": "Automatisch: {seconds}",
+  "editor.durationHintAutomatic": "Folgt der Bilddauer der Diashow.",
+  "editor.durationHintOwn": "Automatisch wären es {duration}.",
+  "editor.durationHintMusic": "Folgt der Musik: {duration}.",
   "editor.durationHintMusicOwn": {
-    one: "Das übrige Bild bekommt den Rest der Musik: {share}.",
-    other: "Die übrigen {count} Bilder teilen sich den Rest der Musik: je {share}.",
+    one: "Das übrige Bild steht jetzt {share}.",
+    other: "Die übrigen {count} Bilder stehen jetzt je {share}.",
   },
   "editor.durationHintMusicClamped": {
-    one: "Die Musik ist aufgebraucht; das übrige Bild bekommt das Minimum, {share}.",
-    other:
-      "Die Musik ist aufgebraucht; die übrigen {count} Bilder bekommen das Minimum, je {share}.",
+    one: "Das übrige Bild steht jetzt nur {share}, so kurz wie möglich.",
+    other: "Die übrigen {count} Bilder stehen jetzt nur je {share}, so kurz wie möglich.",
   },
   "editor.durationHintAllOwn":
-    "Alle Bilder haben eine eigene Dauer; die Diashow folgt nicht mehr der Länge der Musik.",
-  "editor.durationRange": "{min} bis {max} s.",
-  "editor.durationAlreadyAutomatic": "Die Dauer ist schon automatisch",
-  "editor.transition": "Übergang",
+    "Jedes Bild hat eine gewählte Bilddauer; die Musik bestimmt keine davon.",
   "editor.transitionTo": "Übergang zu Bild {number}",
-  "editor.ownTransition": "Eigener Übergang",
   "editor.lastPicture": "Letztes Bild",
   "editor.endsHere": "Hier endet die Diashow",
   "editor.endsHereRest": ", ohne Übergang.",
   "editor.storedTransitionStays":
-    "Der eigene Übergang „{effect}“ bleibt gespeichert und gilt wieder, sobald ein Bild folgt.",
+    "Der gewählte Übergang „{effect}“ bleibt gespeichert und gilt wieder, sobald ein Bild folgt.",
   "editor.transitionFollowsSlideshow": "Automatisch gilt der Übergang der Diashow: {effect}.",
   "editor.transitionsAlternate":
     "Automatisch wechseln die Übergänge ab, wie für die Diashow eingestellt.",
-  "editor.transitionHint":
-    "Dauert {length}, am Ende von Bild {number}: {share} % der Bildzeit, höchstens {max} s.",
+  "editor.transitionHint": "{effect} zu Bild {number}, {length}.",
   "editor.cutHint": "Bild {number} folgt ohne Übergang.",
-  "editor.transitionAlreadyAutomatic": "Der Übergang ist schon automatisch",
   "editor.autoTag": "Auto",
   "effect.crossfade": "Überblenden",
   "effect.push-left": "Schieben",
@@ -57,6 +47,6 @@ export const deTiming = {
   "effect.circle-open": "Kreis",
   "effect.zoom-in": "Zoom",
   "effect.dissolve": "Auflösen",
-  "effect.cut": "Schnitt",
+  "effect.cut": "Harter Schnitt",
   "effect.alternate": "Abwechselnd",
 } as const satisfies Record<string, Message>;

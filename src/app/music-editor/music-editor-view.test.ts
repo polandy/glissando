@@ -3,6 +3,8 @@ import { levelMs, syntheticLoudness } from "../../compose/energy/testing/synthet
 import { excerptLoudnessLufs, excerptPeakDbfs, MUSIC_TARGET_LOUDNESS_LUFS } from "../../loudness";
 import type { StoredMusic, StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import type { BeatsStatus } from "../beats/music-beats-known";
+import { pictureLengthNotice } from "./picture-length-notice";
+import { playlistView } from "./playlist-view";
 import { firstSongView } from "./testing/first-song-view";
 
 const LISTENING: BeatsStatus = { kind: "listening" };
@@ -53,7 +55,6 @@ describe("musicEditorView", () => {
       pictureCount: 4,
       fadeIn: { ms: 0, own: false, reason: "track-starts" },
       fadeOut: { ms: 0, own: false, reason: "track-ends" },
-      note: { kind: "shared", automaticCount: 4, shareMs: 51_000 },
     });
   });
 
@@ -79,14 +80,20 @@ describe("musicEditorView", () => {
   });
 
   it("warns when the slideshow outlasts the excerpt, naming by how much", () => {
-    const view = firstSongView(
-      slideshow({ trim: { startMs: 0, endMs: 10_000 } }, [8000, undefined, undefined, undefined]),
-      LISTENING,
-    );
+    const stored = slideshow({ trim: { startMs: 0, endMs: 10_000 } }, [
+      8000,
+      undefined,
+      undefined,
+      undefined,
+    ]);
+    const view = firstSongView(stored, LISTENING);
 
     expect(view.slideshowMs).toBe(14_000);
     expect(view.audibleEndMs).toBe(10_000);
-    expect(view.note).toEqual({ kind: "outlasts", overMs: 4000, automaticCount: 3 });
+    expect(pictureLengthNotice(playlistView(stored, new Map()))).toMatchObject({
+      kind: "music-ends-early",
+      overMs: 4000,
+    });
   });
 
   it("with every picture timed and a shorter slideshow, ends the music with it", () => {
@@ -94,46 +101,6 @@ describe("musicEditorView", () => {
 
     expect(view.audibleEndMs).toBe(10_000);
     expect(view.fadeOut).toEqual({ ms: 5000, own: false, reason: "slideshow-ends" });
-    expect(view.note).toEqual({ kind: "ends-early", endsAtMs: 10_000 });
-  });
-
-  it("with every picture timed to the excerpt exactly, ends with the music", () => {
-    const view = firstSongView(
-      slideshow({ trim: { startMs: 0, endMs: 10_000 } }, [5000, 5000]),
-      LISTENING,
-    );
-
-    expect(view.note).toEqual({ kind: "ends-with-music" });
-  });
-
-  it("counts every automatic picture sharing the music, a paired one included (ADR-0028)", () => {
-    // Four portrait pictures, automatically paired two by two: a pair's duration is one slide's,
-    // shown by both of its pictures (ADR-0028), so all four are automatic, not just two.
-    const pictures: StoredPicture[] = [0, 1, 2, 3].map((index) => ({
-      id: `p${index}`,
-      capturedAt: "2025-07-01T10:00:00Z",
-      width: 900,
-      height: 1600,
-      fileName: `p${index}.jpg`,
-      colours: { veil: "#404040", accent: "#C0C0C0" },
-    }));
-    const stored: StoredSlideshow = {
-      id: "show",
-      title: "Sommer am See",
-      createdAt: "2025-07-02T00:00:00Z",
-      pictures,
-      secondsPerPicture: 5,
-      songs: [MUSIC],
-    };
-
-    const view = firstSongView(stored, LISTENING);
-
-    expect(view.note).toEqual({
-      kind: "shared",
-      automaticCount: 4,
-      shareMs: 102_000,
-      onTheBeat: false,
-    });
   });
 
   it("resolves the envelope the player plays", () => {

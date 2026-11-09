@@ -39,6 +39,7 @@ export function slideshowSummary(
     pictureCount: stored.pictures.length,
     durationSeconds: slideshowDurationMs(stored) / MILLISECONDS_PER_SECOND,
     hasMusic: stored.songs.length > 0,
+    createdAt: stored.createdAt,
   };
 }
 

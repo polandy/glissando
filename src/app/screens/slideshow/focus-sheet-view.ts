@@ -45,7 +45,7 @@ export function focusSheetStatus(
 }
 
 /** The legend's and stacked bar's statuses, in the order the Focus sheet shows them. */
-export const FOCUS_SHEET_STATUS_ORDER: readonly FocusDisplayStatus[] = [
+const FOCUS_SHEET_STATUS_ORDER: readonly FocusDisplayStatus[] = [
   "face",
   "immich",
   "subject",
@@ -83,7 +83,7 @@ export const FOCUS_STATUS_COLOR: Readonly<Record<FocusDisplayStatus, string>> = 
 /** A legend chip, or none: the grid's tiles the chip does not cover are dimmed. */
 export type FocusSheetFilter = FocusDisplayStatus | "ownMotion" | null;
 
-/** Whether a tile is dimmed under the current legend filter; a status filter ignores own motion. */
+/** Whether a tile is dimmed under the current legend filter; a status filter ignores chosen motion. */
 export function tileDimmed(
   status: FocusDisplayStatus,
   ownMotion: boolean,

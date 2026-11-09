@@ -6,17 +6,10 @@ import Header from "./Header.svelte";
 import PictureLengthSection from "./PictureLengthSection.svelte";
 import SecondsStepper from "./SecondsStepper.svelte";
 import Toast from "./Toast.svelte";
+import { buttonNamed } from "../testing/by-role";
 
 let destroy = () => {};
 afterEach(() => destroy());
-
-function button(target: HTMLElement, label: string): HTMLButtonElement {
-  const found = target.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`);
-  if (found === null) {
-    throw new Error(`no button labelled "${label}"`);
-  }
-  return found;
-}
 
 describe("Header", () => {
   it("shows the back arrow only with a back handler, and the last crumb as the current place", () => {
@@ -27,7 +20,7 @@ describe("Header", () => {
     });
     destroy = mounted.destroy;
 
-    button(mounted.target, "Zurück").click();
+    buttonNamed(mounted.target, "Zurück").click();
 
     expect(mounted.target.querySelector('[aria-current="page"]')?.textContent).toBe(
       "Sommer am See",
@@ -58,8 +51,8 @@ describe("SecondsStepper", () => {
   it("shows the seconds in the locale and steps by half a second", () => {
     const { target, changes } = mountStepper(4.5);
 
-    button(target, "Länger").click();
-    button(target, "Kürzer").click();
+    buttonNamed(target, "Länger").click();
+    buttonNamed(target, "Kürzer").click();
 
     expect(target.textContent).toContain("4,5 s");
     expect(changes).toEqual([5, 4]);
@@ -68,24 +61,23 @@ describe("SecondsStepper", () => {
   it("disables shorter at the minimum", () => {
     const { target } = mountStepper(MIN_SECONDS_PER_PICTURE);
 
-    expect(button(target, "Länger").disabled).toBe(false);
-    expect(button(target, "Kürzer").disabled).toBe(true);
+    expect(buttonNamed(target, "Länger").disabled).toBe(false);
+    expect(buttonNamed(target, "Kürzer").disabled).toBe(true);
   });
 
   it("disables longer at the maximum", () => {
     const { target } = mountStepper(MAX_SECONDS_PER_PICTURE);
 
-    expect(button(target, "Kürzer").disabled).toBe(false);
-    expect(button(target, "Länger").disabled).toBe(true);
+    expect(buttonNamed(target, "Kürzer").disabled).toBe(false);
+    expect(buttonNamed(target, "Länger").disabled).toBe(true);
   });
 });
 
 describe("PictureLengthSection", () => {
-  function mountSection(fittedShareMs?: number) {
+  function mountSection() {
     const mounted = mountWithTranslator(PictureLengthSection, {
       ownSeconds: true,
       secondsPerPicture: 5,
-      fittedShareMs,
       onPictureLength: () => {},
       onSecondsPerPicture: () => {},
     });
@@ -93,15 +85,10 @@ describe("PictureLengthSection", () => {
     return mounted.target;
   }
 
-  it("notes the shrunk share once the pictures fit a shorter music", () => {
-    const target = mountSection(3_300);
+  it("offers an info button instead of a paragraph of mechanics", () => {
+    const target = mountSection();
 
-    expect(target.textContent).toContain("Auf 3,3 s gekürzt, damit es zur Musik passt");
-  });
-
-  it("shows no such note while the pictures do not need to shrink", () => {
-    const target = mountSection(undefined);
-
+    expect(target.querySelector("button.info")).not.toBeNull();
     expect(target.textContent).not.toContain("verkürzt");
   });
 });
@@ -121,7 +108,7 @@ describe("Toast", () => {
     destroy = mounted.destroy;
 
     mounted.target.querySelector<HTMLButtonElement>(".action")?.click();
-    button(mounted.target, "Ausblenden").click();
+    buttonNamed(mounted.target, "Ausblenden").click();
     flushSync();
 
     expect(mounted.target.querySelector('[role="alert"]')?.textContent).toContain("Erneut");

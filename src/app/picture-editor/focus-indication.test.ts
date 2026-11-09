@@ -50,7 +50,7 @@ describe("focusIndication", () => {
     expect(focusIndication({ kind: "not-looked-at" }, false)).toEqual({ kind: "nothing" });
   });
 
-  it("shows nothing of the focus while the picture has its own motion", () => {
+  it("shows nothing of the focus while the picture has its chosen motion", () => {
     expect(focusIndication({ kind: "subject", box: FACE, foundBy: "face" }, true)).toEqual({
       kind: "nothing",
     });
@@ -80,7 +80,7 @@ describe("focusLineView", () => {
     ownMotion,
   });
 
-  it("carries the status and own motion through", () => {
+  it("carries the status and chosen motion through", () => {
     expect(focusLineView(display("waiting"), undefined)).toEqual({
       status: "waiting",
       ownMotion: false,
@@ -165,25 +165,18 @@ describe("focusLineText", () => {
     expect(focusLineText(line("face", "face")).pending).toBe(false);
   });
 
-  it.each<[string, string]>([
-    ["face", "editor.ownMotionFace"],
-    ["subject", "editor.ownMotionSubject"],
-    ["immich", "editor.ownMotionImmich"],
-    ["scenery", "editor.ownMotionScenery"],
-    ["none", "editor.ownMotionNone"],
-  ])("replaces a %s result's line with the own-motion sentence", (resultKind, textKey) => {
-    expect(
-      focusLineText(line("face", resultKind as FocusLineView["resultKind"], true)).textKey,
-    ).toBe(textKey);
+  it.each(["face", "subject", "immich", "scenery", "none"] as const)(
+    "replaces a %s result's line with the one chosen-motion sentence",
+    (resultKind) => {
+      expect(focusLineText(line("face", resultKind, true)).textKey).toBe("editor.ownMotion");
+    },
+  );
+
+  it("keeps the chosen-motion sentence for an outdated result, never its staleness", () => {
+    expect(focusLineText(line("outdated", "subject", true)).textKey).toBe("editor.ownMotion");
   });
 
-  it("keeps an outdated result's own-motion sentence by its underlying kind, not its staleness", () => {
-    expect(focusLineText(line("outdated", "subject", true)).textKey).toBe(
-      "editor.ownMotionSubject",
-    );
-  });
-
-  it("leaves a status with no result yet unaffected by own motion", () => {
+  it("leaves a status with no result yet unaffected by chosen motion", () => {
     expect(focusLineText(line("waiting", null, true)).textKey).toBe("editor.focusWaiting");
     expect(focusLineText(line("looking", null, true)).textKey).toBe("editor.searchingFocus");
     expect(focusLineText(line("failed", null, true)).textKey).toBe("editor.focusFailed");

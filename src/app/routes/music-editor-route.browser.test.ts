@@ -1,54 +1,7 @@
-import { beatPassFindingNone } from "../../library/testing/beat-pass-finding-none";
-import { loudnessPassFindingNone } from "../../library/testing/loudness-pass-finding-none";
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
-import type { StoredSlideshow } from "../../library/stored-slideshow";
-import { MemoryLibraryStore } from "../../library/testing/memory-store";
-import { FakeClock, FakeFrameScheduler, FakeMusic } from "../../player/testing/fakes";
-import { SlideshowEditor } from "../editing/slideshow-editor";
-import type { MusicEditorAudio } from "../music-editor/music-editor-audio";
-import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
-import { mountWithTranslator } from "../testing/mount-with-translator";
-import { Toaster } from "../toast/toaster";
-import MusicEditorRoute from "./MusicEditorRoute.svelte";
-import { PICKED_SONG_MS, songIntakeStoringIn } from "../music-editor/testing/song-intake-device";
-import { createStorageMusicEditorDetailsStore } from "../music-editor/music-editor-details";
-import { createMemoryStorage } from "../testing/memory-storage";
-
-const SHOW: StoredSlideshow = {
-  id: "show",
-  title: "Juli 2025",
-  createdAt: "2025-07-02T00:00:00Z",
-  pictures: [
-    {
-      id: "a",
-      capturedAt: "2025-07-01T10:00:00Z",
-      width: 1,
-      height: 1,
-      fileName: "a.jpg",
-      colours: { veil: "#404040", accent: "#C0C0C0" },
-    },
-  ],
-  songs: [
-    {
-      id: "m1",
-      fileName: "Sommerwind.mp3",
-      durationMs: 60_000,
-      mimeType: "audio/mpeg",
-      trim: { startMs: 12_000, endMs: 40_000 },
-    },
-  ],
-  secondsPerPicture: 5,
-};
-
-const WITHOUT_MUSIC: StoredSlideshow = { ...SHOW, songs: [] };
-const TWO_SONGS: StoredSlideshow = {
-  ...SHOW,
-  songs: [
-    ...SHOW.songs,
-    { id: "m2", fileName: "Low Tide.mp3", durationMs: 30_000, mimeType: "audio/mpeg" },
-  ],
-};
+import { PICKED_SONG_MS } from "../music-editor/testing/song-intake-device";
+import { TWO_SONGS, WITHOUT_MUSIC, mountRoute, unmountRoute } from "./music-editor-route-harness";
 
 /** Picks `file` in the editor's file input, as the browser reports a pick. */
 function pick(target: HTMLElement, file: File): void {
@@ -60,129 +13,18 @@ function pick(target: HTMLElement, file: File): void {
   input.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
-let destroy = () => {};
-afterEach(() => destroy());
-
-/** Browser audio stand-ins; each `decoded` answers the route's next waveform request. */
-function fakeAudio() {
-  const music = new FakeMusic();
-  const urls = { created: [] as string[], revoked: [] as string[] };
-  type DecodeRequest = { blob: Blob; resolve: (peaks: Float32Array) => void };
-  const requests: Promise<DecodeRequest>[] = [];
-  const asked: ((request: DecodeRequest) => void)[] = [];
-  const request = (index: number): Promise<DecodeRequest> =>
-    (requests[index] ??= new Promise((resolve) => (asked[index] = resolve)));
-  let askedCount = 0;
-  const audio: MusicEditorAudio = {
-    decodePeaks: (blob) =>
-      new Promise((resolve) => {
-        const index = askedCount++;
-        void request(index);
-        asked[index]?.({ blob, resolve });
-      }),
-    playback: (url) => {
-      urls.created.push(url);
-      return music;
-    },
-    createUrl: () => "blob:music",
-    revokeUrl: (url) => urls.revoked.push(url),
-    clock: new FakeClock(),
-    frames: new FakeFrameScheduler(),
-  };
-  const decodeAsked = request(0).then(() => {});
-  let answered = 0;
-  const decoded = async (peaks: Float32Array) => {
-    const pending = await request(answered++);
-    pending.resolve(peaks);
-    await Promise.resolve();
-    flushSync();
-    return pending.blob;
-  };
-  return { audio, music, urls, decodeAsked, decoded };
-}
-
-/** An editor telling when songs were added, as the intake adds them after reading and storing. */
-class WatchedEditor extends SlideshowEditor {
-  readonly #added: (() => void)[] = [];
-  readonly songsAdded = new Promise<void>((resolve) => this.#added.push(resolve));
-
-  override addSongs(songs: Parameters<SlideshowEditor["addSongs"]>[0]): void {
-    super.addSongs(songs);
-    this.#added.forEach((resolve) => resolve());
-  }
-}
-
-async function mountRoute(stored: StoredSlideshow = SHOW) {
-  const store = new MemoryLibraryStore();
-  await store.putPicture("a", { display: new Blob([]), thumbnail: new Blob([]) });
-  await store.putMusic("m1", new Blob(["music bytes"], { type: "audio/mpeg" }));
-  await store.saveSlideshow(stored);
-  const errors: unknown[] = [];
-  const editor = new WatchedEditor(stored, {
-    store,
-    toaster: new Toaster(new FakeScheduler()),
-    newId: () => "claim-1",
-    now: () => new Date("2026-10-08T12:00:00Z"),
-    onError: (error) => errors.push(error),
-    onGone: () => {},
-    onRefused: () => {},
-    removedText: () => "Bild entfernt",
-    addedText: () => "Bilder hinzugefügt",
-    undoLabel: () => "Rückgängig",
-    lastPictureText: () => "Das letzte Bild bleibt.",
-    everyPictureText: () => "Mindestens ein Bild bleibt.",
-    motionAutomaticText: () => "Bewegung wieder automatisch",
-    durationAutomaticText: () => "Dauer wieder automatisch",
-    transitionAutomaticText: () => "Übergang wieder automatisch",
-    slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
-    portraitPicturesResetText: () => "Hochformatbilder wieder automatisch",
-    lookResetText: () => "Look entfernt",
-    moodResetText: () => "Stimmung wieder auf Eigene",
-    moodNowCustomText: () => "Stimmung ist jetzt Eigene",
-    songRemovedText: () => "Song entfernt",
-    shuffledText: () => "",
-    random: () => 0,
-    automaticTitle: () => "Juli 2025",
-    locale: () => "de-DE",
-    focusOf: () => undefined,
-  });
-  const fake = fakeAudio();
-  let backs = 0;
-  const mounted = mountWithTranslator(MusicEditorRoute, {
-    store,
-    stored,
-    editor,
-    beatPass: beatPassFindingNone(store),
-    loudnessPass: loudnessPassFindingNone(store),
-    audio: fake.audio,
-    songIntake: songIntakeStoringIn(store, (error) => errors.push(error)),
-    saving: false,
-    onBack: () => (backs += 1),
-    onError: (error: unknown) => errors.push(error),
-    log: (error: unknown) => errors.push(error),
-    toaster: new Toaster(new FakeScheduler()),
-    detailsStore: createStorageMusicEditorDetailsStore(createMemoryStorage()),
-  });
-  destroy = mounted.destroy;
-  return { ...fake, target: mounted.target, backs: () => backs, store, editor, errors };
-}
+afterEach(() => unmountRoute());
 
 describe("the music editor route", () => {
-  it("draws the stored track's waveform once it is decoded", async () => {
-    const { target, decoded } = await mountRoute();
+  it("loads the stored track's audio for listening", async () => {
+    const { loaded } = await mountRoute();
 
-    const blob = await decoded(Float32Array.from({ length: 1000 }, () => 0.5));
-
-    expect(await blob.text()).toBe("music bytes");
-    const heights = [...target.querySelectorAll(".bars rect.inside")].map((bar) =>
-      bar.getAttribute("height"),
-    );
-    expect(heights).toContain("100");
+    expect(await (await loaded(0)).text()).toBe("music bytes");
   });
 
   it("listens to the stored track from the excerpt's start", async () => {
-    const { target, music, urls, decodeAsked } = await mountRoute();
-    await decodeAsked;
+    const { target, music, urls, loaded } = await mountRoute();
+    await loaded(0);
 
     target.querySelector<HTMLButtonElement>(".listen-btn")?.click();
 
@@ -201,10 +43,10 @@ describe("the music editor route", () => {
   });
 
   it("lets go of the track's audio and address when left", async () => {
-    const { music, urls, decodeAsked } = await mountRoute();
-    await decodeAsked;
+    const { music, urls, loaded } = await mountRoute();
+    await loaded(0);
 
-    destroy();
+    unmountRoute();
 
     expect(music.calls.at(-1)).toBe("dispose");
     expect(urls.revoked).toEqual(["blob:music"]);
@@ -235,14 +77,14 @@ describe("the music editor route", () => {
     ]);
   });
 
-  it("draws the waveform of the song selected in the list", async () => {
-    const { target, decoded, store } = await mountRoute(TWO_SONGS);
+  it("loads the audio of the song selected in the list", async () => {
+    const { target, loaded, store } = await mountRoute(TWO_SONGS);
     await store.putMusic("m2", new Blob(["second song"], { type: "audio/mpeg" }));
-    await decoded(Float32Array.from({ length: 1000 }, () => 0.5));
+    await loaded(0);
 
     target.querySelectorAll<HTMLButtonElement>(".song .pick")[1]?.click();
     flushSync();
-    const blob = await decoded(Float32Array.from({ length: 1000 }, () => 0.5));
+    const blob = await loaded(1);
 
     expect(await blob.text()).toBe("second song");
     expect(target.querySelector(".song-heading")?.textContent?.trim()).toBe(
@@ -251,9 +93,9 @@ describe("the music editor route", () => {
   });
 
   it("keeps comparing a song's loudness when another is tapped while listening at volume", async () => {
-    const { target, music, decoded, store } = await mountRoute(TWO_SONGS);
+    const { target, music, loaded, store } = await mountRoute(TWO_SONGS);
     await store.putMusic("m2", new Blob(["second song"], { type: "audio/mpeg" }));
-    await decoded(Float32Array.from({ length: 1000 }, () => 0.5));
+    await loaded(0);
 
     target
       .querySelector<HTMLButtonElement>('[aria-labelledby="music-volume"] .listen-btn')
@@ -262,7 +104,7 @@ describe("the music editor route", () => {
 
     target.querySelectorAll<HTMLButtonElement>(".song .pick")[1]?.click();
     flushSync();
-    await decoded(Float32Array.from({ length: 1000 }, () => 0.5));
+    await loaded(1);
 
     expect(music.calls.filter((call) => call.startsWith("play@")).length).toBe(2);
   });

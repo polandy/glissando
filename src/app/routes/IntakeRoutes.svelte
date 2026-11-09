@@ -49,13 +49,17 @@
       ? importSession && {
           intake: importSession.intake,
           addPhotos: (photos: readonly ImmichPhoto[]) => importSession.addImmichPhotos(photos),
-          crumbs: [t("import.crumb"), t("import.crumbPictures")],
+          crumbs: [
+            t("start.library"),
+            { label: t("import.crumb"), isScreen: false as const },
+            t("import.crumbPictures"),
+          ],
           withVideos: importSession.choices.current().home === "device",
         }
       : adding && {
           intake: adding.intake,
           addPhotos: (photos: readonly ImmichPhoto[]) => adding.addImmichPhotos(photos),
-          crumbs: [adding.slideshow.title, t("add.title")],
+          crumbs: [t("start.library"), adding.slideshow.title, t("add.title")],
           withVideos: adding.home === "device",
         },
   );
@@ -70,6 +74,7 @@
     loadPicture={(id) =>
       (adding.home === "server" ? serverLibrary.store : store).playbackPictureBlob(id)}
     onError={reportError}
+    guardLeave={(guard) => navigator.guardLeave(guard)}
     onDiscard={(leave) => void addFlow.discard(leave)}
     onCommit={() => addFlow.commit()}
     immich={immichState}

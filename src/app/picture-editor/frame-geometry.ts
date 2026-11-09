@@ -15,7 +15,7 @@ import {
  */
 
 /** The editor frames for a 16:9 screen, the shape of a television and of the preview. */
-export const EDITOR_SCREEN: Size = { width: 16, height: 9 };
+const EDITOR_SCREEN: Size = { width: 16, height: 9 };
 
 /** Arrow keys move the frame by this share of the picture; with Shift by the larger one. */
 const KEY_MOVE_STEP = 0.01;

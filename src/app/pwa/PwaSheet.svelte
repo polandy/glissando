@@ -1,16 +1,9 @@
-<script lang="ts" module>
-  import type { InstallGuide } from "../../pwa/install-guide";
-
-  export type PwaSheetContent =
-    | { readonly kind: "why"; readonly address: string }
-    | { readonly kind: "guide"; readonly guide: InstallGuide };
-</script>
-
 <script lang="ts">
   import Dialog from "../components/Dialog.svelte";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
   import { INSTALL_STEPS, type InstallStep } from "./install-steps";
+  import type { PwaSheetContent } from "./pwa-sheet-content";
 
   let { sheet, onClose }: { sheet: PwaSheetContent; onClose: () => void } = $props();
 

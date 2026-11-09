@@ -1,6 +1,12 @@
-import { isTrackHeardAt, trackGainAt, trackSecondsAt } from "./music-gain";
+import { isTrackHeardAt, startFadeGainAt, trackGainAt, trackSecondsAt } from "./music-gain";
 import type { MusicPlayback } from "./ports";
-import type { MusicTrack } from "./slideshow";
+import { MILLISECONDS_PER_SECOND, type MusicTrack } from "./slideshow";
+
+/**
+ * A heard track further from its place than this is seeked back: clearly off the beat, yet well
+ * above `currentTime` granularity and a local seek's latency, so a seek never chases itself.
+ */
+const MUSIC_RESYNC_MS = 150;
 
 interface PlacedTrack {
   readonly track: MusicTrack;
@@ -16,6 +22,8 @@ interface PlacedTrack {
 export class PlaylistMusic {
   readonly #tracks: readonly PlacedTrack[];
   readonly #duckAt: (timeMs: number) => number;
+  /** Where the show started part-way, null for a start at the beginning or after a seek. */
+  #fadeInFromMs: number | null = null;
 
   /** `duckAt` is the factor every track's volume is multiplied by at a slideshow time (ADR-0035). */
   constructor(
@@ -58,6 +66,7 @@ export class PlaylistMusic {
       const heard = isTrackHeardAt(placed.track, timeMs);
       if (placed.sounding && heard) {
         placed.playback.setVolume(this.#volumeAt(placed.track, timeMs));
+        resync(placed, timeMs);
       } else if (placed.sounding) {
         pause(placed);
       } else if (heard) {
@@ -65,6 +74,15 @@ export class PlaylistMusic {
       }
     }
     return Promise.all(starts).then(() => undefined);
+  }
+
+  /** Fades every track in from slideshow time `timeMs`, until the next `clearFadeIn`. */
+  fadeInFrom(timeMs: number): void {
+    this.#fadeInFromMs = timeMs;
+  }
+
+  clearFadeIn(): void {
+    this.#fadeInFromMs = null;
   }
 
   /** Pauses every sounding track. */
@@ -90,7 +108,8 @@ export class PlaylistMusic {
   }
 
   #volumeAt(track: MusicTrack, timeMs: number): number {
-    return track.gain * trackGainAt(track, timeMs) * this.#duckAt(timeMs);
+    const fadeIn = this.#fadeInFromMs === null ? 1 : startFadeGainAt(this.#fadeInFromMs, timeMs);
+    return track.gain * trackGainAt(track, timeMs) * this.#duckAt(timeMs) * fadeIn;
   }
 }
 
@@ -100,6 +119,20 @@ function prime({ track, playback }: PlacedTrack): Promise<void> {
   const started = playback.play(trackSecondsAt(track, track.atMs));
   playback.pause();
   return started;
+}
+
+/** Seeks a really playing track back to its place once a stall has left it off the clock. */
+function resync({ track, playback }: PlacedTrack, timeMs: number): void {
+  const playingSeconds = playback.playingSeconds();
+  if (playingSeconds === null) {
+    return;
+  }
+  const placeSeconds = trackSecondsAt(track, timeMs);
+  // Whole milliseconds, so a drift of exactly the tolerance is not tipped over by float error.
+  const driftMs = Math.round(Math.abs(playingSeconds - placeSeconds) * MILLISECONDS_PER_SECOND);
+  if (driftMs > MUSIC_RESYNC_MS) {
+    playback.seek(placeSeconds);
+  }
 }
 
 function pause(placed: PlacedTrack): void {

@@ -37,6 +37,17 @@ describe("HttpServerLibraryClient", () => {
     expect(await client.discover()).toBe(false);
   });
 
+  it.each([
+    ["the server failing (5xx)", () => new Response("Bad Gateway", { status: 502 })],
+    // A forward auth's sign-in redirect, under `redirect: "manual"`, has status 0 as well.
+    ["no status (an auth redirect)", () => Response.error()],
+  ])("rejects the discovery with ServerLibraryUnavailableError behind %s", async (_, answer) => {
+    const { client, control } = libraryServiceFetch();
+    control.answerWith = answer;
+
+    expect(await rejection(client.discover())).toBeInstanceOf(ServerLibraryUnavailableError);
+  });
+
   it("rejects with ServerLibraryUnavailableError when the server cannot be reached", async () => {
     const { client, control } = libraryServiceFetch();
     control.down = true;
@@ -107,6 +118,20 @@ describe("HttpServerLibraryClient", () => {
       document: sampleDocument("Elsewhere"),
     });
     expect((await client.getSlideshow(id)).document.slideshow.title).toBe("Elsewhere");
+  });
+
+  it("explains a replace answered with a proxy's HTML 412 instead of a bare SyntaxError", async () => {
+    const { client, control } = libraryServiceFetch();
+    control.answerWith = () =>
+      new Response("<html>Precondition Failed</html>", {
+        status: 412,
+        headers: { "content-type": "text/html" },
+      });
+
+    const error = await rejection(client.replaceSlideshow("any", 1, sampleDocument()));
+
+    expect(error).not.toBeInstanceOf(SyntaxError);
+    expect((error as Error).message).toContain("text/html");
   });
 
   it("deletes a slideshow, which is then not found", async () => {

@@ -1,7 +1,7 @@
 import type { MusicBeats } from "../../../beats";
 import type { StoredPicture, StoredSlideshow } from "../../../library/stored-slideshow";
 
-/** A slideshow of three pictures, the second with an own motion and a caption. */
+/** A slideshow of three pictures, the second with a chosen motion and a caption. */
 export const own = {
   from: { zoom: 2, centerX: 0.3, centerY: 0.5 },
   to: { zoom: 1, centerX: 0.5, centerY: 0.5 },

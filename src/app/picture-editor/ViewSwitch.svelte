@@ -53,6 +53,11 @@
     background: var(--gl-surface);
     box-shadow: var(--gl-shadow);
   }
+  @media (pointer: coarse) {
+    button {
+      min-height: var(--gl-hit-min);
+    }
+  }
   @container (max-width: 720px) {
     .view-switch {
       display: grid;

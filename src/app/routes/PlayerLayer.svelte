@@ -1,26 +1,22 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import type { BeatPass } from "../../library/beat-pass";
-  import { composeSlideshow, type SongBeats, type SongLoudness } from "../../compose";
+  import type { MusicAnalysisPass } from "../../library/music-analysis-pass";
   import type { LibraryStore } from "../../library/library-store";
   import type { StoredSlideshow } from "../../library/stored-slideshow";
   import { performanceClock, type DecodeClipSound, type MusicOutput } from "../../player";
-  import type { PictureFocus } from "../../library/picture-focus";
   import { getTranslator } from "../i18n/context";
   import { playingMusic } from "../library-views";
   import { browserObjectUrls } from "../media/object-urls";
-  import { storedSongBeats } from "../beats/music-beats-known";
-  import { bareFocus, NO_FOCUS_KNOWN } from "../focus/pictures-focus";
-  import { storedSongLoudness } from "../loudness/music-loudness-composed";
   import type { PlayerFailure } from "../player/player-failure";
   import PlayerOverlay from "../player/PlayerOverlay.svelte";
   import PlayerCard from "../player/PlayerCard.svelte";
   import PreparePictures from "../player/PreparePictures.svelte";
   import { PrepareFlow, type PrepareView } from "../player/prepare/prepare-flow";
   import type { PlaybackQuality } from "../settings/playback-quality";
-  import { slideBoundaries } from "../player/slide-boundaries";
+  import { FROM_THE_START, playStart } from "../player/play-start";
+  import { slideBoundaries } from "../../player/slide-boundaries";
   import { picturePassedBySlide, slideOfPicture } from "../player/prepare/slide-pictures";
-  import { loadPlayerMusic } from "./route-loading";
+  import { composePlayerSlideshow, loadPlayerData, type PlayerData } from "./player-layer-data";
   import {
     pictureFailureFor,
     picturesAheadFor,
@@ -35,7 +31,7 @@
    * the music's object URL lives exactly as long as the layer. A server slideshow is prepared in
    * `playbackQuality` before it plays (ADR-0027) and plays without the pictures Immich no longer
    * has: one found missing while playing restarts the player without it, where its slide would
-   * have begun.
+   * have begun. Music that cannot be read stops it with the failure card.
    */
   let {
     store,
@@ -43,13 +39,13 @@
     musicOutput,
     decodeClipSound,
     onClose,
-    onError,
     log,
-    beatPass,
+    analysisPass,
     home,
     missing,
     onPictureMissing,
     playbackQuality,
+    startPicture,
     clock = performanceClock.now,
   }: {
     store: Pick<
@@ -66,17 +62,18 @@
     musicOutput: MusicOutput;
     decodeClipSound: DecodeClipSound;
     onClose: () => void;
-    onError: (error: unknown) => void;
-    /** Logs a focus or beats that could not be read: play goes on without them. */
+    /** Logs a focus or beats that could not be read (play goes on) and music that could not (it stops). */
     log: (error: unknown) => void;
     /** Listens for the music's beats if none are known yet, for the next time it plays. */
-    beatPass: Pick<BeatPass, "listenFor">;
+    analysisPass: Pick<MusicAnalysisPass, "listenFor">;
     home: SlideshowHome;
     /** Pictures Immich answered 404 for, as the screen knows them when playing begins. */
     missing: ReadonlySet<string>;
     onPictureMissing: (pictureId: string) => void;
     /** The quality a server slideshow plays in, as this device's setting picks it. */
     playbackQuality: PlaybackQuality;
+    /** The picture playing begins with, at its slide; null for the start. */
+    startPicture: string | null;
     /** Monotonic milliseconds, for timing the pictures prepared. */
     clock?: () => number;
   } = $props();
@@ -91,50 +88,36 @@
       : t("slideshow.songCount", { count: music.count });
   });
 
-  interface Loaded {
-    readonly musicUrls: ReadonlyMap<string, string>;
-    readonly focus: ReadonlyMap<string, PictureFocus>;
-    readonly beats: SongBeats;
-    readonly loudness: SongLoudness;
-  }
-
-  let loaded = $state.raw<Loaded | null>(null);
-  let startAt = $state(0);
+  let loaded = $state.raw<PlayerData | null>(null);
+  let loadFailed = $state(false);
+  /** Where a picture that failed while playing restarts the player, over the chosen start. */
+  let restartAt = $state<number | null>(null);
   let musicUrls: ReadonlyMap<string, string> = new Map();
   /** The pictures known missing when playing began, and those skipped since. */
   // svelte-ignore state_referenced_locally
   let skipped = $state.raw<ReadonlySet<string>>(new Set(missing));
   const played = $derived(playedPictures(stored, skipped));
   const slideshow = $derived(
-    loaded === null
-      ? null
-      : composeSlideshow(
-          played,
-          {
-            picture: (id) => id,
-            video: (id) => id,
-            music: (id) => {
-              const url = loaded?.musicUrls.get(id);
-              if (url === undefined) {
-                throw new Error(
-                  `slideshow "${stored.id}" plays song "${id}" but it was not loaded`,
-                );
-              }
-              return url;
-            },
-          },
-          loaded.focus,
-          loaded.beats,
-          loaded.loudness,
-          language,
+    loaded === null ? null : composePlayerSlideshow(played, loaded, stored.id, language),
+  );
+
+  const start = $derived(
+    slideshow === null
+      ? FROM_THE_START
+      : playStart(
+          slideshow,
+          played.pictures.map(({ id }) => id),
+          startPicture,
         ),
   );
+  const startAt = $derived(restartAt ?? start.seconds);
 
   // svelte-ignore state_referenced_locally
   const flow =
     home === "server"
       ? new PrepareFlow({
           ids: played.pictures.map(({ id }) => id),
+          startPicture,
           quality: playbackQuality,
           renditionFor: (quality) => serverRenditionFor(store, quality),
           clock,
@@ -152,7 +135,15 @@
     return view;
   });
   $effect(() => {
-    if (flow !== null && slideshow !== null) flow.setSlides(slideBoundaries(slideshow));
+    if (flow !== null && slideshow !== null)
+      flow.setSlides(
+        slideBoundaries(slideshow),
+        start.slide,
+        picturePassedBySlide(
+          slideshow.slides,
+          played.pictures.map(({ id }) => id),
+        )[start.slide] ?? undefined,
+      );
   });
   /** The picture each slide passes, so the flow releases the renditions before it. */
   const passedBySlide = $derived(
@@ -186,7 +177,7 @@
     const index = slideOfPicture(slideshow.slides, ids, pictureId);
     if (index === -1) return "picture";
     const boundaries = slideBoundaries(slideshow);
-    startAt = boundaries.starts[index] ?? boundaries.duration;
+    restartAt = boundaries.starts[index] ?? boundaries.duration;
     skipped = new Set([...skipped, pictureId]);
     return null;
   }
@@ -198,28 +189,21 @@
       prepareView = view;
     });
     for (const song of stored.songs) {
-      beatPass.listenFor(song.id);
+      analysisPass.listenFor(song.id);
     }
-    // Play waits on reading the focus and beats found so far, never on the search for the rest.
-    // Both only place automatic choices: unread, the motions aim at the middle, the pictures
-    // share the music evenly and play goes on.
-    Promise.all([
-      loadPlayerMusic(store, stored, browserObjectUrls.create, closed.signal),
-      store
-        .pictureFocus(stored.pictures.map((picture) => picture.id))
-        .then(bareFocus, (error: unknown) => {
-          log(error);
-          return NO_FOCUS_KNOWN.found;
-        }),
-      storedSongBeats(store, stored, log),
-      storedSongLoudness(store, stored, log),
-    ]).then(([music, focus, beats, loudness]) => {
-      if (music === null) {
-        return;
-      }
-      musicUrls = music.urls;
-      loaded = { musicUrls: music.urls, focus, beats, loudness };
-    }, onError);
+    loadPlayerData(store, stored, log, closed.signal).then(
+      (data) => {
+        if (data === null) {
+          return;
+        }
+        musicUrls = data.musicUrls;
+        loaded = data;
+      },
+      (error: unknown) => {
+        log(error);
+        loadFailed = true;
+      },
+    );
     return unsubscribe;
   });
   onDestroy(() => {
@@ -231,7 +215,16 @@
   });
 </script>
 
-{#if preparing !== null}
+{#if loadFailed || prepareView?.stage === "failed"}
+  <div class="player" role="dialog" aria-modal="true" aria-label={stored.title}>
+    <PlayerCard
+      failure={prepareView?.stage === "failed" ? prepareFailure(prepareView.error) : "playback"}
+      ended={false}
+      onPlayAgain={close}
+      onClose={close}
+    />
+  </div>
+{:else if preparing !== null}
   <PreparePictures
     title={stored.title}
     view={preparing}
@@ -239,15 +232,6 @@
     onPlayInPreview={() => flow?.playInPreview()}
     onClose={close}
   />
-{:else if prepareView?.stage === "failed"}
-  <div class="player" role="dialog" aria-modal="true" aria-label={stored.title}>
-    <PlayerCard
-      failure={prepareFailure(prepareView.error)}
-      ended={false}
-      onPlayAgain={close}
-      onClose={close}
-    />
-  </div>
 {:else if slideshow !== null}
   {#key slideshow}
     <PlayerOverlay

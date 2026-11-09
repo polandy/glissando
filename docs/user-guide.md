@@ -15,33 +15,41 @@ Glissando has no demo.
 ## Make a slideshow
 
 1. **New slideshow** and choose pictures from the device (or from Immich, on a self-hosted
-   Glissando). They are ordered by capture date, and the originals stay untouched.
-2. **Add music**: any common format (MP3, M4A, Ogg, FLAC, WAV …), or pick from the nine sample
-   tracks that come with Glissando if you have none of your own to hand. Pick the part of the song
+   Glissando). They are ordered by capture date, and your pictures stay untouched.
+2. **Add music**: any common format (MP3, M4A, Ogg, FLAC, WAV …), up to 20 minutes long and
+   200 MB each, or pick from the nine sample songs that come with Glissando if you have none of
+   your own to hand. Pick the part of the song
    to use; the slideshow is timed to fit it. Several songs work too, automatically matched in
    loudness so none plays louder than the rest; the music editor lets you listen and adjust that. It
-   shows the essentials first; turn on **Details** in its top bar for the volume line, the beats and
-   the crossfades.
-3. **Play.** Motion and transitions are chosen for you — people stay in frame, scenery gets a slow
+   shows the essentials first: your songs (with **Add a song** as the last row), a bar showing how
+   long the music and the pictures run, the picture length,
+   **Repeat the music** and one line saying how pictures and music fit. Turn on **Details** in its top
+   bar for the crossfades in that bar, the waveform, volume, beat and fades. The small **i** buttons
+   explain a setting when you tap them.
+3. **Name it.** The last step has a **Title** field, filled in with the month the pictures were
+   taken in ("July 2025"). When another slideshow already has that title, it becomes the day range
+   ("12–19 July 2025"), or "July 2025 · 2" for pictures of the same days. Type your own, or press
+   Enter to create the slideshow; you can change the title later on the slideshow screen. Each card
+   in the library shows when the slideshow was created.
+4. **Play.** Motion and transitions are chosen for you — people stay in frame, scenery gets a slow
    sweep, changes follow the beat.
 
-For a different feel, tap Mood beside Music and Look on the slideshow's screen. **Calm** shows each
+For a different feel, tap Mood beside Music and Look on the slideshow's screen (on a phone: Play first, then these three as one row of buttons with More settings below them, then the pictures). The Mood button shows only a short phrase; its sheet lists what it sets. **Calm** shows each
 picture longer, with soft crossfades and gentle motion; **Lively** changes pictures quickly with
-mixed transitions and stronger motion. Both fit the picture changes to the song's beats and phrases,
+mixed transitions and stronger motion. Both fit the picture changes to the song's beat,
 so a slow and a fast song pace the same mood differently. A new slideshow starts on Calm; choose
-**Custom**, or set your own time per picture or "Fill the music" in the music editor, to use your
-own settings. A slideshow without music sets its time per picture in the music editor too, below
-"No music yet". A picture with its own duration, transition or motion keeps it under any mood, and
-changing a single setting while a mood is on turns it into Custom with the mood's values to start
-from.
+**No mood**, or set the picture length or "Fill the music" in the music editor, to use your
+own settings. A slideshow without music sets its picture length in the music editor too, below
+"No music yet". A picture with a chosen picture length, transition or motion keeps it under any mood, and
+changing a single setting while a mood is on turns the mood off, keeping its values as a start.
 
-Turn on **Follow the music's energy** in the Mood sheet, under any mood or Custom, and the pictures
-stay longer where the music is quiet and change quicker where it is loud; at a drop or chorus the
-next picture cuts in on the beat. The slideshow stays as long as before, and pictures with their own
-duration keep it.
+Turn on **Follow the music's energy** in the Mood sheet, with or without a mood, and the pictures
+stay longer where the music is quiet and change quicker where it is loud; when the music picks up, the
+next picture cuts in on the beat. The slideshow stays as long as before, and pictures with a chosen
+picture length keep it.
 
 Tap Look on the slideshow's screen to give it a look — Warm, Cool, Vivid, Film, Black & white or
-Faded — if you want one. It colours every picture and video, in the exported video and web page
+Faded — if you want one. It colours every picture and video, in the video and web page you share
 too; the title and closing slides and the captions stay as they are.
 
 <p align="center">
@@ -53,18 +61,28 @@ there to set your own order — new ones join by capture date until you do — a
 (another folder, or more from Immich) while it runs.
 
 Adding pictures later skips the ones already in the slideshow (you can add them anyway). Drag
-pictures to reorder, or tap Shuffle for a random order (Undo in the message that follows
-brings the old one back); select a picture to view it full screen or open its editor to change
+pictures to reorder (on a phone, hold a picture until it lifts, then drag; the page scrolls along near the
+screen edge), or tap Shuffle for a random order (Undo in the message that follows
+brings the old one back), and **Sort by date** (shown once the order is your own) puts every picture back in the order it was taken (Undo likewise); select a picture to view it full screen or open its editor to change
 its motion (on a phone it shows the picture with its frames or the preview, one at a time:
-switch with **Frame | Play**). The bar that appears shows its actions as icons: rest the mouse on one, or press and
-hold it with a finger, to see what it does.
+switch with **Frame | Play**). The bar that appears labels every action: **Earlier**, **Later**, **View**, **Edit**,
+**Play from here** (one picture selected), **Insert chapter before**, **Move to …** and **Remove**; on a phone they form a second row, with
+**Chapter** and **Move** as the short labels. **Move to …** goes to the start, the end, or before
+a picture by its number — handy when dragging is too far. **Play from here** also sits in the full-screen view and the picture editor; the show starts at that picture (music fades in) and you can still go back.
+
+In a picture's editor, **Timing** holds the picture length (a slider from 2 to 15 seconds; it
+shows its value while you drag) and the transition into the next picture; **Back to automatic**
+there resets both at once, and Undo in the message that follows brings them back. Clearing the
+caption shows **Caption cleared** with Undo. **Look again**, for the picture's focus, sits at
+the end of the motion section.
 
 **Trip chapters**: a slideshow of several days in different places gets a chapter slide between
 them automatically, naming the place and the dates. Tap a chapter tile in the picture strip to
 rename it, hide it, or reset it to its automatic text; select a picture and tap **Insert chapter before**
-to add one of your own, or delete it again from its sheet. The **Trip chapters** row in the
-slideshow's side panel, under **Fine settings**, is where automatic chapters are turned on or off
-for the whole slideshow, and shows how many there currently are.
+to add one of your own, or delete it again from its sheet. Deleting a chapter, resetting its
+text, removing a title or closing slide and resetting a clip each show a message with Undo. The
+**Trip chapters** switch in the slideshow's side panel, under **More settings**, turns automatic
+chapters on or off for the whole slideshow; chapters you added stay either way.
 
 ## Play
 
@@ -77,7 +95,7 @@ for the whole slideshow, and shows how many there currently are.
 ## Keep and share
 
 All of it is behind the **Share** button next to the slideshow's title. It opens a list in two
-groups; choose a row and its sheet opens, with **Back** to the list.
+groups; choose a row and its sheet opens, with **Back** (or Esc) to the list and ✕ to close.
 
 - **Watch by link** needs a self-hosted Glissando ([self-hosting](self-hosting.md)): a link anyone
   can watch, which stays up to date until you turn it off.
@@ -99,14 +117,23 @@ groups; choose a row and its sheet opens, with **Back** to the list.
 
 ## Good to know
 
+- The path at the top (Library / your slideshow / …) is tappable: **Library** brings you home from
+  any screen.
 - If the music is a little shorter than the pictures, they shrink to fit it on their own. If it
-  ends well before the pictures do, the music editor offers to **Repeat the music** or **Add a
-  song**.
+  ends well before the pictures do, the music editor says so and offers **Repeat the music**; you
+  can also add a song.
 - Glissando looks for faces and other subjects in the background, so motion aims well; while it
   runs, the bar at the top of every screen and each card show how far it got. **Faces and subjects
   …** in a slideshow's ⋯ menu lets you look again at any picture,
   including one it couldn't look at the first time.
+- The phone's back gesture or the browser's back button asks before it drops pictures you have
+  chosen but not yet used, the same as the Back arrow.
 - Your pictures stay on your device. Nothing is uploaded unless you use a server you run yourself.
 - Ask the browser to keep the data (Glissando requests it); clearing site data deletes slideshows
-  stored on the device — export a `.glissando` file as a backup.
+  stored on the device — save a `.glissando` file as a backup.
+- If the browser won't let Glissando store data (some private windows, or site data blocked in
+  its settings), Glissando can't start and says so under its logo; reload the page or allow this
+  site to store data.
 - Language and light/dark follow your device; both can be changed in Settings.
+  Immich and the server quality settings appear in Settings only when Glissando runs with its own
+  server (see the self-hosting guide).

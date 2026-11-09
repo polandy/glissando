@@ -11,7 +11,7 @@ const OWN_MOTION = {
 };
 
 /**
- * As the server pass sees the store (`main.ts`): `pictureFocusForPass`, `FACES` found directly
+ * As the server pass sees the store (`wire-server.ts`): `pictureFocusForPass`, `FACES` found directly
  * without a real detection. `puts` names every picture a focus was actually PUT for, so a test can
  * tell a `lookAgain` that did nothing from one that put a focus again.
  */

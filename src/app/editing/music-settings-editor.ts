@@ -135,7 +135,7 @@ export class MusicSettingsEditor {
   }
 
   /**
-   * How long each picture without an own duration stays, in half-second steps. While a mood is
+   * How long each picture without a chosen duration stays, in half-second steps. While a mood is
    * on, this leaves it first (ADR-0045); the toast's undo brings the slideshow back as it was,
    * mood included.
    */

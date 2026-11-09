@@ -1,5 +1,3 @@
-import { EXIF_SEARCH_BYTES } from "./exif-capture-date";
-import { readPictureHead } from "./unreadable-picture";
 import {
   findEntry,
   findExifTiffStart,
@@ -48,12 +46,6 @@ export function readExifGps(bytes: ArrayBuffer): ExifGps | null {
   return tiffStart === null ? null : readGpsCoordinates(data, tiffStart);
 }
 
-/** EXIF GPS coordinate of the file's head, or null when the picture carries none. */
-export async function captureGps(file: File): Promise<ExifGps | null> {
-  const head = await readPictureHead(file, EXIF_SEARCH_BYTES);
-  return readExifGps(head);
-}
-
 function readGpsCoordinates(data: DataView, tiffStart: number): ExifGps | null {
   const little = readTiffByteOrder(data, tiffStart);
   if (little === null) {
@@ -86,8 +78,14 @@ function readGpsCoordinates(data: DataView, tiffStart: number): ExifGps | null {
     return null;
   }
 
-  const latitude = latitudeSign * latitudeMagnitude;
-  const longitude = longitudeSign * longitudeMagnitude;
+  return gpsCoordinate(latitudeSign * latitudeMagnitude, longitudeSign * longitudeMagnitude);
+}
+
+/**
+ * The coordinate, or null for the no-fix sentinel or a value off the globe: a camera's bad
+ * reading, which leaves the picture unplaced rather than failing its import.
+ */
+export function gpsCoordinate(latitude: number, longitude: number): ExifGps | null {
   if (latitude === NO_GPS_DATA_SENTINEL && longitude === NO_GPS_DATA_SENTINEL) {
     return null;
   }

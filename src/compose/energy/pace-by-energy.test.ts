@@ -86,7 +86,7 @@ describe("paceByEnergy", () => {
     expect(result.every((value) => value >= MIN_SLIDE_MS)).toBe(true);
   });
 
-  it("keeps an own duration unchanged and out of the weighted share", () => {
+  it("keeps a chosen duration unchanged and out of the weighted share", () => {
     const usualMs = [500, 1000, 1000];
     const automatic = [false, true, true];
     const energy = stepEnergy(1500, 0, 1);

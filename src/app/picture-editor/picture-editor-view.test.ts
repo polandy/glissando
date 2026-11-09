@@ -147,7 +147,7 @@ describe("pictureEditorView", () => {
     });
   });
 
-  it("shows a picture's own motion", () => {
+  it("shows a picture's chosen motion", () => {
     const view = pictureEditorView(stored, "p2", NO_FOCUS_KNOWN, NO_SONG_BEATS);
 
     expect(view.motion).toEqual(own);
@@ -159,7 +159,7 @@ describe("pictureEditorView", () => {
     expect(pictureEditorView(stored, "p2", NO_FOCUS_KNOWN, NO_SONG_BEATS).caption).toBe("Am Steg");
   });
 
-  it("shows an own transition beside the automatic one, its length from the duration", () => {
+  it("shows a chosen transition beside the automatic one, its length from the duration", () => {
     const timed = withPicture(1, { transition: "dissolve", durationMs: 2000 });
 
     expect(pictureEditorView(timed, "p2", NO_FOCUS_KNOWN, NO_SONG_BEATS).transition).toEqual({
@@ -255,5 +255,20 @@ describe("pictureEditorView with the slideshow's mood", () => {
 
     // The lively target, 3 s, not the stored secondsPerPicture (4 s) composeSlideshow would ignore.
     expect(view.durationMs).toBe(3000);
+  });
+
+  it("the automatic length is the mood's target, while automatic and while own", () => {
+    const lively = { ...stored, mood: "lively" } as const;
+    const automatic = pictureEditorView(lively, "p1", NO_FOCUS_KNOWN, NO_SONG_BEATS);
+    const own = pictureEditorView(
+      { ...withPicture(0, { durationMs: 9000 }), mood: "lively" },
+      "p1",
+      NO_FOCUS_KNOWN,
+      NO_SONG_BEATS,
+    );
+
+    expect(automatic.durationBasis).toEqual({ kind: "seconds-per-picture", automaticMs: 3000 });
+    expect(own.durationMs).toBe(9000);
+    expect(own.durationBasis).toEqual({ kind: "seconds-per-picture", automaticMs: 3000 });
   });
 });

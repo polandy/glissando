@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { MusicLoudness } from "../../loudness";
-import type { LoudnessPassState } from "../../library/loudness-pass";
+import { NO_BEATS } from "../../beats";
+import type { MusicAnalysisPassState } from "../../library/music-analysis-pass";
 import type { LoudnessStatus } from "./music-loudness-known";
 import { PlaylistLoudness } from "./playlist-loudness";
 
@@ -13,14 +14,14 @@ const MEASURED: MusicLoudness = {
 class FakePass {
   readonly asked: string[] = [];
   subscribers = 0;
-  readonly state: LoudnessPassState = {
+  state: MusicAnalysisPassState = {
     running: true,
     listening: new Set(),
-    found: new Map([["b", MEASURED]]),
+    found: new Map([["b", { beats: NO_BEATS, loudness: MEASURED }]]),
     undecodable: new Set(),
   };
 
-  subscribe(listener: (state: LoudnessPassState) => void): () => void {
+  subscribe(listener: (state: MusicAnalysisPassState) => void): () => void {
     this.subscribers += 1;
     listener(this.state);
     return () => (this.subscribers -= 1);
@@ -75,5 +76,43 @@ describe("PlaylistLoudness", () => {
     loudness.dispose();
 
     expect(pass.subscribers).toBe(0);
+  });
+
+  it("keeps the status of a song taken out and added again when its first stored read settles late", async () => {
+    const pass = new FakePass();
+    pass.state = { ...pass.state, found: new Map() };
+    const reads: { settle(value: undefined): void; promise: Promise<undefined> }[] = [];
+    let latest: ReadonlyMap<string, LoudnessStatus> = new Map();
+    const loudness = new PlaylistLoudness(
+      {
+        store: {
+          musicLoudness: () => {
+            let settle: (value: undefined) => void = () => {};
+            const promise = new Promise<undefined>((resolve) => (settle = resolve));
+            reads.push({ settle, promise });
+            return promise;
+          },
+        },
+        pass,
+        log: () => {},
+      },
+      (status) => (latest = status),
+    );
+    const first = loudness.follow(["a"]);
+    await loudness.follow([]);
+    pass.state = {
+      ...pass.state,
+      found: new Map([["a", { beats: NO_BEATS, loudness: MEASURED }]]),
+    };
+    const second = loudness.follow(["a"]);
+    const added = { kind: "known", loudness: MEASURED };
+
+    reads[1]?.settle(undefined);
+    await second;
+    expect(latest.get("a")).toEqual(added);
+
+    reads[0]?.settle(undefined);
+    await first;
+    expect(latest.get("a")).toEqual(added);
   });
 });

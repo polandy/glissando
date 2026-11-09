@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { SlideshowNotFoundError } from "./library-store";
-import type { StoredSlideshow } from "./stored-slideshow";
-import { storedFocus } from "./focus-pass-fixtures";
-import { IndexedDbLibraryStore, LIBRARY_DATABASE_NAME, openLibraryStore } from "./indexeddb-store";
+import { IndexedDbLibraryStore, LIBRARY_DATABASE_NAME } from "./indexeddb-store";
+import { isNewerVersionError, openLibraryStore } from "./indexeddb-open";
 import { describeLibraryStoreContract } from "./testing/library-store-contract";
 import { MemoryLibraryStore } from "./testing/memory-store";
 
@@ -114,137 +112,18 @@ describe("IndexedDbLibraryStore saves", () => {
 });
 
 describe("IndexedDbLibraryStore schema upgrade", () => {
-  /** A library as schema version 1 left it: slideshows and media, no imports store. */
-  function openVersionOneWithSlideshow(slideshow: StoredSlideshow): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(LIBRARY_DATABASE_NAME, 1);
-      request.onupgradeneeded = () => {
-        const database = request.result;
-        database.createObjectStore("slideshows", { keyPath: "id" }).put(slideshow);
-        database.createObjectStore("pictures");
-        database.createObjectStore("music");
-      };
-      request.onsuccess = () => {
-        request.result.close();
-        resolve();
-      };
-      request.onerror = () => reject(request.error ?? new Error("opening version 1 failed"));
-    });
-  }
-
-  it("clears the slideshows of a version 1 library, predating colours, and records imports after upgrading", async () => {
-    await deleteLibraryDatabase();
-    const saved: StoredSlideshow = {
-      id: "show-1",
-      title: "July 2025",
-      createdAt: "2025-07-02T08:00:00Z",
-      pictures: [
-        {
-          id: "saved-picture",
-          capturedAt: "2025-07-01T10:00:00Z",
-          width: 1,
-          height: 1,
-          fileName: "a.jpg",
-          colours: { veil: "#404040", accent: "#C0C0C0" },
-        },
-      ],
-      songs: [],
-      secondsPerPicture: 5,
-    };
-    await openVersionOneWithSlideshow(saved);
-
-    const store = await openLibraryStore(indexedDB);
-    try {
-      await expect(store.getSlideshow("show-1")).rejects.toBeInstanceOf(SlideshowNotFoundError);
-      expect(await store.listSlideshows()).toEqual([]);
-      await store.claimMedia("import-1", new Date("2026-10-08T12:00:00Z"), "picture-1");
-      await store.putPicture("picture-1", { display: new Blob(["d"]), thumbnail: new Blob(["t"]) });
-      await store.deleteUnreferencedMedia(new Date("2026-10-08T12:00:00Z"));
-      expect(await (await store.pictureBlob("picture-1")).text()).toBe("d");
-    } finally {
-      store.close();
-      await deleteLibraryDatabase();
-    }
-  });
-});
-
-describe("IndexedDbLibraryStore focus upgrade", () => {
-  /** A library as schema version 2 left it: a slideshow with its picture, no focus store. */
-  function openVersionTwoWithSlideshow(slideshow: StoredSlideshow): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(LIBRARY_DATABASE_NAME, 2);
-      request.onupgradeneeded = () => {
-        const database = request.result;
-        database.createObjectStore("slideshows", { keyPath: "id" }).put(slideshow);
-        database.createObjectStore("pictures").put(
-          {
-            display: { bytes: new ArrayBuffer(1), type: "image/jpeg" },
-            thumbnail: { bytes: new ArrayBuffer(1), type: "image/jpeg" },
-          },
-          "saved-picture",
-        );
-        database.createObjectStore("music");
-        database.createObjectStore("imports", { keyPath: "id" });
-      };
-      request.onsuccess = () => {
-        request.result.close();
-        resolve();
-      };
-      request.onerror = () => reject(request.error ?? new Error("opening version 2 failed"));
-    });
-  }
-
-  it("clears a version 2 library's slideshows, predating colours, keeps pictures and stores focus after upgrading", async () => {
-    await deleteLibraryDatabase();
-    const saved: StoredSlideshow = {
-      id: "show-1",
-      title: "July 2025",
-      createdAt: "2025-07-02T08:00:00Z",
-      pictures: [
-        {
-          id: "saved-picture",
-          capturedAt: "2025-07-01T10:00:00Z",
-          width: 1,
-          height: 1,
-          fileName: "a.jpg",
-          colours: { veil: "#404040", accent: "#C0C0C0" },
-        },
-      ],
-      songs: [],
-      secondsPerPicture: 5,
-    };
-    await openVersionTwoWithSlideshow(saved);
-
-    const store = await openLibraryStore(indexedDB);
-    try {
-      await expect(store.getSlideshow("show-1")).rejects.toBeInstanceOf(SlideshowNotFoundError);
-      expect((await store.thumbnailBlob("saved-picture")).size).toBe(1);
-      expect(await store.pictureFocus(["saved-picture"])).toEqual(new Map());
-      await store.putPictureFocus("saved-picture", storedFocus({ kind: "none" }));
-      expect(await store.pictureFocus(["saved-picture"])).toEqual(
-        new Map([["saved-picture", storedFocus({ kind: "none" })]]),
-      );
-    } finally {
-      store.close();
-      await deleteLibraryDatabase();
-    }
-  });
-});
-
-describe("IndexedDbLibraryStore beats upgrade", () => {
-  /** A library as schema version 3 left it: a slideshow with its music, no beats store. */
-  function openVersionThreeWithSlideshow(slideshow: StoredSlideshow): Promise<void> {
+  /** A library as schema version 3 left it, with records, and a store the current schema lacks. */
+  function openVersionThreeWithRecords(): Promise<void> {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(LIBRARY_DATABASE_NAME, 3);
       request.onupgradeneeded = () => {
         const database = request.result;
-        database.createObjectStore("slideshows", { keyPath: "id" }).put(slideshow);
-        database.createObjectStore("pictures");
-        database
-          .createObjectStore("music")
-          .put({ bytes: new ArrayBuffer(1), type: "audio/mpeg" }, "saved-music");
-        database.createObjectStore("imports", { keyPath: "id" });
-        database.createObjectStore("focus");
+        database.createObjectStore("slideshows", { keyPath: "id" }).put({ id: "show-1" });
+        database.createObjectStore("pictures").put({ display: "d" }, "saved-picture");
+        database.createObjectStore("music").put({ bytes: "m" }, "saved-music");
+        database.createObjectStore("imports", { keyPath: "id" }).put({ id: "import-1" });
+        database.createObjectStore("focus").put({ kind: "none" }, "saved-picture");
+        database.createObjectStore("retired").put("r", "retired-1");
       };
       request.onsuccess = () => {
         request.result.close();
@@ -254,35 +133,105 @@ describe("IndexedDbLibraryStore beats upgrade", () => {
     });
   }
 
-  it("clears a version 3 library's slideshows, predating colours, keeps music and stores beats after upgrading", async () => {
-    await deleteLibraryDatabase();
-    const saved: StoredSlideshow = {
-      id: "show-1",
-      title: "July 2025",
-      createdAt: "2025-07-02T08:00:00Z",
-      pictures: [],
-      songs: [{ id: "saved-music", fileName: "a.mp3", durationMs: 1000, mimeType: "audio/mpeg" }],
-      secondsPerPicture: 5,
-    };
-    await openVersionThreeWithSlideshow(saved);
-
-    const store = await openLibraryStore(indexedDB);
-    try {
-      await expect(store.getSlideshow("show-1")).rejects.toBeInstanceOf(SlideshowNotFoundError);
-      expect((await store.musicBlob("saved-music")).size).toBe(1);
-      expect(await store.musicBeats("saved-music")).toBeUndefined();
-      await store.putMusicBeats("saved-music", { kind: "none" });
-      expect(await store.musicBeats("saved-music")).toEqual({ kind: "none" });
-      expect(await store.musicLoudness("saved-music")).toBeUndefined();
-      const loudness = {
-        blockMeanSquares: new Float32Array([0.01, 0.02]),
-        hopPeaks: new Float32Array([0.5, 0.6, 0.7, 0.8, 0.9]),
+  /** Each store of the library database at its current version, with its record count. */
+  function storeCounts(): Promise<Record<string, number>> {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(LIBRARY_DATABASE_NAME);
+      request.onerror = () => reject(request.error ?? new Error("opening the database failed"));
+      request.onsuccess = () => {
+        const database = request.result;
+        const names = [...database.objectStoreNames];
+        const transaction = database.transaction(names, "readonly");
+        const counts: Record<string, number> = {};
+        for (const name of names) {
+          const count = transaction.objectStore(name).count();
+          count.onsuccess = () => (counts[name] = count.result);
+        }
+        transaction.oncomplete = () => {
+          database.close();
+          resolve(counts);
+        };
+        transaction.onerror = () => reject(transaction.error ?? new Error("counting failed"));
       };
-      await store.putMusicLoudness("saved-music", loudness);
-      expect(await store.musicLoudness("saved-music")).toEqual(loudness);
+    });
+  }
+
+  it("drops every store of an older library and creates the current set, empty", async () => {
+    await deleteLibraryDatabase();
+    await openVersionThreeWithRecords();
+
+    (await openLibraryStore(indexedDB)).close();
+    try {
+      expect(await storeCounts()).toEqual({
+        slideshows: 0,
+        pictures: 0,
+        music: 0,
+        imports: 0,
+        focus: 0,
+        beats: 0,
+        videos: 0,
+        loudness: 0,
+      });
     } finally {
-      store.close();
       await deleteLibraryDatabase();
     }
+  });
+});
+
+describe("IndexedDbLibraryStore beside another tab's schema version", () => {
+  const NEWER_VERSION = 1000;
+  const hooks = (events: string[]) => ({
+    onNewerVersion: () => events.push("newer"),
+    onBlocked: () => events.push("blocked"),
+  });
+
+  function openNewerVersion(onBlocked?: () => void): Promise<IDBDatabase> {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(LIBRARY_DATABASE_NAME, NEWER_VERSION);
+      request.onblocked = () => onBlocked?.();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () =>
+        reject(request.error ?? new Error("opening the newer version failed"));
+    });
+  }
+
+  it("rejects with a newer-version error when the library is at a higher schema version", async () => {
+    await deleteLibraryDatabase();
+    (await openNewerVersion()).close();
+
+    const error: unknown = await openLibraryStore(indexedDB, hooks([])).catch((e: unknown) => e);
+    expect(isNewerVersionError(error)).toBe(true);
+    expect(isNewerVersionError(new Error("other"))).toBe(false);
+    await deleteLibraryDatabase();
+  });
+
+  it("closes its connection and tells the app when a newer version upgrades the schema", async () => {
+    await deleteLibraryDatabase();
+    const events: string[] = [];
+    await openLibraryStore(indexedDB, hooks(events));
+
+    // Resolves only once this store let go; a connection left open would block it for good.
+    (await openNewerVersion(() => events.push("upgrade blocked"))).close();
+
+    expect(events).toEqual(["newer"]);
+    await deleteLibraryDatabase();
+  });
+
+  it("reports an upgrade that waits for another tab's open connection", async () => {
+    await deleteLibraryDatabase();
+    const holder = await new Promise<IDBDatabase>((resolve) => {
+      const request = indexedDB.open(LIBRARY_DATABASE_NAME, 1);
+      request.onsuccess = () => resolve(request.result);
+    });
+    const blocked = Promise.withResolvers<undefined>();
+
+    const opening = openLibraryStore(indexedDB, {
+      onNewerVersion: () => undefined,
+      onBlocked: () => blocked.resolve(undefined),
+    });
+    await blocked.promise;
+    holder.close();
+    (await opening).close();
+    await deleteLibraryDatabase();
   });
 });

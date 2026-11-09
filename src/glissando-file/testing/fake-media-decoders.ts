@@ -4,6 +4,8 @@ import { MADE_THUMBNAIL_TYPE, type MediaDecoders } from "../media-decoders";
 export interface FakeMediaDecodersOptions {
   /** A picture whose bytes contain this text fails to decode, even with a readable header. */
   readonly refusePictureContaining?: string;
+  /** A picture decodes turned a quarter, as a browser shows one with an EXIF orientation of 5–8. */
+  readonly turnPictures?: boolean;
   /** A song whose bytes contain this text fails to decode. */
   readonly refuseMusicContaining?: string;
   /** A clip whose bytes contain this text fails to load. */
@@ -39,7 +41,10 @@ export function fakeMediaDecoders(options: FakeMediaDecodersOptions = {}): FakeM
       if (await refuses(picture, options.refusePictureContaining)) {
         return null;
       }
-      return readPictureHeader(picture);
+      const header = await readPictureHeader(picture);
+      return options.turnPictures === true && header !== null
+        ? { width: header.height, height: header.width }
+        : header;
     },
 
     async music(song) {

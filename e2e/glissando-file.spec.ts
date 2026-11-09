@@ -36,7 +36,7 @@ test("E2E-015 a slideshow exported from its Share sheet opens again from the lib
   await expect(sheet).toContainText(/[\d,]+ MB/);
   const releaseExport = await holdPictureStore(page);
   await sheet.getByRole("button", { name: "Datei sichern" }).click();
-  await expect(status(page, `Exportiere „${TITLE}“`)).toBeVisible();
+  await expect(status(page, `Speichere „${TITLE}“`)).toBeVisible();
   const download = page.waitForEvent("download");
   await releaseExport();
   const file = await download;

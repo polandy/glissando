@@ -13,15 +13,16 @@
   let {
     slideshow,
     onPlay,
+    pulsePlay,
     onAddPictures,
     newPictureIds,
     selection = $bindable(),
     mousePointer,
     onEdit,
     onView,
-    onRemove,
     onRemoveGroup,
     onShuffle,
+    onSortByDate,
     onShiftGroup,
     onMoveGroup,
     onOpenOpeningCard,
@@ -34,6 +35,7 @@
   }: {
     slideshow: SlideshowDetails;
     onPlay: () => void;
+    pulsePlay: boolean;
     onAddPictures: () => void;
     newPictureIds: ReadonlySet<string>;
     selection: StripSelection;
@@ -42,10 +44,11 @@
     onEdit: (pictureId: string) => void;
     /** F on a focused tile: opens it in the full-screen viewer. */
     onView: (pictureId: string) => void;
-    onRemove: (pictureId: string) => void;
     onRemoveGroup: (pictureIds: readonly string[]) => void;
     /** Puts the pictures in a new random order. */
     onShuffle: () => void;
+    /** Puts every picture back in capture-date order. */
+    onSortByDate: () => void;
     onShiftGroup: (pictureIds: readonly string[], offset: number) => void;
     onMoveGroup: (pictureIds: readonly string[], insertion: number) => void;
     /** Opens the title slide / closing slide sheet (TITLE_SLIDES.md). */
@@ -65,10 +68,10 @@
     strip?.focusOpeningCard();
   }
 
-  /** The tiles glide to their new places, so the shuffle shows. */
-  async function shuffle(): Promise<void> {
+  /** The tiles glide to their new places, so the new order shows. */
+  async function glideThrough(reorder: () => void): Promise<void> {
     const glide = strip?.beginGlide();
-    onShuffle();
+    reorder();
     await tick();
     glide?.();
   }
@@ -76,10 +79,19 @@
   export function focusClosingCard(): void {
     strip?.focusClosingCard();
   }
+
+  export function focusChapter(anchorPictureId: string): void {
+    strip?.focusChapter(anchorPictureId);
+  }
 </script>
 
 <div class="pictures">
-  <PlayPreview coverUrl={slideshow.coverUrl} durationSeconds={slideshow.durationSeconds} {onPlay} />
+  <PlayPreview
+    coverUrl={slideshow.coverUrl}
+    durationSeconds={slideshow.durationSeconds}
+    {onPlay}
+    pulse={pulsePlay}
+  />
 
   <StripHead
     count={slideshow.pictures.length}
@@ -87,7 +99,8 @@
     selecting={selection.several}
     onToggleSelect={() =>
       (selection = selection.several ? endSelecting() : startSelecting(selection))}
-    onShuffle={shuffle}
+    onShuffle={() => glideThrough(onShuffle)}
+    onSortByDate={() => glideThrough(onSortByDate)}
     onAdd={onAddPictures}
   />
   <PictureStrip
@@ -100,7 +113,6 @@
     onSelectionChange={(next) => (selection = next)}
     onOpen={onEdit}
     {onView}
-    {onRemove}
     {onRemoveGroup}
     {onShiftGroup}
     {onMoveGroup}
@@ -125,5 +137,18 @@
   .pictures {
     display: grid;
     gap: 20px;
+  }
+  /* Stacked: the preview first, the settings card (a sibling of this column) next, then the
+     strip, so Play and the first tiles meet on one phone screen. */
+  @container (max-width: 1024px) {
+    .pictures {
+      display: contents;
+    }
+    .pictures > :global(*) {
+      order: 1;
+    }
+    .pictures > :global(.preview) {
+      order: -1;
+    }
   }
 </style>

@@ -119,6 +119,21 @@
     box-shadow: var(--gl-shadow);
     cursor: pointer;
   }
+  @media (pointer: coarse) {
+    .stepper {
+      grid-template-columns: var(--gl-hit-min) 1fr var(--gl-hit-min);
+    }
+    .stepper button {
+      position: relative;
+      height: var(--gl-hit-min);
+    }
+    /* A square over the rounded corners, which a tap would otherwise miss. */
+    .stepper button::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+    }
+  }
   .stepper button[aria-disabled="true"] {
     background: transparent;
     color: var(--gl-faint);

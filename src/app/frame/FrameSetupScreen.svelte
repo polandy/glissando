@@ -6,6 +6,7 @@
   import FrameAlbumPicker from "./FrameAlbumPicker.svelte";
   import Header from "../components/Header.svelte";
   import Notice from "../components/Notice.svelte";
+  import Separated from "../components/Separated.svelte";
   import Switch from "../components/Switch.svelte";
   import { getTranslator } from "../i18n/context";
   import type { MessageKey } from "../i18n/messages";
@@ -129,17 +130,17 @@
       </div>
       <div class="row">
         <div>
-          <b>{t("frame.showDate")}</b>
-          <small>{t("frame.showDateHint")}</small>
+          <b>{t("frame.showDateAndPlace")}</b>
+          <small>{t("frame.showDateAndPlaceHint")}</small>
         </div>
-        <Switch checked={showDate} label={t("frame.showDate")} onChange={onShowDate} />
+        <Switch checked={showDate} label={t("frame.showDateAndPlace")} onChange={onShowDate} />
       </div>
     {/if}
   </main>
   <div class="foot">
     <span class="grow">
       {#if selectedAlbum !== null && !emptyAlbum}
-        {t("frame.footerSummary", { count: selectedAlbum.photoCount })}
+        <Separated text={t("frame.footerSummary", { count: selectedAlbum.photoCount })} />
       {/if}
     </span>
     {#if canCopyLink}

@@ -115,7 +115,7 @@ describe("composeSlideshow with energy pacing", () => {
     expect(durationsMs.reduce((sum, ms) => sum + ms, 0)).toBe(10_000);
   });
 
-  it("keeps a picture's own duration unchanged and out of the re-pacing", () => {
+  it("keeps a picture's chosen duration unchanged and out of the re-pacing", () => {
     const a = song("a", 10_000);
     const stored = storedSlideshow({
       pictures: [picture("own", { durationMs: 2000 }), ...pictures(2)],
@@ -150,7 +150,7 @@ describe("composeSlideshow with energy pacing", () => {
     expect(slideEndsMs(durationsMs)).toContain(15_000);
   });
 
-  it("drops the transition at a lift, but keeps a picture's own transition there", () => {
+  it("drops the transition at a lift, but keeps a picture's chosen transition there", () => {
     const a = song("a", 30_000);
     const base = storedSlideshow({
       pictures: pictures(6),
@@ -167,7 +167,7 @@ describe("composeSlideshow with energy pacing", () => {
     const cutIndex = slideEndsMs(cutSlides.map((slide) => slide.durationMs)).indexOf(15_000);
     expect(cutSlides[cutIndex]?.transitionToNext).toBeUndefined();
 
-    // The same picture, now with its own transition, keeps it even though its end still falls
+    // The same picture, now with its chosen transition, keeps it even though its end still falls
     // exactly on the lift.
     const withOwn: StoredSlideshow = {
       ...base,

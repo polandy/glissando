@@ -1,3 +1,4 @@
+import { MAX_MUSIC_BYTES } from "../import/music-limits";
 import { checkMediaFile } from "./check-media-file";
 import { glissandoEntries } from "./entry-layout";
 import { isAllowedEntryName } from "./entry-names";
@@ -41,11 +42,12 @@ export interface CheckOptions {
   readonly signal?: AbortSignal;
 }
 
-/** A medium's own size limit; a song has none beyond the container's total (ADR-0038). */
+/** A medium's own size limit (ADR-0038); a song keeps to what a device import accepts. */
 const MEDIA_SIZE_LIMITS: Readonly<Partial<Record<MediaDescriptor["kind"], number>>> = {
   picture: MAX_DISPLAY_PICTURE_BYTES,
   thumbnail: MAX_THUMBNAIL_BYTES,
   video: MAX_CLIP_BYTES,
+  music: MAX_MUSIC_BYTES,
 };
 
 /**

@@ -17,6 +17,14 @@ function roundedDecibels(value: number): number {
   return Math.round(value * DECIBEL_ROUNDING_STEPS_PER_UNIT) / DECIBEL_ROUNDING_STEPS_PER_UNIT;
 }
 
+/** A JSON value that is no valid `MusicLoudness`; the message names the field and value at fault. */
+export class MusicLoudnessFormatError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "MusicLoudnessFormatError";
+  }
+}
+
 export function musicLoudnessToJson(loudness: MusicLoudness): unknown {
   return {
     blockLoudnessDb: Array.from(loudness.blockMeanSquares, (meanSquare) =>
@@ -29,17 +37,20 @@ export function musicLoudnessToJson(loudness: MusicLoudness): unknown {
 }
 
 /**
- * The boundary check of a `MusicLoudness` read from JSON. Throws with the exact field and value
- * at fault: unknown keys, a field that is not an array, an entry that is not a finite number or
- * `null`, or a block count that does not match the hop count's gating relationship.
+ * The boundary check of a `MusicLoudness` read from JSON. Throws a `MusicLoudnessFormatError`
+ * naming the exact field and value at fault: unknown keys, a field that is not an array, an entry
+ * that is not a finite number or `null`, or a block count that does not match the hop count's
+ * gating relationship.
  */
 export function parseMusicLoudness(json: unknown): MusicLoudness {
   if (typeof json !== "object" || json === null || Array.isArray(json)) {
-    throw new Error(`MusicLoudness must be an object, got ${JSON.stringify(json)}`);
+    throw new MusicLoudnessFormatError(
+      `MusicLoudness must be an object, got ${JSON.stringify(json)}`,
+    );
   }
   const unknownKey = Object.keys(json).find((key) => !KNOWN_KEYS.has(key));
   if (unknownKey !== undefined) {
-    throw new Error(`MusicLoudness has no field "${unknownKey}"; remove it`);
+    throw new MusicLoudnessFormatError(`MusicLoudness has no field "${unknownKey}"; remove it`);
   }
 
   const { blockLoudnessDb, hopPeaksDbfs } = json as Record<string, unknown>;
@@ -52,7 +63,7 @@ export function parseMusicLoudness(json: unknown): MusicLoudness {
 
   const expectedBlocks = Math.max(0, hopPeaks.length - HOPS_PER_BLOCK + 1);
   if (blockMeanSquares.length !== expectedBlocks) {
-    throw new Error(
+    throw new MusicLoudnessFormatError(
       `MusicLoudness has ${String(blockMeanSquares.length)} "blockLoudnessDb" entries for ` +
         `${String(hopPeaks.length)} "hopPeaksDbfs" entries; a ${String(LOUDNESS_BLOCK_MS)} ms block ` +
         `every ${String(LOUDNESS_HOP_MS)} ms hop expects ${String(expectedBlocks)} blocks`,
@@ -71,12 +82,14 @@ function decibelsToLinear(
   toLinear: (decibels: number) => number,
 ): number[] {
   if (!Array.isArray(value)) {
-    throw new Error(`MusicLoudness's "${field}" must be an array, got ${JSON.stringify(value)}`);
+    throw new MusicLoudnessFormatError(
+      `MusicLoudness's "${field}" must be an array, got ${JSON.stringify(value)}`,
+    );
   }
   return value.map((entry, index) => {
     if (entry === null) return 0;
     if (typeof entry !== "number" || !Number.isFinite(entry)) {
-      throw new Error(
+      throw new MusicLoudnessFormatError(
         `MusicLoudness's "${field}[${String(index)}]" must be a finite number or null, got ${JSON.stringify(entry)}`,
       );
     }

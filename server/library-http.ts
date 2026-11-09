@@ -3,9 +3,10 @@
  * tested without sockets; `main.ts` maps them to and from `node:http`.
  */
 
+import { MAX_MUSIC_BYTES } from "../src/import/music-limits";
+
 const MIB = 1024 * 1024;
 const KIB = 1024;
-export const MAX_MUSIC_BYTES = 200 * MIB;
 export const MAX_DOCUMENT_BYTES = 2 * MIB;
 /** A `StoredFocus` is a handful of numbers and short strings; this is generous for one. */
 export const MAX_FOCUS_BYTES = 4 * KIB;
@@ -32,6 +33,7 @@ export const HTTP_STATUS = {
   unsupportedMediaType: 415,
   preconditionRequired: 428,
   internalError: 500,
+  serviceUnavailable: 503,
 } as const;
 
 /** The body as received, or the note that it passed the path's `maxBodyBytes`. */
@@ -111,6 +113,7 @@ export type ErrorCode =
   | "tvAway"
   | "invalidState"
   | "invalidCommand"
+  | "tvFull"
   | "internalError";
 
 export function errorResponse(

@@ -3,6 +3,7 @@ import { VideoPlaybackError } from "./ports";
 import type { PictureSlide, Slide } from "./slideshow";
 import { FakeVideos, fakeLiveFrame, labelOf } from "./testing/fake-videos";
 import { VideoClips } from "./video-clips";
+import { settleMicrotasks } from "../testing/settle-microtasks";
 
 const STILL = {
   from: { zoom: 1, centerX: 0.5, centerY: 0.5 },
@@ -47,6 +48,41 @@ describe("video clips", () => {
     videos.only().fail(failure);
     videos.only().fail(failure);
     expect(errors).toEqual([failure]);
+  });
+
+  it("closes a failed clip", () => {
+    const { clips, videos } = setUp();
+    clips.place(8000);
+    videos.only().fail(new VideoPlaybackError(new Error("missing")));
+    expect(videos.only().calls).toContain("dispose");
+  });
+
+  it("opens a failed clip afresh on the next play and reports it again if it fails again", () => {
+    const { clips, videos, errors } = setUp();
+    clips.place(11_000);
+    const first = new VideoPlaybackError(new Error("missing"));
+    videos.opened[0]?.fail(first);
+    clips.play(11_000);
+    const second = new VideoPlaybackError(new Error("still missing"));
+    videos.opened[1]?.fail(second);
+    expect(videos.opened).toHaveLength(2);
+    expect(errors).toEqual([first, second]);
+  });
+
+  it("resolves whenReady once the clip reopened after a failure can play on", async () => {
+    const { clips, videos } = setUp();
+    clips.place(11_000);
+    videos.opened[0]?.fail(new VideoPlaybackError(new Error("missing")));
+    videos.readyOnOpen = false;
+    let resolved = false;
+    const pending = clips.whenReady(11_000).then(() => (resolved = true));
+    await settleMicrotasks();
+    expect(videos.opened).toHaveLength(2);
+    expect(resolved).toBe(false);
+
+    videos.opened[1]?.becomeReady();
+    await pending;
+    expect(resolved).toBe(true);
   });
 
   it("opens no playback before a clip is near", () => {
@@ -128,8 +164,7 @@ describe("video clips", () => {
     const cause = new Error("NotAllowedError");
     videos.only().refuseNextPlay(cause);
     clips.play(11_000);
-    await Promise.resolve();
-    await Promise.resolve();
+    await settleMicrotasks();
     expect(errors).toHaveLength(1);
     expect(errors[0]).toBeInstanceOf(VideoPlaybackError);
     expect(errors[0]?.cause).toBe(cause);
@@ -146,7 +181,8 @@ describe("video clips", () => {
     videos.readyOnOpen = false;
     let resolved = false;
     const pending = clips.whenReady(10_000).then(() => (resolved = true));
-    await Promise.resolve();
+    await settleMicrotasks();
+    expect(videos.opened).toHaveLength(1);
     expect(resolved).toBe(false);
 
     videos.only().becomeReady();
@@ -172,7 +208,8 @@ describe("video clips", () => {
       videos.readyOnOpen = false;
       let resolved = false;
       const pending = clips.whenReady(9500).then(() => (resolved = true));
-      await Promise.resolve();
+      await settleMicrotasks();
+      expect(videos.opened).toHaveLength(1);
       expect(resolved).toBe(false);
 
       videos.only().becomeReady();

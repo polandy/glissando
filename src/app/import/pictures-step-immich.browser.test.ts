@@ -9,6 +9,7 @@ import { createTranslator } from "../i18n/translator";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { ImportSession } from "./import-session";
 import PicturesStep from "./PicturesStep.svelte";
+import { findButtonNamed } from "../testing/by-role";
 
 let unmounts: (() => void)[] = [];
 afterEach(() => {
@@ -34,8 +35,7 @@ function session(): ImportSession {
         thumbnail: new Blob([file.name]),
       }),
     videoClips: noVideoClips,
-    captureDate: () => Promise.resolve("2025-07-01T10:00:00Z"),
-    gps: () => Promise.resolve(null),
+    exif: () => Promise.resolve({ capturedAt: "2025-07-01T10:00:00Z", gps: null }),
     resolvePlace: () => Promise.resolve(null),
     immichSource: () => {
       throw new Error("no Immich download in this test");
@@ -76,8 +76,7 @@ function mountStep(immich: ImmichAvailabilityState, importSession = session()) {
     { current: createTranslator("en") },
   );
   unmounts.push(step.destroy);
-  const button = (label: string) =>
-    [...step.target.querySelectorAll("button")].find((b) => b.textContent.trim() === label);
+  const button = (label: string) => findButtonNamed(step.target, label);
   return { target: step.target, calls, button };
 }
 

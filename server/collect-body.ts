@@ -1,20 +1,35 @@
 import type { RequestBody } from "./library-http";
 
+/** How many bytes past the limit are still read and dropped so the 413 reaches the client. */
+export const DRAIN_BUDGET_BYTES = 1024 * 1024;
+
+/**
+ * The body as received, too large but read to its end, or too large and left unread once the
+ * drain budget ran out — the caller then closes the connection itself after its answer.
+ */
+export type CollectedBody = RequestBody | { readonly kind: "tooLargeUnread" };
+
 /**
  * A request's body, at most `limit` bytes. Past the limit the rest is read and dropped rather
- * than the stream left unread, because abandoning a request stream closes its socket before
- * the 413 is sent — so even a body whose Content-Length is over the limit is read to its end.
+ * than the stream left unread, because a socket closed with unread bytes resets the connection
+ * and the client may lose the 413 — so a body somewhat over the limit is still read to its end.
+ * The draining stops `DRAIN_BUDGET_BYTES` past the limit so an endless body cannot hold the
+ * service; the time a slow body may take is bounded by the server's request timeout. The stream
+ * is never closed here: returning from its iterator destroys the socket before the 413 is sent.
  */
 export async function collectBody(
   chunks: AsyncIterable<Uint8Array>,
   limit: number,
-): Promise<RequestBody> {
+): Promise<CollectedBody> {
+  const reading = chunks[Symbol.asyncIterator]();
   const kept: Uint8Array[] = [];
   let length = 0;
-  for await (const chunk of chunks) {
-    length += chunk.byteLength;
+  for (let next = await reading.next(); next.done !== true; next = await reading.next()) {
+    length += next.value.byteLength;
     if (length <= limit) {
-      kept.push(chunk);
+      kept.push(next.value);
+    } else if (length > limit + DRAIN_BUDGET_BYTES) {
+      return { kind: "tooLargeUnread" };
     }
   }
   if (length > limit) {

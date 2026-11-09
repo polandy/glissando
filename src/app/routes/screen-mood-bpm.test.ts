@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { DRUMS } from "../../library/testing/beat-pass-fixtures";
-import type { BeatPass, BeatPassState } from "../../library/beat-pass";
+import { DRUMS, SILENT } from "../../library/testing/music-analysis-pass-fixtures";
+import type { MusicAnalysisPass, MusicAnalysisPassState } from "../../library/music-analysis-pass";
 import type { LibraryStore } from "../../library/library-store";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { ScreenMoodBpm } from "./screen-mood-bpm.svelte";
 
-const IDLE_STATE: BeatPassState = {
+const IDLE_STATE: MusicAnalysisPassState = {
   running: false,
   listening: new Set(),
   found: new Map(),
@@ -24,7 +24,7 @@ function stored(songs: StoredSlideshow["songs"]): StoredSlideshow {
 }
 
 function screenMoodBpm(): ScreenMoodBpm {
-  const pass: Pick<BeatPass, "state" | "subscribe"> = {
+  const pass: Pick<MusicAnalysisPass, "state" | "subscribe"> = {
     state: IDLE_STATE,
     subscribe: () => () => {},
   };
@@ -61,10 +61,10 @@ describe("ScreenMoodBpm.beatsOf", () => {
   });
 
   it("composes a new map once the background pass finds a song's beats", () => {
-    let notify: (next: BeatPassState) => void = () => {};
-    const pass: Pick<BeatPass, "state" | "subscribe"> = {
+    let notify: (next: MusicAnalysisPassState) => void = () => {};
+    const pass: Pick<MusicAnalysisPass, "state" | "subscribe"> = {
       state: IDLE_STATE,
-      subscribe: (onNext: (next: BeatPassState) => void) => {
+      subscribe: (onNext: (next: MusicAnalysisPassState) => void) => {
         notify = onNext;
         return () => {};
       },
@@ -75,7 +75,7 @@ describe("ScreenMoodBpm.beatsOf", () => {
     const show = stored([{ id: "a", fileName: "a.mp3", durationMs: 2000, mimeType: "audio/mpeg" }]);
 
     const before = bpm.beatsOf(show);
-    notify({ ...IDLE_STATE, found: new Map([["a", DRUMS]]) });
+    notify({ ...IDLE_STATE, found: new Map([["a", { beats: DRUMS, loudness: SILENT }]]) });
     const after = bpm.beatsOf(show);
 
     expect(after).not.toBe(before);
@@ -83,10 +83,10 @@ describe("ScreenMoodBpm.beatsOf", () => {
   });
 
   it("keeps the same map while the pass only moves on to listening to another song", () => {
-    let notify: (next: BeatPassState) => void = () => {};
-    const pass: Pick<BeatPass, "state" | "subscribe"> = {
+    let notify: (next: MusicAnalysisPassState) => void = () => {};
+    const pass: Pick<MusicAnalysisPass, "state" | "subscribe"> = {
       state: IDLE_STATE,
-      subscribe: (onNext: (next: BeatPassState) => void) => {
+      subscribe: (onNext: (next: MusicAnalysisPassState) => void) => {
         notify = onNext;
         return () => {};
       },

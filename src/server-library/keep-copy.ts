@@ -1,9 +1,15 @@
 import { FOCUS_DETECTOR_VERSION } from "../focus/focus-detector-version";
+import { cardFromManifest, cardToManifest } from "../glissando-file/manifest-card";
 import { uniqueTitle } from "../glissando-file/unique-title";
 import type { ImmichPhoto } from "../immich/immich-client";
 import { immichPictureSource, type ImmichPictureReaders } from "../import/immich-picture-source";
 import type { LibraryStore, SlideshowStore } from "../library/library-store";
-import type { StoredMusic, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
+import type {
+  StoredCard,
+  StoredMusic,
+  StoredPicture,
+  StoredSlideshow,
+} from "../library/stored-slideshow";
 
 export interface KeepCopyPorts {
   /** The device's store the copy goes into. */
@@ -30,8 +36,6 @@ export interface KeepCopyPorts {
 export interface KeepCopyOptions {
   /** The titles on this device; the copy never takes one of them. */
   readonly existingTitles: readonly string[];
-  /** Cancels the copy; it then rejects with the signal's reason. */
-  readonly signal: AbortSignal;
   /** The share of the pictures and music copied so far, from 0 to 1. */
   readonly onProgress?: (fraction: number) => void;
 }
@@ -43,7 +47,7 @@ export interface KeepCopyOptions {
  * faces lookup, e.g. confirmed or found by scenery), else Immich's faces. All or nothing, as
  * `writeGlissandoFile`: every media id is claimed before its media is written and the record is
  * saved last, so a failure (e.g. `PictureNotDownloadedError` for a picture no longer in Immich)
- * or a cancel keeps nothing.
+ * keeps nothing.
  */
 export async function keepCopyOnDevice(
   slideshow: StoredSlideshow,
@@ -58,7 +62,6 @@ export async function keepCopyOnDevice(
   const stepDone = () => options.onProgress?.(++done / steps);
 
   const claimed = async (write: (id: string) => Promise<void>): Promise<string> => {
-    options.signal.throwIfAborted();
     const id = ports.newId();
     await store.claimMedia(claimId, startedAt, id);
     await write(id);
@@ -93,14 +96,23 @@ export async function keepCopyOnDevice(
       const id = await claimed((musicId) => store.putMusic(musicId, audio));
       songs.push({ ...song, id });
     }
-    options.signal.throwIfAborted();
+    const serverIds = slideshow.pictures.map(({ id }) => id);
+    const copyIds = pictures.map(({ id }) => id);
+    // A card names its picture by id, and every copied picture has a new one.
+    const overCopiedPicture = (card: StoredCard | undefined) =>
+      cardFromManifest(cardToManifest(card, serverIds), copyIds);
+    const { openingCard, closingCard, ...settings } = slideshow;
+    const opening = overCopiedPicture(openingCard);
+    const closing = overCopiedPicture(closingCard);
     const copy: StoredSlideshow = {
-      ...slideshow,
+      ...settings,
       id: ports.newId(),
       title: uniqueTitle(slideshow.title, options.existingTitles),
       createdAt: ports.now().toISOString(),
       pictures,
       songs,
+      ...(opening === undefined ? {} : { openingCard: opening }),
+      ...(closing === undefined ? {} : { closingCard: closing }),
     };
     await store.saveSlideshow(copy);
     await store.releaseClaim(claimId);

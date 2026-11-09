@@ -1,13 +1,13 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
-  import type { BeatPass } from "../../library/beat-pass";
-  import type { LoudnessPass } from "../../library/loudness-pass";
+  import type { MusicAnalysisPass } from "../../library/music-analysis-pass";
   import type { LibraryStore } from "../../library/library-store";
   import type { StoredSlideshow } from "../../library/stored-slideshow";
   import { PlaylistBeats } from "../beats/playlist-beats";
   import { PlaylistLoudness } from "../loudness/playlist-loudness";
   import type { SlideshowEditor } from "../editing/slideshow-editor";
   import type { MusicEditorAudio } from "../music-editor/music-editor-audio";
+  import { finePeaksFromHops } from "../music-editor/hop-fine-peaks";
   import { ListenPreview, type ListenState } from "../music-editor/listen-preview";
   import { musicEditorView } from "../music-editor/music-editor-view";
   import type { SongsBeatsStatus, SongsLoudnessStatus } from "../music-editor/slideshow-times";
@@ -27,8 +27,7 @@
     store,
     stored,
     editor,
-    beatPass,
-    loudnessPass,
+    analysisPass,
     audio,
     songIntake,
     samplePreview,
@@ -42,10 +41,9 @@
     store: Pick<LibraryStore, "musicBlob" | "musicBeats" | "musicLoudness">;
     stored: StoredSlideshow;
     editor: SlideshowEditor;
-    /** What it finds puts the automatic changes on the music's beats as it goes. */
-    beatPass: Pick<BeatPass, "subscribe" | "listenFor">;
-    /** What it finds levels each song as it goes (ADR-0040). */
-    loudnessPass: Pick<LoudnessPass, "subscribe" | "listenFor">;
+    /** What it finds puts the automatic changes on the music's beats and levels each song as it
+     * goes (ADR-0040, ADR-0051). */
+    analysisPass: Pick<MusicAnalysisPass, "subscribe" | "listenFor">;
     audio: MusicEditorAudio;
     /** Reads picked songs and stores their audio where the slideshow lives. */
     songIntake: SongIntakeDevice;
@@ -62,7 +60,6 @@
   } = $props();
 
   let selectedSongId = $state<string | null>(null);
-  let peaks = $state.raw<Float32Array | null>(null);
   let listening = $state.raw<ListenState | null>(null);
   let beats = $state.raw<SongsBeatsStatus>(new Map());
   let loudness = $state.raw<SongsLoudnessStatus>(new Map());
@@ -72,6 +69,13 @@
   const song = $derived(
     stored.songs.find((candidate) => candidate.id === selectedSongId) ?? stored.songs[0],
   );
+  /** The selected song's loudness hops once measured; peaks are recomputed only when these change. */
+  const selectedHops = $derived.by(() => {
+    const status = song === undefined ? undefined : loudness.get(song.id);
+    return status?.kind === "known" ? status.loudness.hopPeaks : null;
+  });
+  /** The waveform's fine peaks; null — drawn as reading — until the song's loudness is measured. */
+  const peaks = $derived(selectedHops === null ? null : finePeaksFromHops(selectedHops));
   const songIds = $derived(stored.songs.map(({ id }) => id));
   let preview: ListenPreview | null = null;
   /** Set as a volume listen's song changes, so the new song picks it straight back up. */
@@ -84,11 +88,11 @@
 
   // The ports are fixed for the route's lifetime.
   // svelte-ignore state_referenced_locally
-  const playlistBeats = new PlaylistBeats({ store, pass: beatPass, log }, (status) => {
+  const playlistBeats = new PlaylistBeats({ store, pass: analysisPass, log }, (status) => {
     beats = status;
   });
   // svelte-ignore state_referenced_locally
-  const playlistLoudness = new PlaylistLoudness({ store, pass: loudnessPass, log }, (status) => {
+  const playlistLoudness = new PlaylistLoudness({ store, pass: analysisPass, log }, (status) => {
     loudness = status;
   });
   // svelte-ignore state_referenced_locally
@@ -109,7 +113,8 @@
     playlistLoudness.follow(songIds).catch(onError);
   });
 
-  // The selected song's audio, for its waveform and listening; let go of when another is chosen.
+  // The selected song's audio, for listening; let go of when another is chosen. The pass analyses
+  // the selected song first, as its waveform waits for the measurement.
   $effect(() => {
     const songId = song?.id;
     if (songId === undefined) return;
@@ -117,7 +122,7 @@
     resumeVolumeListen = null;
     const left = new AbortController();
     let musicUrl: string | null = null;
-    peaks = null;
+    analysisPass.listenFor(songId);
     store.musicBlob(songId).then((blob) => {
       if (left.signal.aborted) return;
       musicUrl = audio.createUrl(blob);
@@ -133,9 +138,6 @@
         const plan = musicEditorView(stored, beats, songId, loudness).volumeListen;
         preview.replaceVolume(plan, resume.original);
       }
-      audio.decodePeaks(blob).then((decoded) => {
-        if (!left.signal.aborted) peaks = decoded;
-      }, onError);
     }, onError);
     return () => {
       // Tapping another song while listening at volume keeps comparing it (music.volumeListenCompare).

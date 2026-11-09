@@ -5,6 +5,8 @@
   import Icon from "./Icon.svelte";
   import { neighbourAfterRemoval, stepFrom, type ViewerEntry } from "./picture-viewer-view";
   import ViewerBottomBar from "./ViewerBottomBar.svelte";
+  import ViewerRoundButton from "./ViewerRoundButton.svelte";
+  import ViewerTopBar from "./ViewerTopBar.svelte";
 
   /**
    * One picture shown full screen: its date, a way to browse the pictures in order, and the
@@ -19,6 +21,7 @@
     onShow,
     onRemove,
     onTakeIn,
+    onPlayFrom,
     onClose,
   }: {
     /** The strip's pictures, then the set-aside ones, if any. */
@@ -32,6 +35,8 @@
     /** Left out to hide "Remove" (the last-picture rule); `onTakeIn` left out with no set-aside. */
     onRemove?: ((pictureId: string) => void) | undefined;
     onTakeIn?: ((pictureId: string) => void) | undefined;
+    /** Plays the slideshow from the shown picture; left out where there is none to play. */
+    onPlayFrom?: ((pictureId: string) => void) | undefined;
     onClose: (shownPictureId: string) => void;
   } = $props();
   const SWIPE_MIN_PX = 50;
@@ -128,7 +133,6 @@
   {@const date = formatDate(picture.capturedAt)}
   <div
     class="viewer"
-    class:hidden={barsHidden}
     role="dialog"
     aria-modal="true"
     aria-label={t("view.label", { date })}
@@ -140,51 +144,40 @@
       <img
         src={fullUrls.get(pictureId) ?? urls.get(pictureId)}
         alt=""
+        data-testid="viewer-picture"
         draggable="false"
         onpointerdown={(event) => (swipeStartX = event.clientX)}
         onpointerup={swipeEnded}
       />
     </div>
-    <header class="bar top">
-      <button
-        class="round"
-        type="button"
-        bind:this={closeButton}
-        aria-label={t("common.close")}
-        onclick={() => onClose(pictureId)}
+    <ViewerTopBar
+      bind:closeButton
+      {date}
+      time={formatTime(picture.capturedAt)}
+      position={index + 1}
+      count={entries.length}
+      setAsideReason={setAside}
+      hidden={barsHidden}
+      onClose={() => onClose(pictureId)}
+    />
+    <div class="side previous" class:hidden={barsHidden}>
+      <ViewerRoundButton
+        label={t("view.previous")}
+        disabled={previousId === null}
+        onclick={() => show(previousId)}
       >
-        <Icon name="close" />
-      </button>
-      <div class="meta">
-        <b class="mono">{date} · {formatTime(picture.capturedAt)}</b>
-        <span>
-          {t("view.position", { position: index + 1, count: entries.length })}
-          {#if setAside !== null}
-            · {t("view.setAside", {
-              reason: t(setAside === "similar" ? "cull.similar" : "cull.blurry"),
-            })}
-          {/if}
-        </span>
-      </div>
-    </header>
-    <button
-      class="round side previous"
-      type="button"
-      aria-label={t("view.previous")}
-      disabled={previousId === null}
-      onclick={() => show(previousId)}
-    >
-      <Icon name="chevronLeft" />
-    </button>
-    <button
-      class="round side next"
-      type="button"
-      aria-label={t("view.next")}
-      disabled={nextId === null}
-      onclick={() => show(nextId)}
-    >
-      <Icon name="chevronRight" />
-    </button>
+        <Icon name="chevronLeft" />
+      </ViewerRoundButton>
+    </div>
+    <div class="side next" class:hidden={barsHidden}>
+      <ViewerRoundButton
+        label={t("view.next")}
+        disabled={nextId === null}
+        onclick={() => show(nextId)}
+      >
+        <Icon name="chevronRight" />
+      </ViewerRoundButton>
+    </div>
     <ViewerBottomBar
       {entries}
       {pictureId}
@@ -194,6 +187,7 @@
       {onShow}
       onRemove={onRemove === undefined ? undefined : remove}
       onTakeIn={onTakeIn === undefined ? undefined : () => onTakeIn(pictureId)}
+      onPlayFrom={onPlayFrom === undefined ? undefined : () => onPlayFrom(pictureId)}
     />
   </div>
 {/if}
@@ -232,49 +226,9 @@
     object-fit: contain;
     user-select: none;
   }
-  .bar {
-    position: absolute;
-    left: 0;
-    right: 0;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
-    transition: opacity 0.2s;
-  }
-  .top {
-    top: 0;
-    background: linear-gradient(var(--gl-photo-fade), transparent);
-  }
-  .hidden .bar,
-  .hidden .side {
+  .hidden {
     opacity: 0;
     pointer-events: none;
-  }
-  .meta {
-    display: grid;
-    min-width: 0;
-    font-size: var(--gl-size-meta);
-  }
-  .meta span {
-    color: var(--gl-player-muted);
-  }
-  .round {
-    display: grid;
-    place-items: center;
-    flex: none;
-    width: 44px;
-    height: 44px;
-    padding: 0;
-    border: 0;
-    border-radius: var(--gl-radius-pill);
-    background: var(--gl-player-glass);
-    color: inherit;
-    cursor: pointer;
-  }
-  .round:disabled {
-    opacity: 0.3;
-    cursor: default;
   }
   .side {
     position: absolute;
@@ -287,9 +241,5 @@
   }
   .next {
     right: 12px;
-  }
-  .round:focus-visible {
-    outline: 2px solid var(--gl-player-outline);
-    outline-offset: 2px;
   }
 </style>

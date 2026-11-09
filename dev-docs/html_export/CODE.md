@@ -24,8 +24,10 @@
   `show` replaces the player, so a page can play a changed slideshow on. A Vite plugin
   (`build/export-player-plugin.ts`, modelled on the service worker plugin) bundles it into one
   self-contained script with the decode worker inline (`buildPlayerPage`, which the share page's
-  plugin uses too). The app imports it as a virtual module and loads it on the first export, and
-  the service worker precaches it.
+  plugin uses too). `buildPlayerPage` also derives the notices of the npm packages the chunk
+  bundles from its module ids (`build/bundled-notices.ts`), and the page head writes them. The
+  app imports it as a virtual module and loads it on the first export, and the service worker
+  precaches it.
 - `src/export-player/` imports only `src/player/`, `src/html-export/page-contract.ts`,
   `src/html-export/base64.ts` (the media blocks' encoding, the other half of that contract) and
   `src/ui-kit/` (icons, scheduler, controls visibility, caption inset, fullscreen), which the app
@@ -34,12 +36,15 @@
   states in `html-export-state.ts`, unit-tested with fakes), `page-copy.ts` (the page's words
   from the catalogue, `htmlPage.*`), `slideshow-html-export.ts` (estimate and run for the stored
   slideshow) and `browser-html-export-device.ts` (picker or memory destination, share, download,
-  new tab; wired by `main.ts`). The sheet lives in
+  new tab; wired by `main.ts`), whose new tab shows the page through `sandboxed-page.ts`. The
+  sheet lives in
   `src/app/screens/slideshow/HtmlExportSheet.svelte` with its states' parts in
   `screens/slideshow/html-export/` and the parts shared with the video sheet in
   `screens/slideshow/export-sheet/`.
 - Tests: units for plan, page and run against fakes; a browser test builds a page from a
-  generated slideshow, opens it from a `blob:` URL in each engine and plays it to `ended`; E2E-033
+  generated slideshow, opens it from a `blob:` URL in each engine and plays it to `ended`;
+  `sandboxed-page.browser.test.ts` shows the "Öffnen" frame runs its script in an opaque origin
+  with full screen allowed; E2E-033
   runs the sheet from the info panel to "done" at Small, downloads the file, opens it from
   `file://`, presses Play and waits for the player to report playing. All test pictures are
   generated or public domain.

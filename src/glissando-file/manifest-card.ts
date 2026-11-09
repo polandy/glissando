@@ -25,9 +25,6 @@ import { DocumentFormatError, readObject } from "./document-values";
  * (ADR-0032).
  */
 
-/** The first .glissando and server-document version that carries `openingCard`/`closingCard`. */
-export const TITLE_CARDS_FROM_VERSION = 12;
-
 export type ManifestCardBackground =
   | { readonly kind: "colour"; readonly colour: CardColour }
   | {

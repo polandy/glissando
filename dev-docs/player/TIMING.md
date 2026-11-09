@@ -16,7 +16,9 @@ centre moves one way only.
 
 ## Video clips
 
-The slide clock leads and a clip follows (`video-clip-plan.ts`, `video-clips.ts`). A video slide's
+The slide clock leads and a clip follows (`video-clip-plan.ts`, `video-clips.ts`). The clip plan
+places each clip on the timeline's own `slideSpans`, so a clip is on screen exactly while its slide
+is drawn. A video slide's
 clip time is `startMs + slide time`, clamped to `endMs`; the slide time is negative during the
 transition into it, so the clip plays from the start of that transition, and a transition out keeps
 it playing. A file with less footage before `startMs` than that lead-in **holds** its first frame
@@ -41,3 +43,15 @@ every animation frame is drawn first, then `SlideRenderer.prepare` is called for
 picture after the ones on screen: a bounded step of the work to draw it later, so the frame a
 picture comes on screen pays nothing for it (ADR-0014). `prepare` rasterises a slide's card the
 same way, so the card's own first frame pays nothing for it either.
+
+## Music
+
+The show clock leads the music too (`playlist-music.ts`). Playing, resuming, seeking the show or
+waiting for a picture start each heard song at `trackSecondsAt` of the show time. Each frame,
+`follow` then compares every heard song's position with that place and seeks it there once it is
+off by more than `MUSIC_RESYNC_MS` (150 ms), so a stall in the song never leaves the beat-aligned
+picture changes (ADR-0021, ADR-0046) off the beat for the rest of it. The position is read only
+while the song really plays — not while it starts up, seeks, stalls or is paused
+(`playingSecondsOf`, shared with the clips) — so a seek never chases its own start-up. The seek
+is plain: no change of speed, which would warble the music, and no fade, since it follows a stall
+that was already heard.

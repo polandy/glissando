@@ -1,6 +1,13 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { element, mountEditor, press, unmountEditor, view } from "./picture-editor-harness";
-import { chip, resetIn, text, tile, transitionSection } from "./picture-editor-timing-fixtures";
+import {
+  chip,
+  resetIn,
+  text,
+  tile,
+  timingSection,
+  transitionSection,
+} from "./picture-editor-timing-fixtures";
 
 afterEach(() => unmountEditor());
 
@@ -16,15 +23,15 @@ describe("PictureEditorScreen transition", () => {
       "Kreis",
       "Zoom",
       "Auflösen",
-      "Schnitt",
+      "Harter Schnitt",
     ]);
-    expect(element(".eyebrow#transition-label").textContent).toBe("Übergang zu Bild 3");
-    expect(chip(transitionSection())).toBe("Automatisch");
+    expect(element("h3#transition-label").textContent).toBe("Übergang zu Bild 3");
+    expect(chip(timingSection())).toBe("Automatisch");
     expect(tile("crossfade").getAttribute("aria-checked")).toBe("true");
     expect(tile("crossfade").classList.contains("automatic")).toBe(true);
     expect(tile("crossfade").querySelector(".tag")?.textContent).toBe("Auto");
     expect(text(transitionSection())).toContain(
-      "Automatisch gilt der Übergang der Diashow: Überblenden. Dauert 1,0 s, am Ende von Bild 2: 30 % der Bildzeit, höchstens 1 s.",
+      "Automatisch gilt der Übergang der Diashow: Überblenden. Überblenden zu Bild 3, 1,0 s.",
     );
   });
 
@@ -63,6 +70,7 @@ describe("PictureEditorScreen transition", () => {
     expect(tile("zoom-in").querySelector(".tag")?.textContent).toBe("Auto");
     expect(tile("crossfade").querySelector(".tag")).toBeNull();
     expect(text(transitionSection())).toContain("Automatisch gilt der Übergang der Diashow: Zoom.");
+    expect(text(transitionSection())).toContain("Zoom zu Bild 3, 1,0 s.");
   });
 
   it("makes a tapped effect own, also the automatic one", () => {
@@ -89,7 +97,7 @@ describe("PictureEditorScreen transition", () => {
       view({ transition: { ...view().transition, choice: "cut", own: true, durationMs: 0 } }),
     );
 
-    expect(chip(transitionSection())).toBe("Eigener Übergang");
+    expect(chip(timingSection())).toBe("Gewählt");
     expect(transitionSection().querySelector(".tag")).toBeNull();
     expect(text(transitionSection())).toContain("Bild 3 folgt ohne Übergang.");
     expect(text(transitionSection())).not.toContain("Automatisch gilt");
@@ -100,14 +108,14 @@ describe("PictureEditorScreen transition", () => {
       view({ transition: { ...view().transition, choice: "cut", own: true, durationMs: 0 } }),
     );
 
-    resetIn(transitionSection()).click();
+    resetIn(timingSection()).click();
 
-    expect(chip(transitionSection())).toBe("Automatisch");
+    expect(chip(timingSection())).toBe("Automatisch");
     expect(tile("crossfade").querySelector(".tag")?.textContent).toBe("Auto");
-    expect(calls.transitionResets).toBe(1);
+    expect(calls.timingResets).toBe(1);
   });
 
-  it("at the last picture with an own transition stored, says the slideshow ends and names it", () => {
+  it("at the last picture with a chosen transition stored, says the slideshow ends and names it", () => {
     mountEditor(
       view({
         number: 3,
@@ -117,10 +125,10 @@ describe("PictureEditorScreen transition", () => {
       }),
     );
 
-    expect(chip(transitionSection())).toBe("Letztes Bild");
+    expect(text(transitionSection())).toContain("Letztes Bild");
     expect(text(transitionSection())).toContain("Hier endet die Diashow, ohne Übergang.");
     expect(text(transitionSection())).toContain(
-      "Der eigene Übergang „Auflösen“ bleibt gespeichert und gilt wieder, sobald ein Bild folgt.",
+      "Der gewählte Übergang „Auflösen“ bleibt gespeichert und gilt wieder, sobald ein Bild folgt.",
     );
     expect(transitionSection().querySelector('[role="radio"]')).toBeNull();
   });
@@ -135,10 +143,10 @@ describe("PictureEditorScreen transition", () => {
       }),
     );
 
-    resetIn(transitionSection()).click();
+    resetIn(timingSection()).click();
 
-    expect(chip(transitionSection())).toBe("Letztes Bild");
+    expect(chip(timingSection())).toBe("Automatisch");
     expect(text(transitionSection())).not.toContain("bleibt gespeichert");
-    expect(calls.transitionResets).toBe(1);
+    expect(calls.timingResets).toBe(1);
   });
 });

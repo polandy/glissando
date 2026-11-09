@@ -21,6 +21,8 @@ export interface TvPorts {
   readonly api: TvApi;
   readonly openEvents: OpenEventSource;
   readonly scheduler: Scheduler;
+  /** Reports what the page cannot do anything about. */
+  readonly log: (error: unknown) => void;
 }
 
 /** Every event of the TV's stream but a command, which the session applies itself. */
@@ -51,7 +53,7 @@ export function openTvSession(ports: TvPorts, options: TvSessionOptions): TvSess
     ports.api.report(tvKey, state).catch((error: unknown) => {
       // A session gone is told by the stream's `end`; a server away misses one report of many.
       if (error instanceof TvGoneError || error instanceof TvUnreachableError) return;
-      console.error("the TV could not report its playback", error);
+      ports.log(new Error("the TV could not report its playback", { cause: error }));
     });
   };
   const release = () => {
@@ -63,7 +65,8 @@ export function openTvSession(ports: TvPorts, options: TvSessionOptions): TvSess
       if (event.type === "command") controller?.apply(event.command);
       else options.event(event);
     },
-    fault: (error) => console.error("the TV stream sent what the page cannot read", error),
+    fault: (error) =>
+      ports.log(new Error("the TV stream sent what the page cannot read", { cause: error })),
   });
   return {
     drive(control, title) {

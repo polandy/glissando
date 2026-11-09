@@ -14,14 +14,12 @@ import {
   BEATS,
   FOCUS,
   IMPORTS,
-  LIBRARY_DATABASE_NAME,
+  MEDIA_KEYED_STORES,
   LOUDNESS,
   MUSIC,
   PICTURES,
-  SCHEMA_VERSION,
   SLIDESHOWS,
   VIDEOS,
-  upgradeLibraryDatabase,
   type StoreName,
 } from "./indexeddb-schema";
 import { editSlideshowRecord } from "./indexeddb-edit";
@@ -36,10 +34,13 @@ export { LIBRARY_DATABASE_NAME } from "./indexeddb-schema";
 export class IndexedDbLibraryStore implements LibraryStore {
   readonly #database: IDBDatabase;
 
-  constructor(database: IDBDatabase) {
+  constructor(database: IDBDatabase, onNewerVersion: () => void = () => undefined) {
     this.#database = database;
     // Another tab upgrading the schema must not stay blocked behind this connection.
-    database.onversionchange = () => database.close();
+    database.onversionchange = () => {
+      database.close();
+      onNewerVersion();
+    };
   }
 
   close(): void {
@@ -101,30 +102,27 @@ export class IndexedDbLibraryStore implements LibraryStore {
   /** Reads the other records and deletes in one transaction, so a concurrent save cannot interleave. */
   deleteSlideshow(id: string): Promise<void> {
     let found = true;
-    const deleted = this.#update(
-      [SLIDESHOWS, PICTURES, MUSIC, VIDEOS, FOCUS, BEATS, LOUDNESS],
-      (transaction) => {
-        const slideshows = transaction.objectStore(SLIDESHOWS);
-        const all = slideshows.getAll();
-        all.onsuccess = () => {
-          const records = all.result as StoredSlideshow[];
-          const record = records.find((slideshow) => slideshow.id === id);
-          if (record === undefined) {
-            found = false;
-            return;
+    const deleted = this.#update([SLIDESHOWS, ...MEDIA_KEYED_STORES], (transaction) => {
+      const slideshows = transaction.objectStore(SLIDESHOWS);
+      const all = slideshows.getAll();
+      all.onsuccess = () => {
+        const records = all.result as StoredSlideshow[];
+        const record = records.find((slideshow) => slideshow.id === id);
+        if (record === undefined) {
+          found = false;
+          return;
+        }
+        slideshows.delete(id);
+        const remaining = records.filter((slideshow) => slideshow.id !== id);
+        for (const mediaId of mediaOnlyIn(record, remaining)) {
+          for (const name of MEDIA_KEYED_STORES) {
+            transaction.objectStore(name).delete(mediaId);
           }
-          slideshows.delete(id);
-          const remaining = records.filter((slideshow) => slideshow.id !== id);
-          for (const mediaId of mediaOnlyIn(record, remaining)) {
-            for (const name of [PICTURES, FOCUS, MUSIC, VIDEOS, BEATS, LOUDNESS]) {
-              transaction.objectStore(name).delete(mediaId);
-            }
-          }
-          // The last request is placed: commit before a reload can abort the deletion.
-          transaction.commit();
-        };
-      },
-    );
+        }
+        // The last request is placed: commit before a reload can abort the deletion.
+        transaction.commit();
+      };
+    });
     return deleted.then(() => {
       if (!found) throw new SlideshowNotFoundError(id);
     });
@@ -282,11 +280,4 @@ export class IndexedDbLibraryStore implements LibraryStore {
     work(transaction);
     return committed;
   }
-}
-
-/** Opens (and creates or upgrades) the library database. */
-export function openLibraryStore(indexedDB: IDBFactory): Promise<IndexedDbLibraryStore> {
-  const request = indexedDB.open(LIBRARY_DATABASE_NAME, SCHEMA_VERSION);
-  request.onupgradeneeded = (event) => upgradeLibraryDatabase(request.result, event.oldVersion);
-  return requestResult(request).then(() => new IndexedDbLibraryStore(request.result));
 }

@@ -4,6 +4,7 @@ import { pickPageFile } from "../../html-export/browser/page-file-target";
 import { MemoryBlobSink, PAGE_TYPE, streamPageSink } from "../../html-export/browser/page-sinks";
 import { canPickSaveFile } from "../../video-export";
 import type { PageDestination } from "./html-export-state";
+import { showSandboxedPage } from "./sandboxed-page";
 import type { HtmlExportDevice } from "./slideshow-html-export";
 
 export interface BrowserHtmlExportOptions {
@@ -15,7 +16,7 @@ export interface BrowserHtmlExportOptions {
 /**
  * The web page export sheet's browser: the save picker, a Blob in memory elsewhere, the share
  * sheet and new tabs. A picked file is read back from disk to open it, so the page is never held
- * in memory whole.
+ * in memory whole. Its `blob:` URL has the app's origin, so a new tab shows it only sandboxed.
  */
 export function browserHtmlExportDevice({
   window,
@@ -46,7 +47,13 @@ export function browserHtmlExportDevice({
     download: (file) => download(file, file.name),
     openPage: (file) => {
       const url = URL.createObjectURL(file);
-      window.open(url, "_blank", "noopener");
+      const tab = window.open("", "_blank");
+      if (tab === null) {
+        log(new Error(`the browser blocked the new tab for ${file.name}`));
+      } else {
+        tab.opener = null;
+        showSandboxedPage(tab.document, url, file.name);
+      }
       return () => URL.revokeObjectURL(url);
     },
     log,

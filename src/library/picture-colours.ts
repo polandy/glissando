@@ -266,3 +266,9 @@ const HEX_COLOUR = /^#[0-9A-F]{6}$/i;
 export function isHexColour(value: unknown): value is string {
   return typeof value === "string" && HEX_COLOUR.test(value);
 }
+
+/**
+ * The colours of a picture that is grey: what `pictureColours` answers when there is nothing to
+ * sample. A linked photo whose thumbnail cannot be read gets these.
+ */
+export const GREY_PICTURE_COLOURS: PictureColours = pictureColours([]);

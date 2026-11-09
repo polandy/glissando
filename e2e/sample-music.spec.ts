@@ -33,7 +33,7 @@ test.beforeEach(async ({ page }) => {
   await page.getByRole("button", { name: "New slideshow" }).first().click();
   await chooseFiles(
     page,
-    page.getByRole("button", { name: "Choose media" }),
+    page.getByRole("button", { name: "Choose pictures" }),
     await picturesTakenOn(page, ["2025-07-12", "2025-07-14"]),
   );
   await expect(page.getByText("2 pictures", { exact: true })).toBeVisible();
@@ -45,14 +45,15 @@ test("E2E-075 the sample-music block offers 9 tracks behind Show all, and a fail
   page,
 }) => {
   const toggle = page.getByRole("button", { name: "Show all 9" });
-  const soundtrack = page.locator(".soundtrack");
+  const soundtrack = page.getByRole("region", { name: "Music", exact: true });
   // The first three cards sit directly in the block's own grid and stay rendered either way;
   // the other six sit inside ".more", which the accordion collapses to zero height (its cards
   // keep their own layout box under the clip, so visibility is asserted on ".more" itself, the
   // one element whose box genuinely collapses).
-  const topCards = page.locator(".block > ul.grid > li.card");
-  const more = page.locator(".more");
-  const restCards = more.locator("li.card");
+  const sampleBlock = page.getByRole("region", { name: "Glissando music" });
+  const topCards = sampleBlock.getByRole("list").first().getByRole("listitem");
+  const more = page.getByTestId("sample-more");
+  const restCards = more.getByRole("listitem");
 
   // On entry: three cards show, the rest fold away.
   await expect(topCards).toHaveCount(3);
@@ -101,7 +102,7 @@ test.describe("on a phone, in the music editor's Add song sheet", () => {
     page,
   }) => {
     await page.getByRole("button", { name: "Create without music" }).click();
-    await expect(page.getByRole("status")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Play", exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: "Music None Add music" }).click();
     await expect(page.getByText("No music yet")).toBeVisible();

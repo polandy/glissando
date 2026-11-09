@@ -4,21 +4,12 @@ import { createTranslator } from "../i18n/translator";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import PwaSheet from "./PwaSheet.svelte";
 import StatusBar from "./StatusBar.svelte";
+import { buttonNamed } from "../testing/by-role";
 
 let destroy = () => {};
 afterEach(() => destroy());
 
 const HIDE_HINT = "Hinweis ausblenden";
-
-function buttonNamed(target: HTMLElement, name: string): HTMLButtonElement {
-  const found = [...target.querySelectorAll("button")].find(
-    (button) => (button.getAttribute("aria-label") ?? button.textContent?.trim()) === name,
-  );
-  if (found === undefined) {
-    throw new Error(`no button named "${name}"`);
-  }
-  return found;
-}
 
 function mountStatusBar(view: StatusBarView, { narrow = false } = {}) {
   const actions: StatusBarAction[] = [];

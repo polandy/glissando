@@ -1,7 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { openVideoElement } from "./open-video";
 import type { ClipSoundOutput } from "./music-output";
-import type { VideoOutput } from "./video-playback";
+import type { VideoElementPort, VideoOutput } from "./video-playback";
+import { settleMicrotasks } from "../../testing/settle-microtasks";
 
 const OUTPUT: VideoOutput = {
   unlock: () => undefined,
@@ -9,14 +10,17 @@ const OUTPUT: VideoOutput = {
 };
 const END_MS = 4000;
 
-class FakeElement extends EventTarget {
+class FakeElement extends EventTarget implements VideoElementPort {
   src = "";
   currentTime = 0;
   muted = false;
   playsInline = false;
-  preload = "";
+  playbackRate = 1;
+  preload: VideoElementPort["preload"] = "";
   readyState = 0;
   seeking = false;
+  paused = true;
+  error = null;
   play = () => Promise.resolve();
   pause = () => undefined;
   load = () => undefined;
@@ -30,10 +34,11 @@ function setUp(
   const element = new FakeElement();
   const urls: string[] = [];
   const revoked: string[] = [];
+  const logged: unknown[] = [];
   const open = (src: string, volume = 1) =>
     openVideoElement(src, volume, END_MS, {
       output: OUTPUT,
-      createElement: () => element as unknown as HTMLVideoElement,
+      createElement: () => element,
       source: {
         openVideo: read,
         urls: {
@@ -45,8 +50,9 @@ function setUp(
         },
       },
       ...(decodeClipSound === undefined ? {} : { decodeClipSound }),
+      log: (error) => logged.push(error),
     });
-  return { element, open, urls, revoked };
+  return { element, open, urls, revoked, logged };
 }
 
 describe("openVideoElement", () => {
@@ -54,7 +60,7 @@ describe("openVideoElement", () => {
     const element = new FakeElement();
     openVideoElement("https://x/clip.mp4", 1, END_MS, {
       output: OUTPUT,
-      createElement: () => element as unknown as HTMLVideoElement,
+      createElement: () => element,
     });
     expect(element.src).toBe("https://x/clip.mp4");
   });
@@ -63,7 +69,7 @@ describe("openVideoElement", () => {
     const element = new FakeElement();
     openVideoElement("https://x/clip.mp4", 1, END_MS, {
       output: OUTPUT,
-      createElement: () => element as unknown as HTMLVideoElement,
+      createElement: () => element,
     });
     expect(element.muted).toBe(true);
   });
@@ -87,68 +93,74 @@ describe("openVideoElement", () => {
     playback.dispose();
 
     arrive(new Blob(["x"]));
-    await Promise.resolve();
-    await Promise.resolve();
+    await settleMicrotasks();
 
     expect(revoked).toEqual(["blob:clip"]);
   });
 });
 
+/** Records every read and decode, each answering at once. */
+function recordingClipReads(blob = new Blob(["x"])) {
+  const reads: string[] = [];
+  const decoded: Blob[] = [];
+  return {
+    reads,
+    decoded,
+    read: (src: string) => {
+      reads.push(src);
+      return Promise.resolve(blob);
+    },
+    decodeClipSound: (clip: Blob) => {
+      decoded.push(clip);
+      return Promise.resolve(null);
+    },
+  };
+}
+
 describe("openVideoElement's clip sound", () => {
   it("decodes the same blob read for the element, without reading it twice", async () => {
     const blob = new Blob(["x"]);
-    const read = vi.fn(() => Promise.resolve(blob));
-    const decodeClipSound = vi.fn(() => Promise.resolve(null));
-    const { open } = setUp(read, decodeClipSound);
+    const clip = recordingClipReads(blob);
+    const { open } = setUp(clip.read, clip.decodeClipSound);
 
     open("media-1").dispose();
-    await Promise.resolve();
-    await Promise.resolve();
+    await settleMicrotasks();
 
-    expect(read).toHaveBeenCalledTimes(1);
-    expect(decodeClipSound).toHaveBeenCalledWith(blob);
+    expect(clip.reads).toEqual(["media-1"]);
+    expect(clip.decoded).toEqual([blob]);
   });
 
   it("never decodes a silent clip: no decoder call for a clip with no volume", async () => {
-    const decodeClipSound = vi.fn(() => Promise.resolve(null));
-    const { open } = setUp(() => Promise.resolve(new Blob(["x"])), decodeClipSound);
+    const clip = recordingClipReads();
+    const { open } = setUp(clip.read, clip.decodeClipSound);
 
     open("media-1", 0).dispose();
-    await Promise.resolve();
-    await Promise.resolve();
+    await settleMicrotasks();
 
-    expect(decodeClipSound).not.toHaveBeenCalled();
+    expect(clip.reads).toEqual(["media-1"]);
+    expect(clip.decoded).toEqual([]);
   });
 
-  it("without a decoder, never fetches or decodes: the clip just plays silent", () => {
-    const read = vi.fn(() => Promise.resolve(new Blob(["x"])));
-    const { open } = setUp(read);
+  it("without a decoder, reads the clip once for the picture: the clip just plays silent", () => {
+    const clip = recordingClipReads();
+    const { open } = setUp(clip.read);
 
     open("media-1").dispose();
 
     // The element's own bytes are still read for the picture; only the decode step is skipped.
-    expect(read).toHaveBeenCalledTimes(1);
+    expect(clip.reads).toEqual(["media-1"]);
   });
 
-  it("warns and stays silent when the decode rejects, without failing the clip", async () => {
-    const warned: unknown[] = [];
-    vi.spyOn(console, "warn").mockImplementation((...args: unknown[]) => {
-      warned.push(args);
-    });
-    try {
-      const { open } = setUp(
-        () => Promise.resolve(new Blob(["x"])),
-        () => Promise.reject(new Error("could not decode")),
-      );
+  it("logs and stays silent when the decode rejects, without failing the clip", async () => {
+    const { open, logged } = setUp(
+      () => Promise.resolve(new Blob(["x"])),
+      () => Promise.reject(new Error("could not decode")),
+    );
 
-      const playback = open("media-1");
-      await playback.play(0);
-      await Promise.resolve();
-      await Promise.resolve();
+    const playback = open("media-1");
+    await playback.play(0);
+    await settleMicrotasks();
 
-      expect(warned).toHaveLength(1);
-    } finally {
-      vi.restoreAllMocks();
-    }
+    expect(logged).toHaveLength(1);
   });
 });

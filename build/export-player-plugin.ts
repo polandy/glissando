@@ -1,5 +1,7 @@
 import { build, type Plugin, type Rolldown } from "vite";
+import type { BundledNotice } from "../src/html-export/ports.ts";
 import { CARD_FONT_FILES } from "../src/player/card-fonts.ts";
+import { bundledNotices } from "./bundled-notices.ts";
 import {
   bundleParts,
   playerBundleModule,
@@ -51,6 +53,8 @@ export interface PlayerPageParts {
   readonly style: string;
   readonly fontBytes: Uint8Array;
   readonly cardFontBytes: Readonly<Record<string, Uint8Array>>;
+  /** The npm packages the script bundles, named in the exported page's head. */
+  readonly notices: readonly BundledNotice[];
 }
 
 /**
@@ -62,7 +66,7 @@ export async function buildPlayerPage(
   entry: string,
   readFile: (path: string) => Promise<Uint8Array>,
 ): Promise<PlayerPageParts> {
-  const { script, style } = bundleParts(await buildPlayerScript(root, entry));
+  const { script, style, moduleIds } = bundleParts(await buildPlayerScript(root, entry));
   const tokens = new TextDecoder().decode(await readFile(`${root}/${DESIGN_TOKENS}`));
   const fontBytes = await readFile(`${root}/${CAPTION_FONT}`);
   const cardFontBytes = Object.fromEntries(
@@ -77,6 +81,7 @@ export async function buildPlayerPage(
     style: `${tokenDeclarations(tokens, style)}\n${style}`,
     fontBytes,
     cardFontBytes,
+    notices: await bundledNotices(moduleIds, readFile),
   };
 }
 
@@ -112,7 +117,7 @@ async function buildPlayerScript(root: string, entry: string): Promise<BuiltPlay
   return outputs.flatMap(({ output }) =>
     output.map((file): BuiltPlayerFile =>
       file.type === "chunk"
-        ? { type: "chunk", fileName: file.fileName, code: file.code }
+        ? { type: "chunk", fileName: file.fileName, code: file.code, moduleIds: file.moduleIds }
         : { type: "asset", fileName: file.fileName, source: file.source },
     ),
   );

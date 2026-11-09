@@ -40,17 +40,24 @@ export interface StreamResponse {
   write(chunk: string): unknown;
   end(): unknown;
   once(event: "close", listener: () => void): unknown;
+  /** True once the client has gone; its `close` has then already fired. */
+  readonly destroyed: boolean;
 }
 
 /** Calls `action` every `everyMs` until the answer is called. */
 export type Repeat = (everyMs: number, action: () => void) => () => void;
 
-/** Writes `answer`'s stream to `response`; answers how to end it, as at shutdown. */
+/**
+ * Writes `answer`'s stream to `response`; answers how to end it, as at shutdown. A client that
+ * left while its request was read never opens the stream, so it is never counted as present,
+ * and the answer is `null`: there is nothing to end.
+ */
 export function pipeEventStream(
   answer: StreamAnswer,
   response: StreamResponse,
   repeat: Repeat,
-): () => void {
+): (() => void) | null {
+  if (response.destroyed) return null;
   let ended = false;
   response.writeHead(answer.status, answer.headers);
   const write = (chunk: string) => {

@@ -8,12 +8,15 @@
   let {
     slideshow,
     search,
+    today,
     onServer = false,
     offline = false,
     onOpen,
   }: {
     slideshow: SlideshowSummary;
     search?: SlideshowSearch | undefined;
+    /** ISO 8601 date-time of now; the Created line leaves out the year of this one. */
+    today: string;
     /** A server slideshow: its cover carries the "Server" chip. */
     onServer?: boolean;
     /** The server is out of reach: the card is greyed out and does not open. */
@@ -21,7 +24,7 @@
     onOpen: (slideshowId: string) => void;
   } = $props();
 
-  const { t, formatDuration } = getTranslator();
+  const { t, formatDuration, formatShortDate } = getTranslator();
 </script>
 
 <button
@@ -54,6 +57,11 @@
         </span>
       {/if}
     </span>
+    {#if slideshow.createdAt !== undefined}
+      <span class="created">
+        {t("start.created", { date: formatShortDate(slideshow.createdAt, today) })}
+      </span>
+    {/if}
     {#if offline}
       <span class="facts"><Icon name="cloudOff" />{t("server.needsServer")}</span>
     {/if}
@@ -150,6 +158,10 @@
     color: var(--gl-muted);
     font-size: var(--gl-size-meta);
     --gl-icon-size: var(--gl-size-icon-small);
+  }
+  .created {
+    color: var(--gl-muted);
+    font-size: var(--gl-size-meta);
   }
   .music {
     display: flex;

@@ -59,4 +59,18 @@ describe("planPreload", () => {
   it("preloads nothing for a slideshow without slides", () => {
     expect(planPreload(3, []).preloadCount).toBe(0);
   });
+
+  it("plans from the start slide: the slides before it are not needed", () => {
+    // 6 s a picture, 5 s a slide, from slide 20 of 30: ten slides left, as a show of ten.
+    expect(planPreload(6, evenStarts(30, 5), 20)).toEqual(planPreload(6, evenStarts(10, 5)));
+  });
+
+  it("keeps the start slide's own length: a long first slide gives preparing a head start", () => {
+    // 4 s a picture; from slide 1 the slides last 8 and 2 s: the second starts after 8 s.
+    expect(planPreload(4, [0, 8, 16, 18], 1)).toEqual(planPreload(4, [0, 8, 10]));
+  });
+
+  it("preloads nothing when the start slide is past the last", () => {
+    expect(planPreload(3, evenStarts(4, 5), 4).preloadCount).toBe(0);
+  });
 });

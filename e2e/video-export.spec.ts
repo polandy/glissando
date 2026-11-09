@@ -1,18 +1,10 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { ALL_FORMATS, BlobSource, Input } from "mediabunny";
 import { readFileSync } from "node:fs";
-import {
-  chooseFiles,
-  choosePictures,
-  CREATED_TOAST,
-  editsStored,
-  GERMAN_BROWSER,
-  openImport,
-  picturesTakenOn,
-} from "./support/app";
+import { createSlideshowWithMusic, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
 import { silentTrack } from "./support/media";
-import { chooseShareRow } from "./support/share";
+import { chooseShareRow, deliverByDownload } from "./support/share";
 
 test.use(GERMAN_BROWSER);
 
@@ -20,52 +12,13 @@ const TITLE = "Juli 2025";
 const DAYS = ["2025-07-12", "2025-07-14"] as const;
 /** "Musik füllen" fits the picture times to its music. */
 const TRACK_SECONDS = 6;
+const MUSIC = silentTrack("Sommerwind.wav", TRACK_SECONDS);
 /** Larger than an MP4's boxes alone: the file carries encoded frames. */
 const MIN_VIDEO_BYTES = 10_000;
 /** An MP4 starts with its `ftyp` box: a 4-byte size, then the type. */
 const BOX_TYPE = { start: 4, end: 8 } as const;
 /** One frame at 30 frames per second, in seconds. */
 const FRAME_SECONDS = 1 / 30;
-
-/**
- * Makes every engine deliver the finished video as a download: without a save picker the export
- * writes privately first (Chromium's picker is a native dialog a case cannot answer), and
- * without a share sheet for files the done state offers "Herunterladen".
- */
-async function deliverByDownload(page: Page): Promise<void> {
-  await page.addInitScript(() => {
-    Reflect.deleteProperty(Window.prototype, "showSaveFilePicker");
-    Reflect.deleteProperty(window, "showSaveFilePicker");
-    Navigator.prototype.canShare = () => false;
-  });
-}
-
-async function createSlideshowWithMusic(page: Page): Promise<void> {
-  await openImport(page);
-  await choosePictures(page, await picturesTakenOn(page, DAYS), DAYS.length);
-  await page.getByRole("button", { name: "Weiter" }).click();
-  await chooseFiles(page, page.getByRole("button", { name: "Dateien wählen" }), [
-    silentTrack("Sommerwind.wav", TRACK_SECONDS),
-  ]);
-  await expect(page.getByText("Sommerwind.wav", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Diashow erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
-
-  // The slideshow opened on Calm (ADR-0050); leaving it for the music editor's own picture
-  // length lets the pictures fill the music, so the video lasts exactly as long as the track.
-  await page.getByRole("button", { name: /^Musik/ }).click();
-  const lengthSection = page.locator('section[aria-labelledby="music-picture-length"]');
-  await lengthSection.getByRole("button", { name: "Selbst festlegen" }).click();
-  await expect(
-    page.getByRole("status").filter({ hasText: "Stimmung ist jetzt Eigene" }),
-  ).toBeVisible();
-  const fillRadio = lengthSection.getByRole("radio", { name: "Musik füllen" });
-  await fillRadio.click();
-  await expect(fillRadio).toHaveAttribute("aria-checked", "true");
-  await editsStored(page);
-  await page.getByRole("button", { name: "Zurück", exact: true }).click();
-  await expect(page.getByRole("button", { name: /^Musik/ })).toBeVisible();
-}
 
 test("E2E-030 a slideshow saved as a 720p video from its menu downloads as an MP4 of its whole length", async ({
   page,
@@ -82,7 +35,7 @@ test("E2E-030 a slideshow saved as a 720p video from its menu downloads as an MP
   test.slow();
   await deliverByDownload(page);
   await openApp(page);
-  await createSlideshowWithMusic(page);
+  await createSlideshowWithMusic(page, MUSIC, { days: DAYS, fill: true });
 
   await chooseShareRow(page, /^Video/);
   const sheet = page.getByRole("dialog", { name: "Video" });
@@ -122,4 +75,25 @@ test("E2E-030 a slideshow saved as a 720p video from its menu downloads as an MP
       FRAME_SECONDS,
     );
   }
+});
+
+test("E2E-100 the video sheet notes that the Opus sound does not play on Apple devices", async ({
+  page,
+  browserName,
+}) => {
+  test.skip(
+    browserName !== "chromium",
+    "Only Chromium's test build lacks an AAC encoder, so the video gets Opus sound",
+  );
+  await openApp(page);
+  await createSlideshowWithMusic(page, MUSIC, { days: DAYS, fill: true });
+
+  await chooseShareRow(page, /^Video/);
+  const sheet = page.getByRole("dialog", { name: "Video" });
+  await expect(sheet.getByRole("button", { name: "Video erstellen" })).toBeVisible();
+  await expect(
+    sheet.getByText(
+      "Läuft aus diesem Browser nicht auf iPhone, iPad oder Apple TV. Dafür in Safari erstellen.",
+    ),
+  ).toBeVisible();
 });

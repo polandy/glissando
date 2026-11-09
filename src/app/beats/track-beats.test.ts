@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { MusicBeats } from "../../beats";
-import type { BeatPassState } from "../../library/beat-pass";
+import { SILENT } from "../../library/testing/music-analysis-pass-fixtures";
+import type { MusicAnalysisPassState } from "../../library/music-analysis-pass";
 import type { BeatsStatus } from "./music-beats-known";
 import { TrackBeats } from "./track-beats";
 
@@ -9,21 +10,21 @@ const NO_CLEAR_BEAT: MusicBeats = { kind: "none" };
 
 /** A pass whose state the test sets; it tells its subscribers like the real one. */
 class FakePass {
-  #listeners = new Set<(state: BeatPassState) => void>();
-  state: BeatPassState = {
+  #listeners = new Set<(state: MusicAnalysisPassState) => void>();
+  state: MusicAnalysisPassState = {
     running: true,
     listening: new Set(["drums"]),
     found: new Map(),
     undecodable: new Set(),
   };
 
-  subscribe(listener: (state: BeatPassState) => void): () => void {
+  subscribe(listener: (state: MusicAnalysisPassState) => void): () => void {
     this.#listeners.add(listener);
     listener(this.state);
     return () => this.#listeners.delete(listener);
   }
 
-  publish(state: BeatPassState): void {
+  publish(state: MusicAnalysisPassState): void {
     this.state = state;
     this.#listeners.forEach((listener) => listener(state));
   }
@@ -60,7 +61,7 @@ describe("TrackBeats", () => {
     pass.publish({
       running: false,
       listening: new Set(),
-      found: new Map([["drums", NO_CLEAR_BEAT]]),
+      found: new Map([["drums", { beats: NO_CLEAR_BEAT, loudness: SILENT }]]),
       undecodable: new Set(),
     });
 
@@ -89,7 +90,7 @@ describe("TrackBeats", () => {
     pass.publish({
       running: false,
       listening: new Set(),
-      found: new Map([["drums", DRUMS]]),
+      found: new Map([["drums", { beats: DRUMS, loudness: SILENT }]]),
       undecodable: new Set(),
     });
 

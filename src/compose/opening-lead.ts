@@ -9,7 +9,7 @@ import { slideOfPicture, type SlideUnit } from "./slide-units";
 /** How much real time the opening card adds before the beat snap, and where (ADR-0032). */
 export interface OpeningLead {
   readonly insertedMs: number;
-  /** True: widens slide unit 0's own duration. False: a dedicated slide plays before it. */
+  /** True: widens slide unit 0's chosen duration. False: a dedicated slide plays before it. */
   readonly mergeOntoFirstUnit: boolean;
 }
 

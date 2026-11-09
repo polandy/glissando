@@ -46,6 +46,7 @@ const HTTP_SERVER_ERROR = 500;
 const SHARE_SUFFIX = "/share";
 /** The 404 code of a link that is already off. */
 const NOT_SHARED = "notShared";
+const NEWER_FOCUS = "newerFocus";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
 
@@ -67,6 +68,7 @@ export class HttpServerLibraryClient implements ServerLibraryClient {
 
   async discover(): Promise<boolean> {
     const response = await this.#send("GET", LIBRARY_PATH);
+    throwIfUnavailable("GET", LIBRARY_PATH, response);
     if (!response.ok || !isJson(response)) return false;
     const answer: unknown = await response.json();
     return isRecord(answer) && answer["service"] === DISCOVERY_SERVICE;
@@ -99,6 +101,7 @@ export class HttpServerLibraryClient implements ServerLibraryClient {
       headers: { "content-type": JSON_MEDIA_TYPE, "if-match": `"${String(current)}"` },
     });
     if (response.status === HTTP_PRECONDITION_FAILED) {
+      requireJson("PUT", path, response);
       const answer: unknown = await response.json();
       throw new ServerRevisionChangedError(readRecord(field(answer, "current", path), path));
     }
@@ -189,7 +192,12 @@ export class HttpServerLibraryClient implements ServerLibraryClient {
       body: JSON.stringify(stored),
       headers: { "content-type": JSON_MEDIA_TYPE },
     });
-    if (response.status === HTTP_CONFLICT) return "newerKept";
+    if (
+      response.status === HTTP_CONFLICT &&
+      (await refusal(response.clone())).code === NEWER_FOCUS
+    ) {
+      return "newerKept";
+    }
     await check("PUT", path, response);
     return "stored";
   }
@@ -218,12 +226,7 @@ export class HttpServerLibraryClient implements ServerLibraryClient {
   async #json(method: HttpMethod, path: string, init: RequestInit = {}): Promise<unknown> {
     const response = await this.#send(method, path, init);
     await check(method, path, response);
-    if (!isJson(response)) {
-      throw new Error(
-        `${method} ${path} answered ${response.headers.get("content-type") ?? "no content type"}, ` +
-          `not ${JSON_MEDIA_TYPE}; is the Glissando server's /api/library route pointing at its library service?`,
-      );
-    }
+    requireJson(method, path, response);
     return response.json();
   }
 
@@ -258,12 +261,25 @@ function jsonBody(document: ServerDocument | Record<string, never>): RequestInit
 }
 
 /** Throws the typed error a failed answer stands for. */
+/** A 5xx, or status 0 (the forward auth's sign-in redirect), is the server out of reach. */
+function throwIfUnavailable(method: HttpMethod, path: string, response: Response): void {
+  if (response.status === 0 || response.status >= HTTP_SERVER_ERROR) {
+    throw new ServerLibraryUnavailableError(`${method} ${path} (${String(response.status)})`);
+  }
+}
+
+function requireJson(method: HttpMethod, path: string, response: Response): void {
+  if (isJson(response)) return;
+  throw new Error(
+    `${method} ${path} answered ${response.headers.get("content-type") ?? "no content type"}, ` +
+      `not ${JSON_MEDIA_TYPE}; is the Glissando server's /api/library route pointing at its library service?`,
+  );
+}
+
 async function check(method: HttpMethod, path: string, response: Response): Promise<void> {
   if (response.ok) return;
+  throwIfUnavailable(method, path, response);
   const request = `${method} ${path}`;
-  if (response.status === 0 || response.status >= HTTP_SERVER_ERROR) {
-    throw new ServerLibraryUnavailableError(`${request} (${String(response.status)})`);
-  }
   if (response.status === HTTP_NOT_FOUND) throw new ServerLibraryNotFoundError(request);
   const { code, detail } = await refusal(response);
   const refused = path.startsWith(MUSIC_PATH)

@@ -49,6 +49,8 @@ const SLIDESHOW_SCHEMA: JsonSchema = {
 /** Rules a JSON Schema cannot express, which only Glissando's reader checks. */
 const READER_ONLY_RULES = [
   "no two songs share a file",
+  "no two pictures share a file",
+  "no two pictures share a thumbnail",
   "a card background's pictureIndex is below the number of pictures",
   "slides playing one clip file give it one mimeType",
   "createdAt and capturedAt are real calendar times",

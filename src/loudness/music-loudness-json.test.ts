@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { musicLoudnessToJson, parseMusicLoudness } from "./music-loudness-json";
+import {
+  musicLoudnessToJson,
+  MusicLoudnessFormatError,
+  parseMusicLoudness,
+} from "./music-loudness-json";
 import { measureLoudness } from "./measure-loudness";
 import { silence, sineTone } from "./testing/synthetic-tones";
 
@@ -70,4 +74,26 @@ describe("musicLoudnessToJson / parseMusicLoudness", () => {
       parseMusicLoudness({ blockLoudnessDb: [-20, -20], hopPeaksDbfs: [0, 0, 0, 0] }),
     ).toThrow(/blocks/);
   });
+
+  it("refuses every malformed value with a MusicLoudnessFormatError", () => {
+    const malformed: unknown[] = [
+      "nonsense",
+      { blockLoudnessDb: [], hopPeaksDbfs: [], extra: 1 },
+      { blockLoudnessDb: "loud", hopPeaksDbfs: [] },
+      { blockLoudnessDb: [], hopPeaksDbfs: [Infinity] },
+      { blockLoudnessDb: [-20, -20], hopPeaksDbfs: [0, 0, 0, 0] },
+    ];
+    for (const json of malformed) {
+      expect(thrownBy(() => parseMusicLoudness(json))).toBeInstanceOf(MusicLoudnessFormatError);
+    }
+  });
 });
+
+function thrownBy(run: () => unknown): unknown {
+  try {
+    run();
+  } catch (error) {
+    return error;
+  }
+  throw new Error("expected a throw");
+}

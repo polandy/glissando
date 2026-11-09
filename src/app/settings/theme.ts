@@ -1,4 +1,4 @@
-import type { KeyValueStorage } from "../start/first-launch.ts";
+import type { KeyValueStorage } from "../storage/storage-port.ts";
 import { createStoredChoice, type StoredChoice } from "./stored-choice.ts";
 
 /** "system" follows the device's light or dark setting; the others pin a theme. */

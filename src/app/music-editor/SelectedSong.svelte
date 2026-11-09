@@ -1,10 +1,12 @@
 <script lang="ts">
+  import Separated from "../components/Separated.svelte";
   import type { MusicTrim } from "../../library/own-music";
   import { MILLISECONDS_PER_SECOND } from "../../player";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
   import type { ListenState } from "./listen-preview";
   import type { MusicEditorView } from "./music-editor-view";
+  import InfoButton from "./InfoButton.svelte";
   import MusicWaveform from "./MusicWaveform.svelte";
   import SlideshowLane from "./SlideshowLane.svelte";
   import { percentOf } from "./waveform-scale";
@@ -24,7 +26,7 @@
     onListen,
   }: {
     music: MusicEditorView;
-    /** Fine peaks of the whole track, 0..1; null while the track is decoded. */
+    /** Fine peaks of the whole track, 0..1; null until the song's loudness is measured. */
     peaks: Float32Array | null;
     listening: ListenState | null;
     /** The volume line, beat ticks and the slideshow lane under the waveform. */
@@ -50,16 +52,22 @@
 
 <div class="head">
   <b class="song-heading">
-    {t("music.songHeading", { number: music.songNumber, name: music.fileName })}
+    <Separated text={t("music.songHeading", { number: music.songNumber, name: music.fileName })} />
   </b>
   <span class="muted">
-    {music.trimmed
-      ? t("music.trimmedTo", {
-          duration: formatDuration(seconds(music.durationMs)),
-          excerpt: formatDuration(seconds(music.endMs - music.startMs)),
-        })
-      : formatDuration(seconds(music.durationMs))}
+    <Separated
+      text={music.trimmed
+        ? t("music.trimmedTo", {
+            duration: formatDuration(seconds(music.durationMs)),
+            excerpt: formatDuration(seconds(music.endMs - music.startMs)),
+          })
+        : formatDuration(seconds(music.durationMs))}
+    />
   </span>
+  <InfoButton label={t("music.infoTrim")}>
+    <p>{t("music.hint")}</p>
+    {#if details}<p>{t("music.hintVolumeLine")}</p>{/if}
+  </InfoButton>
 </div>
 <div class="wavebox">
   <div class="tracks">
@@ -68,9 +76,15 @@
       <SlideshowLane {music} listeningPositionMs={listening?.positionMs ?? null} />
     {/if}
     {#if listening !== null}
-      <div class="playhead" style:left={pct(listening.positionMs)} aria-hidden="true"></div>
+      <div
+        class="playhead"
+        data-testid="music-playhead"
+        style:left={pct(listening.positionMs)}
+        aria-hidden="true"
+      ></div>
       <div
         class="chip mono"
+        data-testid="music-time-chip"
         style:left="clamp(0px, calc({pct(listening.positionMs)} - {CHIP_WIDTH_PX / 2}px), calc(100%
         - {CHIP_WIDTH_PX}px))"
         style:width="{CHIP_WIDTH_PX}px"
@@ -100,7 +114,6 @@
     </button>
   {/each}
 </div>
-<p class="hint">{details ? `${t("music.hint")} ${t("music.hintVolumeLine")}` : t("music.hint")}</p>
 
 <style>
   .head {
@@ -119,6 +132,9 @@
     overflow-wrap: anywhere;
   }
   .head span.muted {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     font-size: var(--gl-size-meta);
   }
   .wavebox {
@@ -202,11 +218,6 @@
     border-radius: 50%;
     background: var(--gl-inverse-bg);
     color: var(--gl-inverse-text);
-  }
-  .hint {
-    margin: 0;
-    color: var(--gl-muted);
-    font-size: var(--gl-size-meta);
   }
   @container (max-width: 720px) {
     .wavebox {

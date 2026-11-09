@@ -1,13 +1,12 @@
 import type { CardItemLayouts } from "../card-item-layouts";
 import { cardItemTimingAt, drawsBlurredCopy } from "../card-timing";
-import type { BitmapPicture } from "../browser/bitmap-loader";
+import type { PixelPicture } from "../browser/pixel-loader";
 import type { Size } from "../ken-burns";
 import type { SlideLayer } from "../ports";
 import type { CardRenderTarget } from "./card-render-target";
 import { CardItemProgram } from "./card-item-program";
 import type { CardTextures } from "./card-textures";
-
-const CARD_ITEM_TEXTURE_UNIT = 8;
+import { TEXTURE_UNITS } from "./texture-units";
 
 /**
  * Rasterises `layer`'s card, one quad per item at its own timing (ADR-0032 § Entrances), into
@@ -22,7 +21,7 @@ export function renderCardLayer(
   cards: CardTextures,
   cardItemLayouts: CardItemLayouts,
   target: CardRenderTarget,
-  layer: SlideLayer<BitmapPicture>,
+  layer: SlideLayer<PixelPicture>,
   viewport: Size,
 ): void {
   target.renderInto(viewport, () => {
@@ -44,7 +43,7 @@ function drawCardItems(
   cardItems: CardItemProgram,
   cards: CardTextures,
   cardItemLayouts: CardItemLayouts,
-  layer: SlideLayer<BitmapPicture>,
+  layer: SlideLayer<PixelPicture>,
   viewport: Size,
 ): void {
   const visual = layer.card;
@@ -68,12 +67,12 @@ function drawCardItems(
     const shared = { slice, driftEm: item.driftEm, scale: item.scale };
     const opacity = item.opacity * visual.textOpacity;
     if (opacity > 0) {
-      cardItems.draw(texture, CARD_ITEM_TEXTURE_UNIT, viewport, { ...shared, opacity });
+      cardItems.draw(texture, TEXTURE_UNITS.cardItem, viewport, { ...shared, opacity });
     }
     if (blurred !== undefined) {
       const blurOpacity = item.blurOpacity * visual.textOpacity;
       if (blurOpacity > 0) {
-        cardItems.draw(blurred, CARD_ITEM_TEXTURE_UNIT, viewport, {
+        cardItems.draw(blurred, TEXTURE_UNITS.cardItem, viewport, {
           ...shared,
           opacity: blurOpacity,
         });

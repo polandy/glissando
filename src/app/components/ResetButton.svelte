@@ -9,6 +9,7 @@
     automatic,
     alreadyAutomatic,
     label = t("editor.reset"),
+    wide = false,
     onReset,
   }: {
     automatic: boolean;
@@ -16,12 +17,15 @@
     alreadyAutomatic: string;
     /** What the reset leads back to; "Back to automatic" unless given. */
     label?: string;
+    /** Fills the width of its row. */
+    wide?: boolean;
     onReset: () => void;
   } = $props();
 </script>
 
 <button
   class="btn small ghost"
+  class:wide
   type="button"
   aria-disabled={automatic}
   title={automatic ? alreadyAutomatic : undefined}
@@ -33,3 +37,9 @@
 >
   <Icon name="replay" />{label}
 </button>
+
+<style>
+  .wide {
+    width: 100%;
+  }
+</style>

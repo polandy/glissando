@@ -14,10 +14,11 @@ import type {
   PageDestination,
   PageEstimates,
 } from "./html-export-state";
+import { preselectedPageSize, sizesBarelyDiffer } from "./size-note";
+import { deliverFile } from "../video-export/deliver-file";
 
 /** The video the choose state compares the page with. */
 const COMPARED_VIDEO_PRESET: PresetId = "1080p";
-const SHARE_DISMISSED = "AbortError";
 
 /**
  * The web page export sheet's flow, from choosing a size to the finished file
@@ -30,6 +31,9 @@ export class HtmlExportSession {
   readonly #listeners = new Set<(state: HtmlExportState) => void>();
   readonly #closed = new AbortController();
   readonly #releaseOpened: (() => void)[] = [];
+  #userChose = false;
+  #sizeId: PageSizeId = DEFAULT_PAGE_SIZE;
+  #estimates: PageEstimates | null = null;
   #state: HtmlExportState = {
     kind: "choose",
     sizeId: DEFAULT_PAGE_SIZE,
@@ -77,14 +81,31 @@ export class HtmlExportSession {
       return;
     }
     if (this.#state.kind === "choose") {
-      this.#set({ ...this.#state, estimates: estimates(weights) });
+      const measured = estimates(weights);
+      // Clips go in whole at every size, so with clips the sizes may hardly differ.
+      const alike = this.#subject.clipCount > 0 && sizesBarelyDiffer(Object.values(measured));
+      const sizeId = preselectedPageSize(this.#state.sizeId, alike, this.#userChose);
+      this.#set({ ...this.#state, sizeId, estimates: measured });
     }
   }
 
   select(sizeId: PageSizeId): void {
     if (this.#state.kind === "choose" && !this.#state.starting) {
+      this.#userChose = true;
       this.#set({ ...this.#state, sizeId });
     }
+  }
+
+  /** "Try again" after a failure: back to choose with the size kept. */
+  async retry(): Promise<void> {
+    if (this.#state.kind !== "failed") return;
+    this.#set({
+      kind: "choose",
+      sizeId: this.#sizeId,
+      estimates: this.#estimates,
+      starting: false,
+    });
+    if (this.#estimates === null) await this.open();
   }
 
   /** "Webseite erstellen"; call it in the click, since the save picker needs its user gesture. */
@@ -121,15 +142,7 @@ export class HtmlExportSession {
     if (state.kind !== "done") {
       return;
     }
-    if (state.delivery === "download") {
-      this.#ports.download(state.file);
-    } else if (state.delivery === "share") {
-      await this.#ports.share(state.file).catch((error: unknown) => {
-        if (!(error instanceof DOMException && error.name === SHARE_DISMISSED)) {
-          this.#ports.log(error);
-        }
-      });
-    }
+    await deliverFile(this.#ports, state.delivery, state.file);
   }
 
   /** "Öffnen": the finished page in a new tab; call it in the click. */
@@ -175,9 +188,11 @@ export class HtmlExportSession {
       });
       file = await destination.file();
     } catch (error: unknown) {
-      // Only closing the sheet cancels, and a closed sheet shows nothing.
+      // Closing the sheet cancels the run and shows nothing; any other error is still logged.
       if (!this.#closed.signal.aborted) {
         this.#fail(error);
+      } else if (error !== this.#closed.signal.reason) {
+        this.#ports.log(error);
       }
       return;
     }
@@ -200,6 +215,8 @@ export class HtmlExportSession {
 
   #set(state: HtmlExportState): void {
     this.#state = state;
+    if (state.kind === "choose") this.#estimates = state.estimates;
+    if (state.kind === "choose" || state.kind === "running") this.#sizeId = state.sizeId;
     for (const listener of this.#listeners) {
       listener(state);
     }

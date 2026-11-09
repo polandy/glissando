@@ -1,31 +1,24 @@
 import { GRADED_SLIDESHOW_LOOKS, type GradedSlideshowLook } from "./looks/slideshow-look";
 import { readCard } from "./parse-card";
+import { readKenBurns } from "./parse-ken-burns";
+import { readTracks } from "./parse-music";
 import { checkVideoSlide, readVideo } from "./parse-video";
 import {
   readHexColor,
   readIsoDate,
   readNonEmptyString,
-  readNonNegativeInteger,
   readObject,
   readOneOf,
-  readPositiveFiniteNumber,
   readPositiveInteger,
   readCaptionLike,
   readString,
-  readUnitInterval,
   SlideshowFormatError,
   type JsonObject,
 } from "./parse-primitives";
 import {
-  EASINGS,
-  MIN_KEN_BURNS_ZOOM,
   SLIDESHOW_FORMAT_VERSION,
   TRANSITION_EFFECTS,
-  type Easing,
-  type Framing,
   type GroundSlide,
-  type KenBurns,
-  type MusicTrack,
   type PictureSlide,
   type Slide,
   type Slideshow,
@@ -85,56 +78,6 @@ function readEndFadeMs(value: unknown, path: string, lastSlideDurationMs: number
     );
   }
   return endFadeMs;
-}
-
-const TRACK_TIMES = ["startMs", "endMs", "fadeInMs", "fadeOutMs"] as const;
-
-function readTracks(value: unknown): readonly MusicTrack[] {
-  if (!Array.isArray(value) || value.length === 0) {
-    throw new SlideshowFormatError("music", "an array with at least one track", value);
-  }
-  let previousAtMs = 0;
-  return value.map((item: unknown, index) => {
-    const path = `music[${index}]`;
-    const fields = readObject(item, path, ["src", "atMs", "gain", ...TRACK_TIMES]);
-    const atMs = readNonNegativeInteger(fields.atMs, `${path}.atMs`);
-    if (atMs < previousAtMs) {
-      throw new SlideshowFormatError(
-        `${path}.atMs`,
-        `at least the previous track's atMs (${previousAtMs})`,
-        atMs,
-      );
-    }
-    previousAtMs = atMs;
-    return { ...readTrack(fields, path), atMs };
-  });
-}
-
-function readTrack(track: JsonObject, path: string): Omit<MusicTrack, "atMs"> {
-  const startMs = readNonNegativeInteger(track.startMs, `${path}.startMs`);
-  const endMs = readNonNegativeInteger(track.endMs, `${path}.endMs`);
-  if (endMs <= startMs) {
-    throw new SlideshowFormatError(`${path}.endMs`, `a time after startMs (${startMs})`, endMs);
-  }
-  const fadeInMs = readNonNegativeInteger(track.fadeInMs, `${path}.fadeInMs`);
-  const fadeOutMs = readNonNegativeInteger(track.fadeOutMs, `${path}.fadeOutMs`);
-  const heardMs = endMs - startMs;
-  if (fadeInMs + fadeOutMs > heardMs) {
-    throw new SlideshowFormatError(
-      `${path}.fadeOutMs`,
-      `fadeInMs + fadeOutMs at most endMs − startMs (${heardMs})`,
-      fadeOutMs,
-    );
-  }
-  const gain = readPositiveFiniteNumber(track.gain, `${path}.gain`);
-  return {
-    src: readNonEmptyString(track.src, `${path}.src`),
-    startMs,
-    endMs,
-    fadeInMs,
-    fadeOutMs,
-    gain,
-  };
 }
 
 function readSlides(value: unknown): readonly Slide[] {
@@ -254,28 +197,6 @@ function readFit(value: unknown, path: string): "cover" {
     throw new SlideshowFormatError(path, `"${FIT_COVER}"`, value);
   }
   return value;
-}
-
-function readKenBurns(value: unknown, path: string): KenBurns {
-  const kenBurns = readObject(value, path, ["from", "to", "easing"]);
-  return {
-    from: readFraming(kenBurns.from, `${path}.from`),
-    to: readFraming(kenBurns.to, `${path}.to`),
-    easing: readOneOf<Easing>(kenBurns.easing, `${path}.easing`, EASINGS),
-  };
-}
-
-function readFraming(value: unknown, path: string): Framing {
-  const framing = readObject(value, path, ["zoom", "centerX", "centerY"]);
-  const zoom = framing.zoom;
-  if (typeof zoom !== "number" || !Number.isFinite(zoom) || zoom < MIN_KEN_BURNS_ZOOM) {
-    throw new SlideshowFormatError(`${path}.zoom`, `a number ≥ ${MIN_KEN_BURNS_ZOOM}`, zoom);
-  }
-  return {
-    zoom,
-    centerX: readUnitInterval(framing.centerX, `${path}.centerX`),
-    centerY: readUnitInterval(framing.centerY, `${path}.centerY`),
-  };
 }
 
 function readTransition(value: unknown, path: string, slideDurationMs: number): Transition {

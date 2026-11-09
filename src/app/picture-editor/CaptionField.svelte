@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from "svelte";
   import {
     captionLength,
     MAX_CAPTION_LENGTH,
@@ -14,13 +15,19 @@
    */
   let {
     pictureId,
+    stored,
     value = $bindable(),
     onInput,
+    onClear,
   }: {
     pictureId: string;
+    /** The caption as stored; an undo changes it behind the typed text. */
+    stored: string;
     /** As typed; the stored caption is its normalised form. */
     value: string;
     onInput: (typed: string) => void;
+    /** The clear button was pressed; the text is gone and the caller offers its undo. */
+    onClear: () => void;
   } = $props();
 
   const { t } = getTranslator();
@@ -28,6 +35,14 @@
   const hintId = $derived(`${fieldId}-hint`);
   const countId = $derived(`${fieldId}-count`);
   let field = $state<HTMLInputElement>();
+
+  // Typed text stays as typed while it normalises to what is stored; any other stored text
+  // (an undone clearing) replaces it.
+  $effect(() => {
+    if ((normalizeCaption(untrack(() => value)) ?? "") !== stored) {
+      value = stored;
+    }
+  });
 
   function typed(text: string): void {
     value = text;
@@ -49,7 +64,8 @@
   }
 
   function clear(): void {
-    typed("");
+    value = "";
+    onClear();
     field?.focus();
   }
 
@@ -132,6 +148,14 @@
   }
   .field:focus {
     border-color: var(--gl-accent);
+  }
+  @media (pointer: coarse) {
+    .field {
+      height: var(--gl-hit-min);
+    }
+    .clear {
+      top: 6px;
+    }
   }
   .clear {
     position: absolute;

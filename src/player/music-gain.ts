@@ -38,3 +38,18 @@ export function isTrackHeardAt(track: PlacedMusicEnvelope, timeMs: number): bool
   const intoTrackMs = timeMs - track.atMs;
   return intoTrackMs >= 0 && intoTrackMs < track.endMs - track.startMs;
 }
+
+/** How long the music takes to rise when the show starts part-way. */
+export const START_FADE_IN_MS = 1000;
+
+/**
+ * The factor the music's volume is multiplied by for a show started part-way at `fromMs`: a
+ * linear rise from silence there to full over `START_FADE_IN_MS`, a pure function of play time.
+ * Before `fromMs` it is full, so a replay from the beginning is untouched.
+ */
+export function startFadeGainAt(fromMs: number, timeMs: number): number {
+  if (timeMs < fromMs) {
+    return 1;
+  }
+  return Math.min(1, (timeMs - fromMs) / START_FADE_IN_MS);
+}

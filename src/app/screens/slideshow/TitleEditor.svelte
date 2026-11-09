@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separated from "../../components/Separated.svelte";
   import { tick, type Snippet } from "svelte";
   import { MAX_TITLE_LENGTH } from "../../../library/slideshow-edits";
   import Icon from "../../components/Icon.svelte";
@@ -59,7 +60,7 @@
     onkeydown={keydown}
     onblur={(event) => void finish(event.currentTarget.value)}
   />
-  <p class="hint">{t("slideshow.titleHint")}</p>
+  <p class="hint"><Separated text={t("slideshow.titleHint")} /></p>
 {:else}
   <div class="row">
     <h1 class="title">{title}</h1>

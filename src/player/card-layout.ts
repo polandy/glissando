@@ -14,18 +14,18 @@ export { CARD_INK_COLORS, CARD_STYLE_SPECS };
 export type { CardTextSpec };
 
 /** The subtitle's top sits this many title-font-sizes below the title's bottom. */
-export const CARD_SUBTITLE_GAP_EM = 0.35;
+const CARD_SUBTITLE_GAP_EM = 0.35;
 
 /** A line is at most this share of the stage width. */
-export const CARD_MAX_WIDTH_SHARE = 0.8;
+const CARD_MAX_WIDTH_SHARE = 0.8;
 export const CARD_MAX_LINES = 2;
 export const CARD_BOLD_MAX_LINES = 3;
 /** The title shrinks no smaller than this fraction of its style's size before it ellipsises. */
-export const CARD_MIN_SCALE = 0.5;
-export const CARD_ELLIPSIS = "…";
+const CARD_MIN_SCALE = 0.5;
+const CARD_ELLIPSIS = "…";
 
-export const CARD_MARGIN_LEFT_SHARE = 0.07;
-export const CARD_MARGIN_BOTTOM_SHARE = 0.09;
+const CARD_MARGIN_LEFT_SHARE = 0.07;
+const CARD_MARGIN_BOTTOM_SHARE = 0.09;
 
 export interface CardBreak {
   readonly lines: readonly string[];

@@ -43,6 +43,10 @@ export const ICONS = {
   replay: { shapes: [path("M4.5 12a7.5 7.5 0 102.2-5.3L4.5 9"), path("M4.5 4.5V9H9")] },
   close: { shapes: [path("M6 6l12 12M18 6L6 18")] },
   image: { shapes: [rect(3, 4.5, 18, 15, 2.5), circle(9, 10, 1.8), path("M21 16l-5-5-9 8.5")] },
+  mood: {
+    shapes: [circle(12, 12, 9), path("M8.5 14a4.5 4.5 0 007 0"), path("M9 9.5h.01M15 9.5h.01")],
+  },
+  look: { shapes: [path("M12 3.5s6 6.2 6 10.5a6 6 0 01-12 0c0-4.3 6-10.5 6-10.5z")] },
   music: { shapes: [path("M9 18V6l11-2v12"), circle(6.5, 18, 2.5), circle(17.5, 16, 2.5)] },
   volume: {
     shapes: [
@@ -184,6 +188,16 @@ export const ICONS = {
   check: { shapes: [path("M5 12.5l4.5 4.5L19 7.5")] },
   shuffle: {
     shapes: [path("M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5")],
+  },
+  sortByDate: {
+    shapes: [
+      rect(3, 5, 13, 14, 2),
+      path("M3 9h13"),
+      path("M7 3v4"),
+      path("M12 3v4"),
+      path("M20 8v12"),
+      path("M17 17l3 3 3-3"),
+    ],
   },
   checkCircle: { shapes: [circle(12, 12, 8.5), path("M8.3 12.3l2.8 2.8L15.8 9")] },
   fadeIn: { shapes: [path("M2 18L12 7h10")] },

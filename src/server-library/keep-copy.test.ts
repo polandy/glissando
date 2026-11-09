@@ -4,7 +4,7 @@ import { PictureNotDownloadedError } from "../import/picture-source";
 import { storedFocus } from "../library/focus-pass-fixtures";
 import type { StoredFocus } from "../library/picture-focus";
 import { MediaNotFoundError } from "../library/library-store";
-import type { StoredSlideshow } from "../library/stored-slideshow";
+import type { StoredCard, StoredSlideshow } from "../library/stored-slideshow";
 import { MemoryLibraryStore } from "../library/testing/memory-store";
 import { keepCopyOnDevice } from "./keep-copy";
 import { decodeAsText, FakeImmichMedia } from "./testing/fake-immich-media";
@@ -49,13 +49,9 @@ function setUp() {
     now: () => COPIED_AT,
     log: () => undefined,
   };
-  const keep = (
-    slideshow: StoredSlideshow,
-    options: { existingTitles?: string[]; signal?: AbortSignal } = {},
-  ) =>
+  const keep = (slideshow: StoredSlideshow, options: { existingTitles?: string[] } = {}) =>
     keepCopyOnDevice(slideshow, ports, {
       existingTitles: options.existingTitles ?? [],
-      signal: options.signal ?? new AbortController().signal,
       onProgress: (fraction) => progress.push(fraction),
     });
   return { store, immich, serverMusic, serverFocus, progress, keep };
@@ -151,6 +147,31 @@ describe("keepCopyOnDevice", () => {
     expect(await (await store.musicBlob("id-3")).text()).toBe("tune");
   });
 
+  it("points a title or closing slide's picture background at the copy's own picture", async () => {
+    const { store, immich, keep } = setUp();
+    immich.add("asset-1").add("asset-2");
+    const overPicture = (pictureId: string): StoredCard => ({
+      title: "Lake",
+      style: "modern",
+      position: "centre",
+      entrance: "rise",
+      background: { kind: "picture", pictureId, fade: 60, tint: "picture" },
+      motion: true,
+    });
+    const server = serverSlideshow({
+      pictures: [linkedPicture("asset-1"), linkedPicture("asset-2")],
+      openingCard: overPicture("asset-1"),
+      closingCard: overPicture("asset-2"),
+    });
+
+    const copy = await keep(server);
+
+    const [first, second] = copy.pictures;
+    expect(copy.openingCard).toEqual(overPicture(first?.id ?? "missing"));
+    expect(copy.closingCard).toEqual(overPicture(second?.id ?? "missing"));
+    expect(await store.getSlideshow(copy.id)).toEqual(copy);
+  });
+
   it("reports its progress from 0 to 1, a step per picture and the music", async () => {
     const { immich, serverMusic, progress, keep } = setUp();
     immich.add("asset-1").add("asset-2").add("asset-3");
@@ -180,18 +201,5 @@ describe("keepCopyOnDevice", () => {
     expect(error).toBeInstanceOf(PictureNotDownloadedError);
     expect(await store.listSlideshows()).toEqual([kept]);
     expect(await rejection(store.pictureBlob("id-2"))).toBeInstanceOf(MediaNotFoundError);
-  });
-
-  it("keeps nothing when cancelled, rejecting with the signal's reason", async () => {
-    const { store, immich, keep } = setUp();
-    immich.add("asset-1");
-    const cancel = new AbortController();
-    const cancelled = new Error("cancelled");
-    cancel.abort(cancelled);
-
-    const error = await rejection(keep(serverSlideshow(), { signal: cancel.signal }));
-
-    expect(error).toBe(cancelled);
-    expect(await store.listSlideshows()).toEqual([]);
   });
 });

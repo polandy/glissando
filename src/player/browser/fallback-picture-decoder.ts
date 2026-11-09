@@ -1,4 +1,5 @@
-import type { PictureDecoder } from "./bitmap-loader";
+import { pixelsOf } from "./bitmap-pixels";
+import type { PictureDecoder, PixelPicture } from "./pixel-loader";
 import { PictureDecodeError } from "./worker-picture-decoder";
 
 /**
@@ -6,7 +7,7 @@ import { PictureDecodeError } from "./worker-picture-decoder";
  * the primary is disposed and every decode, a pending one the primary fails later included, goes
  * to the fallback. A picture both fail rejects with an `AggregateError` of both errors and leaves
  * the primary in use, since that picture is broken rather than the primary. Once disposed, nothing
- * more is decoded: a pending decode rejects, and a bitmap that arrives anyway is closed.
+ * more is decoded: a pending decode rejects, and a picture that arrives anyway is dropped.
  */
 export class FallbackPictureDecoder implements PictureDecoder {
   readonly #primary: PictureDecoder;
@@ -19,7 +20,7 @@ export class FallbackPictureDecoder implements PictureDecoder {
     this.#fallback = fallback;
   }
 
-  async decode(bytes: Blob): Promise<ImageBitmap> {
+  async decode(bytes: Blob): Promise<PixelPicture> {
     if (this.#disposed) throw disposedError();
     if (this.#primaryFailed) return this.#keptIfLive(await this.#fallback.decode(bytes));
     let primaryError: unknown;
@@ -30,9 +31,9 @@ export class FallbackPictureDecoder implements PictureDecoder {
     }
     // Disposal rejects the primary's pending decodes; they are not the primary's failures.
     if (this.#disposed) throw primaryError;
-    let bitmap: ImageBitmap;
+    let picture: PixelPicture;
     try {
-      bitmap = await this.#fallback.decode(bytes);
+      picture = await this.#fallback.decode(bytes);
     } catch (fallbackError: unknown) {
       throw new AggregateError(
         [primaryError, fallbackError],
@@ -41,7 +42,7 @@ export class FallbackPictureDecoder implements PictureDecoder {
       );
     }
     this.#switchToFallback();
-    return this.#keptIfLive(bitmap);
+    return this.#keptIfLive(picture);
   }
 
   dispose(): void {
@@ -50,9 +51,8 @@ export class FallbackPictureDecoder implements PictureDecoder {
     this.#fallback.dispose();
   }
 
-  #keptIfLive(bitmap: ImageBitmap): ImageBitmap {
-    if (!this.#disposed) return bitmap;
-    bitmap.close();
+  #keptIfLive(picture: PixelPicture): PixelPicture {
+    if (!this.#disposed) return picture;
     throw disposedError();
   }
 
@@ -71,7 +71,7 @@ function disposedError(): PictureDecodeError {
 export const mainThreadPictureDecoder: PictureDecoder = {
   async decode(bytes) {
     try {
-      return await createImageBitmap(bytes, { imageOrientation: "from-image" });
+      return pixelsOf(await createImageBitmap(bytes, { imageOrientation: "from-image" }));
     } catch (error) {
       throw new PictureDecodeError(error instanceof Error ? error.message : String(error), {
         cause: error,

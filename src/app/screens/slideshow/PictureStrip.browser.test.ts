@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import type { SlideshowChapter } from "../../../compose/chapters-of-slideshow";
 import { mountWithTranslator } from "../../testing/mount-with-translator";
 import { NO_SELECTION } from "./strip-selection";
@@ -43,26 +43,27 @@ function chapter(overrides: Partial<SlideshowChapter> = {}): SlideshowChapter {
   };
 }
 
-function mountStrip(chapters: readonly SlideshowChapter[], onOpenChapter = vi.fn()) {
+function mountStrip(chapters: readonly SlideshowChapter[]) {
+  const openedChapters: string[] = [];
   const mounted = mountWithTranslator(PictureStrip, {
     pictures: [picture("p1"), picture("p2")],
     look: "none" as const,
     newPictureIds: new Set<string>(),
     selection: NO_SELECTION,
     mousePointer: true,
-    onSelectionChange: () => {},
-    onRemove: () => {},
-    onRemoveGroup: () => {},
-    onShiftGroup: () => {},
-    onMoveGroup: () => {},
-    onOpen: () => {},
-    onView: () => {},
+    onSelectionChange: () => undefined,
+    onRemove: () => undefined,
+    onRemoveGroup: () => undefined,
+    onShiftGroup: () => undefined,
+    onMoveGroup: () => undefined,
+    onOpen: () => undefined,
+    onView: () => undefined,
     suppressCards: true,
     chapters,
-    onOpenChapter,
+    onOpenChapter: (pictureId: string) => openedChapters.push(pictureId),
   });
   destroy = mounted.destroy;
-  return { target: mounted.target, onOpenChapter };
+  return { target: mounted.target, openedChapters };
 }
 
 describe("PictureStrip: trip chapters", () => {
@@ -86,10 +87,10 @@ describe("PictureStrip: trip chapters", () => {
   });
 
   it("opens the chapter's sheet when its tile is tapped", () => {
-    const { target, onOpenChapter } = mountStrip([chapter()]);
+    const { target, openedChapters } = mountStrip([chapter()]);
 
     target.querySelector<HTMLButtonElement>(".chip")?.click();
 
-    expect(onOpenChapter).toHaveBeenCalledWith("p2");
+    expect(openedChapters).toEqual(["p2"]);
   });
 });

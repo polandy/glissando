@@ -47,9 +47,11 @@ describe("createFramePlayer with video slides", () => {
       },
       dispose: () => undefined,
     };
-    const framePlayer = createFramePlayer(await videoSlideshow(), SIZE, undefined, (src) => {
-      opened.push(src);
-      return source;
+    const framePlayer = createFramePlayer(await videoSlideshow(), SIZE, {
+      openVideoFrames: (src) => {
+        opened.push(src);
+        return source;
+      },
     });
     if (framePlayer === null) {
       throw new Error("this browser has no WebGL2");

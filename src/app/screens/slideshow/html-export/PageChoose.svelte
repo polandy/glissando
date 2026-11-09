@@ -5,6 +5,8 @@
   import Notice from "../../../components/Notice.svelte";
   import { getTranslator } from "../../../i18n/context";
   import type { HtmlExportState } from "../../../html-export/html-export-state";
+  import { sizesBarelyDiffer } from "../../../html-export/size-note";
+  import { PAGE_SIZE_NAME_KEY } from "../../../html-export/size-scale";
   import SizeRadios from "../export-sheet/SizeRadios.svelte";
 
   /** The size with its estimate, the comparison with the video, and the notes before the start. */
@@ -42,16 +44,22 @@
   const options = $derived(
     PAGE_SIZES.map(({ id, bound }) => ({
       id,
-      name: t(`htmlExport.size-${id}`),
-      detail: t("htmlExport.longEdge", { pixels: String(bound.longEdge) }),
+      name: t(PAGE_SIZE_NAME_KEY[id]),
       size: fromImmich
         ? t("server.exportFromImmich")
         : view.estimates === null
           ? ""
           : about(view.estimates[id]),
-      use: t(`htmlExport.use-${id}`),
+      use: t("htmlExport.sizeLine", {
+        pixels: String(bound.longEdge),
+        use: t(`htmlExport.use-${id}`),
+      }),
       usable: true,
     })),
+  );
+  // Clips go in whole at every size, so the estimates only differ by the pictures' share.
+  const showClipsNote = $derived(
+    clipCount > 0 && view.estimates !== null && sizesBarelyDiffer(Object.values(view.estimates)),
   );
   const pageBytes = $derived(view.estimates?.[view.sizeId] ?? null);
   const pagePercent = $derived(
@@ -82,21 +90,11 @@
     {t("htmlExport.bigText")}
   </Notice>
 {/if}
-{#if clipCount > 0}
-  <Notice tone="warn">
-    <b>{t("htmlExport.clipsTitle", { count: String(clipCount) })}</b>
-    {pageBytes === null
-      ? t("htmlExport.clipsTextUnsized")
-      : t("htmlExport.clipsText", { size: formatBytes(pageBytes) })}
-  </Notice>
+{#if showClipsNote}
+  <p class="hint note"><Icon name="info" />{t("htmlExport.clipsNote", { count: clipCount })}</p>
 {/if}
-<div class="spec">
-  <span>{t("htmlExport.chipFile")}</span>
-  <span>{t("htmlExport.chipOffline")}</span>
-  <span>{t("htmlExport.chipContent")}</span>
-</div>
-<p class="hint">{t("htmlExport.hint")}</p>
 <footer>
+  <p class="hint footnote">{t("htmlExport.hint")}</p>
   <button class="btn ghost" type="button" onclick={onCancel}>{t("common.cancel")}</button>
   <button class="btn primary" type="button" disabled={view.starting} onclick={onStart}>
     <Icon name="page" />{t("htmlExport.start")}
@@ -132,16 +130,23 @@
     font-size: var(--gl-size-small);
     text-align: right;
   }
-  .spec {
+  .note {
     display: flex;
-    flex-wrap: wrap;
+    align-items: flex-start;
     gap: 6px;
   }
-  .spec span {
-    padding: 3px 8px;
-    border-radius: var(--gl-radius-pill);
-    background: var(--gl-hover);
-    color: var(--gl-muted);
-    font-size: var(--gl-size-small);
+  .note :global(.icon) {
+    margin-top: 2px;
+  }
+  .footnote {
+    flex: 1 1 0;
+    align-self: center;
+    min-width: 0;
+  }
+  /* The same breakpoint as the dialog: on a phone the line sits above the buttons. */
+  @media (max-width: 720px) {
+    .footnote {
+      flex-basis: 100%;
+    }
   }
 </style>

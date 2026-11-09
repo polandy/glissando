@@ -28,16 +28,19 @@ const SHOW: StoredSlideshow = {
   secondsPerPicture: 5,
 };
 
+type Answer = StoredSlideshow | Error | Promise<StoredSlideshow>;
+
 function setUp() {
   const toasts: ToastMessage[] = [];
   const opened: string[] = [];
   const errors: unknown[] = [];
-  const copyAnswers: (StoredSlideshow | Error)[] = [];
-  const saveAnswers: (StoredSlideshow | Error)[] = [];
+  const copyAnswers: Answer[] = [];
+  const saveAnswers: Answer[] = [];
   const copyOptions: KeepCopyOptions[] = [];
-  const answer = (queue: (StoredSlideshow | Error)[]) => {
+  const answer = (queue: Answer[]) => {
     const next = queue.shift();
     if (next === undefined) throw new Error("no answer queued");
+    if (next instanceof Promise) return next;
     return next instanceof Error ? Promise.reject(next) : Promise.resolve(next);
   };
   const flows = new ServerCopyFlows({
@@ -56,8 +59,10 @@ function setUp() {
     log: () => undefined,
     translator: createTranslator("en"),
   });
-  const seen: (number | null)[] = [];
-  flows.subscribe((progress) => seen.push(progress?.fraction ?? null));
+  const seen: string[][] = [];
+  flows.subscribe((copies) =>
+    seen.push(copies.map(({ slideshowId, fraction }) => `${slideshowId} ${String(fraction)}`)),
+  );
   return { flows, toasts, opened, errors, copyAnswers, saveAnswers, copyOptions, seen };
 }
 
@@ -69,10 +74,43 @@ describe("keeping a copy of a server slideshow on this device", () => {
     await flows.keepCopy(SHOW);
 
     expect(copyOptions[0]?.existingTitles).toEqual(["Taken"]);
-    expect(seen).toEqual([null, 0, 0.34, null]);
+    expect(seen).toEqual([[], ["server-1 0"], ["server-1 0.34"], []]);
     expect(toasts.map(({ text }) => text)).toEqual(["Copied to this device"]);
     toasts[0]?.action?.run();
     expect(opened).toEqual(["copy-1"]);
+  });
+
+  it("shows each of two copies running at once until that one ends", async () => {
+    const { flows, toasts, copyAnswers, seen } = setUp();
+    const first = Promise.withResolvers<StoredSlideshow>();
+    copyAnswers.push(first.promise, { ...SHOW, id: "copy-2" });
+
+    const firstCopy = flows.keepCopy(SHOW);
+    await flows.keepCopy({ ...SHOW, id: "server-2", title: "Lisbon" });
+
+    expect(seen.at(-1)).toEqual(["server-1 0.34"]);
+    expect(seen).toContainEqual(["server-1 0.34", "server-2 0.34"]);
+    first.resolve({ ...SHOW, id: "copy-1" });
+    await firstCopy;
+    expect(seen.at(-1)).toEqual([]);
+    expect(toasts.map(({ text }) => text)).toEqual([
+      "Copied to this device",
+      "Copied to this device",
+    ]);
+  });
+
+  it("joins a copy of the same slideshow already running instead of starting a second", async () => {
+    const { flows, toasts, copyAnswers, copyOptions } = setUp();
+    const running = Promise.withResolvers<StoredSlideshow>();
+    copyAnswers.push(running.promise);
+
+    const first = flows.keepCopy(SHOW);
+    const second = flows.keepCopy(SHOW);
+    running.resolve({ ...SHOW, id: "copy-1" });
+    await Promise.all([first, second]);
+
+    expect(toasts.map(({ text }) => text)).toEqual(["Copied to this device"]);
+    expect(copyOptions).toHaveLength(1);
   });
 
   it("tells when a picture is no longer in Immich", async () => {

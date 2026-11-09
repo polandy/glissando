@@ -1,5 +1,7 @@
 import type { CardItemSlice } from "../card-item-layout";
 import type { Size } from "../ken-burns";
+import { linkProgram } from "./link-program";
+import { WebGlSetupError } from "./webgl-setup-error";
 
 /**
  * Draws a card's title/subtitle texture one slice at a time, each its own quad with its own
@@ -29,11 +31,15 @@ void main() {
 
 const POSITION_ATTRIBUTE = 0;
 const UV_ATTRIBUTE = 1;
-const FLOATS_PER_VERTEX = 4;
+const COORDINATES_PER_ATTRIBUTE = 2;
+const FLOATS_PER_VERTEX = 2 * COORDINATES_PER_ATTRIBUTE;
+const BYTES_PER_FLOAT = 4;
+const VERTEX_STRIDE_BYTES = FLOATS_PER_VERTEX * BYTES_PER_FLOAT;
+const UV_OFFSET_BYTES = COORDINATES_PER_ATTRIBUTE * BYTES_PER_FLOAT;
 const VERTEX_COUNT = 4;
 const QUAD_FLOATS = FLOATS_PER_VERTEX * VERTEX_COUNT;
 
-export class CardItemProgramCompileError extends Error {
+class CardItemProgramCompileError extends WebGlSetupError {
   constructor(log: string) {
     super(`the card item shader does not compile or link: ${log}`);
     this.name = "CardItemProgramCompileError";
@@ -75,9 +81,23 @@ export class CardItemProgram {
     gl.useProgram(this.#program);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.#buffer);
     gl.enableVertexAttribArray(POSITION_ATTRIBUTE);
-    gl.vertexAttribPointer(POSITION_ATTRIBUTE, 2, gl.FLOAT, false, FLOATS_PER_VERTEX * 4, 0);
+    gl.vertexAttribPointer(
+      POSITION_ATTRIBUTE,
+      COORDINATES_PER_ATTRIBUTE,
+      gl.FLOAT,
+      false,
+      VERTEX_STRIDE_BYTES,
+      0,
+    );
     gl.enableVertexAttribArray(UV_ATTRIBUTE);
-    gl.vertexAttribPointer(UV_ATTRIBUTE, 2, gl.FLOAT, false, FLOATS_PER_VERTEX * 4, 2 * 4);
+    gl.vertexAttribPointer(
+      UV_ATTRIBUTE,
+      COORDINATES_PER_ATTRIBUTE,
+      gl.FLOAT,
+      false,
+      VERTEX_STRIDE_BYTES,
+      UV_OFFSET_BYTES,
+    );
   }
 
   /** One item's quad: its slice drifted and scaled about its own centre, sampling that slice of
@@ -141,28 +161,14 @@ function fillQuad(out: Float32Array, item: CardItemDraw, viewport: Size): void {
 }
 
 function compile(gl: WebGL2RenderingContext): WebGLProgram {
-  const program = gl.createProgram();
-  for (const [type, source] of [
-    [gl.VERTEX_SHADER, VERTEX_SHADER],
-    [gl.FRAGMENT_SHADER, FRAGMENT_SHADER],
-  ] as const) {
-    const shader = gl.createShader(type);
-    if (shader === null) {
-      throw new CardItemProgramCompileError("createShader returned null");
-    }
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      throw new CardItemProgramCompileError(gl.getShaderInfoLog(shader) ?? "no log");
-    }
-    gl.attachShader(program, shader);
-    gl.deleteShader(shader);
-  }
-  gl.bindAttribLocation(program, POSITION_ATTRIBUTE, "position");
-  gl.bindAttribLocation(program, UV_ATTRIBUTE, "uv");
-  gl.linkProgram(program);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    throw new CardItemProgramCompileError(gl.getProgramInfoLog(program) ?? "no log");
-  }
-  return program;
+  return linkProgram(
+    gl,
+    VERTEX_SHADER,
+    FRAGMENT_SHADER,
+    new Map([
+      ["position", POSITION_ATTRIBUTE],
+      ["uv", UV_ATTRIBUTE],
+    ]),
+    (log) => new CardItemProgramCompileError(log),
+  );
 }

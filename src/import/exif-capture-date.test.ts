@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { captureDate, readExifCaptureDate } from "./exif-capture-date";
-import { UnreadablePictureError } from "./unreadable-picture";
+import { readExifCaptureDate } from "./exif-capture-date";
 import { EXIF_IFD_OFFSET, syntheticJpeg, type ByteOrder } from "./testing/synthetic-jpeg";
 
 const buffer = (bytes: Uint8Array): ArrayBuffer => bytes.slice().buffer;
@@ -92,55 +91,5 @@ describe("readExifCaptureDate", () => {
     const bytes = Uint8Array.from([0xff, 0xd8, 0xff, 0xe0, 0xff, 0xff, 0x00]);
 
     expect(readExifCaptureDate(buffer(bytes))).toBeNull();
-  });
-});
-
-/** A file whose bytes fail to read with `error`, as a picked file whose permission lapsed. */
-function unreadableFile(name: string, error: Error): File {
-  const file = new File(["bytes"], name, { type: "image/jpeg" });
-  file.slice = () => {
-    const blob = new Blob();
-    blob.arrayBuffer = () => Promise.reject(error);
-    return blob;
-  };
-  return file;
-}
-
-describe("captureDate", () => {
-  it("takes the EXIF capture date of a JPEG", async () => {
-    const jpeg = syntheticJpeg({ byteOrder: "big", dateTimeOriginal: "2025:07:01 10:30:15" });
-    const file = new File([buffer(jpeg.bytes)], "a.jpg", {
-      type: "image/jpeg",
-      lastModified: new Date(2026, 0, 2, 3, 4, 5).getTime(),
-    });
-
-    expect(await captureDate(file)).toBe("2025-07-01T10:30:15Z");
-  });
-
-  it("falls back to the file's local modification time, written with a Z suffix", async () => {
-    const file = new File(["not a jpeg"], "a.png", {
-      type: "image/png",
-      lastModified: new Date(2026, 0, 2, 3, 4, 5).getTime(),
-    });
-
-    expect(await captureDate(file)).toBe("2026-01-02T03:04:05Z");
-  });
-
-  it("rejects a file the browser can no longer read with UnreadablePictureError", async () => {
-    const notReadable = new DOMException("the file could not be read", "NotReadableError");
-    const error: unknown = await captureDate(unreadableFile("lapsed.jpg", notReadable)).catch(
-      (rejection: unknown) => rejection,
-    );
-
-    expect(error).toBeInstanceOf(UnreadablePictureError);
-    expect((error as UnreadablePictureError).fileName).toBe("lapsed.jpg");
-    expect((error as UnreadablePictureError).stage).toBe("read");
-    expect((error as UnreadablePictureError).cause).toBe(notReadable);
-  });
-
-  it("passes any other read error through unchanged", async () => {
-    const failure = new DOMException("the read was aborted", "AbortError");
-
-    await expect(captureDate(unreadableFile("a.jpg", failure))).rejects.toBe(failure);
   });
 });

@@ -8,7 +8,7 @@ A picture's caption (roadmap 1, `dev-docs/SCOPE.md`) is one line of text shown b
 the player. It belongs to its slide: it should fade, push and wipe with the slide's transition,
 but stand still while the Ken Burns motion moves the picture. The player has two renderers,
 WebGL2 with one shader per transition and the DOM fallback, and a later video export will render
-the same frames at its own resolution. The caption is stored like a picture's own motion
+the same frames at its own resolution. The caption is stored like a picture's chosen motion
 (ADR-0006): an optional field on the stored picture, in the `.glissando` file (version 3) and in
 the slideshow JSON; that needs no decision of its own.
 

@@ -42,7 +42,12 @@ export function tokenDeclarations(tokensCss: string, pageCss: string): string {
 
 /** The parts of a built file the export player's checks read. */
 export type BuiltPlayerFile =
-  | { readonly type: "chunk"; readonly fileName: string; readonly code: string }
+  | {
+      readonly type: "chunk";
+      readonly fileName: string;
+      readonly code: string;
+      readonly moduleIds: readonly string[];
+    }
   | { readonly type: "asset"; readonly fileName: string; readonly source: string | Uint8Array };
 
 /**
@@ -50,7 +55,11 @@ export type BuiltPlayerFile =
  * else: a further file (a worker, an image) would be missing from the self-contained page. The
  * build fails on a script that cannot be inlined unchanged (`assertInlineableScript`).
  */
-export function bundleParts(files: readonly BuiltPlayerFile[]): { script: string; style: string } {
+export function bundleParts(files: readonly BuiltPlayerFile[]): {
+  script: string;
+  style: string;
+  moduleIds: readonly string[];
+} {
   const chunks = files.filter((file) => file.type === "chunk");
   const styles = files.filter((file) => file.type === "asset" && file.fileName.endsWith(".css"));
   const others = files.filter((file) => file.type !== "chunk" && !file.fileName.endsWith(".css"));
@@ -69,7 +78,7 @@ export function bundleParts(files: readonly BuiltPlayerFile[]): { script: string
   assertInlineableScript(chunk.code, `the export player's ${chunk.fileName}`);
   const css =
     typeof style.source === "string" ? style.source : new TextDecoder().decode(style.source);
-  return { script: chunk.code, style: css };
+  return { script: chunk.code, style: css, moduleIds: chunk.moduleIds };
 }
 
 /** The `PlayerBundle` of a built player page, its fonts as `data:` URLs. */
@@ -84,6 +93,7 @@ export function playerBundle(parts: PlayerPageParts): PlayerBundle {
         fontDataUrl(bytes),
       ]),
     ),
+    notices: parts.notices,
   };
 }
 

@@ -11,15 +11,15 @@ export const CAPTION_FONT_NAME = "Instrument Sans";
 export const CAPTION_FONT_FAMILY = `"${CAPTION_FONT_NAME}", sans-serif`;
 export const CAPTION_FONT_WEIGHT = 600;
 export const CAPTION_LINE_HEIGHT_EM = 1.22;
-export const CAPTION_LEFT_EM = 1.2;
-export const CAPTION_BOTTOM_EM = 1.1;
+const CAPTION_LEFT_EM = 1.2;
+const CAPTION_BOTTOM_EM = 1.1;
 /** A line is at most this share of the screen's width and at most `CAPTION_MAX_WIDTH_EM`. */
-export const CAPTION_MAX_WIDTH_SHARE = 0.72;
-export const CAPTION_MAX_WIDTH_EM = 34;
+const CAPTION_MAX_WIDTH_SHARE = 0.72;
+const CAPTION_MAX_WIDTH_EM = 34;
 /** The gradient behind the caption covers this share of the screen from the bottom. */
-export const CAPTION_BAND_SHARE = 0.42;
+const CAPTION_BAND_SHARE = 0.42;
 export const CAPTION_MAX_LINES = 2;
-export const CAPTION_ELLIPSIS = "…";
+const CAPTION_ELLIPSIS = "…";
 /** Elliptical, from the bottom left: 120 % of the band's width by 100 % of its height. */
 export const CAPTION_GRADIENT = {
   radiusXShare: 1.2,

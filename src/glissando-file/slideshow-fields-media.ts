@@ -12,12 +12,7 @@ import {
 } from "../library/own-music";
 import type { Place } from "../places/nearest-place";
 import {
-  CAPTION_FROM_VERSION,
-  MUSIC_TRIM_FROM_VERSION,
   MUSIC_VOLUME_FROM_VERSION,
-  OWN_KEN_BURNS_FROM_VERSION,
-  OWN_TIMING_FROM_VERSION,
-  PICTURE_CHANGES_FROM_VERSION,
   PLACE_FROM_VERSION,
   SAMPLE_TRACK_FROM_VERSION,
 } from "./glissando-manifest";
@@ -26,6 +21,7 @@ import {
   readDateTime,
   readObject,
   readPositiveInteger,
+  readSongMediaType,
   readText,
   type JsonObject,
 } from "./document-values";
@@ -40,9 +36,10 @@ export function pictureKeys(version: number): string[] {
     "height",
     "fileName",
     "colours",
-    ...(version >= OWN_KEN_BURNS_FROM_VERSION ? ["kenBurns"] : []),
-    ...(version >= CAPTION_FROM_VERSION ? ["caption"] : []),
-    ...(version >= OWN_TIMING_FROM_VERSION ? ["durationMs", "transition"] : []),
+    "kenBurns",
+    "caption",
+    "durationMs",
+    "transition",
     "alone",
     ...(version >= PLACE_FROM_VERSION ? ["place"] : []),
   ];
@@ -77,8 +74,10 @@ export function musicKeys(version: number): string[] {
     "fileName",
     "durationMs",
     "mimeType",
-    ...(version >= MUSIC_TRIM_FROM_VERSION ? ["trim", "fadeInMs", "fadeOutMs"] : []),
-    ...(version >= PICTURE_CHANGES_FROM_VERSION ? ["pictureChanges"] : []),
+    "trim",
+    "fadeInMs",
+    "fadeOutMs",
+    "pictureChanges",
     ...(version >= MUSIC_VOLUME_FROM_VERSION ? ["volumeDb"] : []),
     ...(version >= SAMPLE_TRACK_FROM_VERSION ? ["sampleTrack"] : []),
   ];
@@ -97,7 +96,7 @@ export function readMusicFields(music: JsonObject, path: string): MusicFields {
   return {
     fileName: readText(music["fileName"], `${path}.fileName`),
     durationMs,
-    mimeType: readText(music["mimeType"], `${path}.mimeType`),
+    mimeType: readSongMediaType(music["mimeType"], `${path}.mimeType`),
     ...readOwnMusic(path, () => ({
       ...(trim === undefined ? {} : { trim: checkMusicTrim(trim, durationMs, path) }),
       ...(fadeInMs === undefined ? {} : { fadeInMs: checkMusicFadeMs(fadeInMs, "fadeInMs", path) }),

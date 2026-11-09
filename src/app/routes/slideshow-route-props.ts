@@ -1,7 +1,6 @@
 import type { StoredSlideshow } from "../../library/stored-slideshow";
-import type { BeatPass } from "../../library/beat-pass";
 import type { FocusPass } from "../../library/focus-pass";
-import type { LoudnessPass } from "../../library/loudness-pass";
+import type { MusicAnalysisPass } from "../../library/music-analysis-pass";
 import type { SlideshowHome } from "./slideshow-storage";
 import type { RouteStore } from "./slideshow-home";
 import type { ExportOutcome, ExportProgress } from "../glissando-file/export-job";
@@ -35,14 +34,14 @@ export interface SlideshowRouteProps {
   /** What it finds updates the editors' automatic motions and focus marks as it goes; the picture
    * editor's "Look again" asks it to look at one picture again (ADR-0041). */
   focusPass: Pick<FocusPass, "state" | "subscribe" | "lookAgain">;
-  /** What it finds puts the editors' automatic changes on the music's beats as it goes; a mood
-   * reads its state directly, for the tempo it paces to (ADR-0045). */
-  beatPass: Pick<BeatPass, "state" | "subscribe" | "listenFor">;
-  /** What it finds levels each song in the music editor as it goes (ADR-0040). */
-  loudnessPass: Pick<LoudnessPass, "subscribe" | "listenFor">;
+  /** What it finds puts the editors' automatic changes on the music's beats and levels each song
+   * in the music editor as it goes; a mood reads its state directly, for the tempo it paces to
+   * (ADR-0045, ADR-0040, ADR-0051). */
+  analysisPass: Pick<MusicAnalysisPass, "state" | "subscribe" | "listenFor">;
   toaster: Toaster;
   newId: () => string;
   now: () => Date;
+  random: () => number;
   slideshowId: string;
   /** The export running in the background, of this slideshow or another. */
   exportProgress: ExportProgress | null;
@@ -51,8 +50,8 @@ export interface SlideshowRouteProps {
   videoExport: VideoExportDevice;
   /** What "Save as web page" needs of the browser. */
   htmlExport: HtmlExportDevice;
-  /** The player layer is open over the screen. */
-  playing: boolean;
+  /** The player layer is open over the screen, starting at this picture or, null, at the start. */
+  playing: { readonly pictureId: string | null } | null;
   /** The quality a server slideshow plays in on this device. */
   playbackQuality: PlaybackQuality;
   /** The picture editor is open on this picture, in place of the screen. */
@@ -78,6 +77,10 @@ export interface SlideshowRouteProps {
   /** Also taken when the slideshow is no longer on this device. */
   onBack: () => void;
   onPlay: () => void;
+  /** Plays from a picture: from the strip's selection bar, the viewer and the picture editor. */
+  onPlayFrom: (pictureId: string) => void;
+  /** The slideshow was just created: its Play button pulses once on arrival. */
+  pulsePlay?: boolean;
   /** "Add media", with the slideshow as shown. */
   onAddPictures: (slideshow: StoredSlideshow) => void;
   /** Pictures just added: marked as new, and the toast's undo takes them out. */

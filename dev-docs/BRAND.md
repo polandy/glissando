@@ -2,7 +2,8 @@
 
 The name: _glissando_ (Italian, "gliding") — sliding from one note to the next; here, fluid
 transitions from one picture to the next. Character: a calm, professional tool — neutral surfaces, the pictures bring the colour; the
-logo keeps the playful touch.
+logo keeps the playful touch. The words the app uses, one per concept in English and German:
+[COPY.md](COPY.md).
 
 ## Logo
 
@@ -34,10 +35,10 @@ shows the finished logo at once; the launch is remembered in the browser's local
 ## Type
 
 All OFL 1.1, self-hosted as Latin woff2 subsets incl. German (`assets/fonts/`, licence texts
-beside them), fetched from a pinned commit of google/fonts and hash-verified by
-`scripts/brand/build.sh`; no request leaves the device. Each shipped font's OFL notice is also
-listed in `third-party-licenses.md` (`build/committed-licenses.ts`), since none is an npm
-package.
+beside them), fetched from a pinned commit of google/fonts, each font file and licence text
+hash-verified by `scripts/brand/build.sh`; no request leaves the device. Each shipped font's OFL
+notice is also listed in `third-party-licenses.md` (`build/committed-licenses.ts`), since none is an
+npm package.
 
 | Font (token)                                   | Role                                                     |
 | ---------------------------------------------- | -------------------------------------------------------- |
@@ -51,6 +52,10 @@ Baloo 2 is for the brand alone: the header wordmark and the logo / start animati
 wordmark is outlined to paths). Sizes come from the `--gl-size-*` scale: caption 11, small 12,
 meta 12.5, label 13, body 14, large button 15, title 16, name 17, wordmark 19, panel title 22,
 heading 26 (23 below 720 px), display 34 px.
+
+A " · " between two parts of a line goes through `Separated.svelte` (a string) or `Separator.svelte`
+(between markup), which widen the spaces around the dot by `--gl-separator-room` (3 px): Instrument
+Sans's dot and spaces are narrow, and a bare " · " runs together at the small sizes.
 
 ## Colours — "studio"
 
@@ -97,7 +102,12 @@ Rules:
 
 Shape: `--gl-radius` 10 px (buttons, notices, summary cells), `--gl-radius-large` 14 px (cards,
 panels, dialogs), `--gl-radius-tile` 8 px (picture tiles), `--gl-radius-tiny` 3 px (the
-prepare screen's picture squares), hairlines instead of shadows.
+prepare screen's picture squares and colour swatches), `--gl-radius-pill` (pills and round-ended
+progress bars), hairlines instead of shadows.
+Touch: under a coarse pointer `.btn`, `.icon-btn` and the switch keep their look and grow an invisible
+pad to `--gl-hit-min` (44 px); neighbours need room for both pads, or a gap of at least the overhang.
+A component-styled control with flush neighbours (a full-width row, an input, a pill) takes a
+`min-height` of `--gl-hit-min` instead. `src/app/*touch-targets.browser.test.ts` hit-test every screen, sheet and editor.
 Layer: `--gl-layer-bar` (5) puts a sticky bottom bar above the content that scrolls under it; a tile
 isolates its own marks, so their z-index stays local.
 

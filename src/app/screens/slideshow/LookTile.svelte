@@ -14,7 +14,6 @@
     filterUrl,
     radio = $bindable(),
     onPick,
-    onKeydown,
   }: {
     look: SlideshowLook;
     checked: boolean;
@@ -26,7 +25,6 @@
     filterUrl: string;
     radio?: HTMLButtonElement | undefined;
     onPick: () => void;
-    onKeydown: (event: KeyboardEvent) => void;
   } = $props();
 
   const { t } = getTranslator();
@@ -41,7 +39,6 @@
   tabindex={checked ? 0 : -1}
   data-look={look}
   onclick={onPick}
-  onkeydown={onKeydown}
 >
   <span class="sw" class:plain={pictureUrl === null}>
     {#if pictureUrl !== null}

@@ -19,10 +19,14 @@ export interface ImmichAlbum {
 export interface ImmichPhoto {
   readonly id: string;
   readonly fileName: string;
-  /** Immich's `localDateTime`: the capture time as wall time with a `Z`, as `captureDate()`. */
+  /** Immich's `localDateTime` cut to whole seconds: the wall time with a `Z` of `readPictureExif()`. */
   readonly takenAt: string;
   /** Immich's `width`/`height` in pixels; null while Immich has not read them. */
   readonly size: { readonly width: number; readonly height: number } | null;
+  /** The city of the capture from Immich's EXIF data; null where Immich has none. */
+  readonly place?: string | null;
+  /** The GPS coordinate from Immich's EXIF data; null where it has none `gpsCoordinate()` accepts. */
+  readonly gps?: ExifGps | null;
   /** Present for a video (only listed with `withVideos`); its length when Immich knows it. */
   readonly video?: { readonly durationMs: number | null };
 }
@@ -89,6 +93,16 @@ export class ImmichRequestFailedError extends Error {
   }
 }
 
+/** A download Immich announces (its `Content-Length`) as bigger than the caller takes. */
+export class ImmichDownloadTooLargeError extends Error {
+  constructor(request: string, announcedBytes: number, maxBytes: number) {
+    super(
+      `${request} announces ${String(announcedBytes)} bytes, over the ${String(maxBytes)} taken`,
+    );
+    this.name = "ImmichDownloadTooLargeError";
+  }
+}
+
 /**
  * Every method but `status()` and `thumbnailUrl()` rejects with `ImmichUnavailableError` when
  * Immich cannot be used, with `ImmichRequestFailedError` for another failing HTTP status, and with
@@ -114,10 +128,9 @@ export interface ImmichClient {
   original(photoId: string, signal?: AbortSignal): Promise<Blob>;
   /**
    * A video's playable version, as Immich plays it (its transcoded copy, else the original),
-   * downloaded whole. `signal` cancels it; it then rejects with the signal's reason.
+   * downloaded whole. Rejects with `ImmichDownloadTooLargeError`, before its bytes are read, when
+   * Immich announces more than `maxBytes`. `signal` cancels it; it then rejects with its reason.
    */
-  video(photoId: string, signal?: AbortSignal): Promise<Blob>;
+  video(photoId: string, maxBytes: number, signal?: AbortSignal): Promise<Blob>;
   faces(photoId: string): Promise<readonly ImmichFace[]>;
-  /** The GPS coordinate Immich already read from the photo's EXIF; null when it has none. */
-  gps(photoId: string): Promise<ExifGps | null>;
 }

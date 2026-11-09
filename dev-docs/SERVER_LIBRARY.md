@@ -4,12 +4,13 @@ Slideshows stored by the self-hosted Glissando, their pictures linked from Immic
 The approved mockup: https://claude.ai/artifact/LMg64KXScDNzDHzuJTHx6B. Immich itself:
 `dev-docs/app/IMMICH.md` and ADR-0013.
 
-| Section                                                  | What it covers                                                                        |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| [The server document](server_library/SERVER_DOCUMENT.md) | The JSON document shared by app and server                                            |
-| [The HTTP API](server_library/HTTP_API.md)               | Requests, revisions, music and beats, limits                                          |
-| [The service](server_library/SERVICE.md)                 | Config, storage, ports and logging                                                    |
-| [The image](server_library/IMAGE.md)                     | The container image, entrypoint and its image test                                    |
-| [In the app](server_library/IN_THE_APP.md)               | Availability, memory, library screen, wizard, slideshow screen, playing and exporting |
-| [Focus](server_library/FOCUS.md)                         | The server's own background focus pass, sharing a worker with the device one          |
-| [End to end](server_library/END_TO_END.md)               | The agreed end-to-end flow                                                            |
+| Section                                                             | What it covers                                                                |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| [The server document](server_library/SERVER_DOCUMENT.md)            | The JSON document shared by app and server                                    |
+| [The HTTP API](server_library/HTTP_API.md)                          | Requests, revisions, music and beats, limits                                  |
+| [The service](server_library/SERVICE.md)                            | Config, storage, ports and logging                                            |
+| [The image](server_library/IMAGE.md)                                | The container image, entrypoint and its image test                            |
+| [In the app](server_library/IN_THE_APP.md)                          | Availability, memory, library screen, slideshow screen, playing and exporting |
+| [Where a new slideshow lives](server_library/NEW_SLIDESHOW_HOME.md) | The wizard's "Where should it live?" and its server mode                      |
+| [Focus](server_library/FOCUS.md)                                    | The server's own background focus pass, sharing a worker with the device one  |
+| [End to end](server_library/END_TO_END.md)                          | The agreed end-to-end flow                                                    |

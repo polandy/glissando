@@ -12,7 +12,7 @@ absent, the whole track. `fadeInMs` and `fadeOutMs` are own fades in whole ms, 0
 steps of 500, 0 being off (the editor offers off, 2000 and 5000); absent, automatic.
 `pictureChanges` `"even"` has the pictures share the music evenly; absent, they change on the
 beat when one was found (ADR-0021). `StoredSlideshow.pictureLength` `"seconds"` has the
-pictures without an own duration last `secondsPerPicture` each with music too; absent, they
+pictures without a chosen duration last `secondsPerPicture` each with music too; absent, they
 fill the music (ADR-0022). A new slideshow is created with `"seconds"` unless the user picks
 "Fill the music". `setPictureLength` (deleting the field for `undefined`, validated by
 `checkPictureLength`) and `setSecondsPerPicture` (half seconds, 2 to 15) are in
@@ -35,7 +35,7 @@ clean-up of unreferenced media.
 ADR-0040. Every song plays levelled: brought to `MUSIC_TARGET_LOUDNESS_LUFS` = −14 LUFS, so a quiet and a
 loud song sound equally loud without any setting. A song's own volume moves it from there.
 
-- **Measured once per file, in blocks.** `LoudnessPass` (`dev-docs/library/LOUDNESS_LISTENING.md`)
+- **Measured once per file, in blocks.** `MusicAnalysisPass` (`dev-docs/library/MUSIC_ANALYSIS.md`)
   measures integrated loudness per ITU-R BS.1770: K-weighted, in 400 ms gating blocks with 75 %
   overlap, plus each block's sample peak. The blocks are stored per media id beside the beats
   (derived data: never exported, measured again where missing). A 5-minute song is about 3000

@@ -17,8 +17,8 @@ carrying a key or secret is `Cache-Control: no-store`.
 
 | Request                                                | Answer                                                                                                                                                      |
 | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST /api/tv/sessions` (any JSON body)                | 201 `{ "tvKey", "code" }` — way A                                                                                                                           |
-| `POST /api/share/{token}/tv` (any JSON body)           | 201 `{ "tvKey", "remoteSecret" }` — way B; 404 `notShared`                                                                                                  |
+| `POST /api/tv/sessions` (any JSON body)                | 201 `{ "tvKey", "code" }` — way A; 503 `tvFull` (Sessions, Lifetime)                                                                                        |
+| `POST /api/share/{token}/tv` (any JSON body)           | 201 `{ "tvKey", "remoteSecret" }` — way B; 404 `notShared`; 503 `tvFull`                                                                                    |
 | `GET /api/tv/{tvKey}/events`                           | The TV's stream (below); 404 `noSuchTv`                                                                                                                     |
 | `PUT /api/tv/{tvKey}/state` `PlaybackState`            | 204; 404 `noSuchTv`; 400 `invalidState`                                                                                                                     |
 | `GET /api/tv/{tvKey}/show`                             | Way A: the share document of the chosen slideshow, as `GET /api/share/{token}`; 404 `notShown` until one is chosen, once it is deleted, and always in way B |
@@ -32,7 +32,9 @@ carrying a key or secret is `Cache-Control: no-store`.
 `Content-Type: text/event-stream`, `Cache-Control: no-store`, `X-Accel-Buffering: no`, and
 a `: keep-alive` comment every `KEEP_ALIVE_MS` (25 s) from `main.ts`'s timer so a proxy keeps
 the connection. Each event is `event: <name>` and `data: <JSON>`. A stream of a session that
-ended answers 404 `noSuchTv` before it opens; the service ends every open stream when it stops.
+ended answers 404 `noSuchTv` before it opens; a client that left while its request was read
+never opens its stream, so it never counts as present; the service ends every open stream when
+it stops.
 
 - **TV stream**: first `snapshot` `{ "claimed": boolean, "showing": boolean, "remotePresent": boolean }`, then
   `claimed` `{}` (way A: the phone claimed the code), `show` `{}`, `command` `<Command>`,

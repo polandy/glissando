@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import {
   choosePictures,
-  CREATED_TOAST,
+  expectSlideshowScreen,
   editPicture,
   GERMAN_BROWSER,
   leaveEditor,
@@ -31,15 +31,15 @@ async function holdObjectNetwork(page: Page): Promise<() => void> {
   return release;
 }
 
-test("E2E-028 the automatic motion's focus is found in the background: a face is marked in the picture editor until an own motion replaces it, a faceless picture says so, and the library card ends without a search line", async ({
+test("E2E-028 the automatic motion's focus is found in the background: a face is marked in the picture editor until a chosen motion replaces it, a faceless picture says so, and the library card ends without a search line", async ({
   page,
 }) => {
-  const picture = page.locator(".pic");
+  const picture = page.getByTestId("frame-well-picture");
   const marker = page.getByRole("img", { name: "Fokus: Gesicht erkannt" });
   const noSubject = page.getByText("Kein Motiv erkannt – die Bewegung bleibt mittig.");
-  const state = page.locator(".motion .state");
+  const stateIs = (text: string) => kenBurns.getByText(text, { exact: true });
   const frames = page.getByRole("group", { name: "Rahmen" });
-  const kenBurns = page.getByRole("region", { name: "Ken Burns" });
+  const kenBurns = page.getByRole("region", { name: "Bewegung" });
   await openApp(page);
   await openImport(page);
   await choosePictures(
@@ -52,23 +52,23 @@ test("E2E-028 the automatic motion's focus is found in the background: a face is
   );
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
 
   await editPicture(page, "Bild 1, aufgenommen am 12.07.2025, über einer unscharfen Füllung");
   await expect(picture).toBeVisible();
-  await expect(state).toHaveText("Automatisch");
+  await expect(stateIs("Automatisch")).toBeVisible();
   // The background focus pass detects pictures one at a time; no fixed bound on how long
   // picture 1's turn in the queue takes under load, so wait for it rather than guess.
   await expect(marker).toBeVisible({ timeout: 0 });
   await expect(marker).toContainText("Gesicht");
 
-  await page.locator(".frame.active").press("+");
-  await expect(state).toHaveText("Eigene Bewegung");
+  await page.getByRole("application", { name: /^Startrahmen/ }).press("+");
+  await expect(stateIs("Gewählt")).toBeVisible();
   await expect(frames).toBeVisible();
   await expect(marker).toBeHidden();
 
   await kenBurns.getByRole("button", { name: "Zurück auf automatisch" }).click();
-  await expect(state).toHaveText("Automatisch");
+  await expect(stateIs("Automatisch")).toBeVisible();
   await expect(marker).toBeVisible();
   await leaveEditor(page);
 
@@ -101,7 +101,7 @@ test("E2E-074 the More menu's faces-and-subjects sheet sums a face and a faceles
   );
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
 
   await page.getByRole("button", { name: "Mehr" }).click();
   await page.getByRole("menuitem", { name: /^Gesichter und Motive/ }).click();
@@ -114,14 +114,15 @@ test("E2E-074 the More menu's faces-and-subjects sheet sums a face and a faceles
     timeout: 0,
   });
   const faceChip = sheet.getByRole("button", { name: "Gesichter 1", exact: true });
-  const noSubjectChip = sheet.getByRole("button", { name: "Nichts gefunden 1", exact: true });
+  const noSubjectChip = sheet.getByRole("button", { name: "Ganz gezeigt 1", exact: true });
   await expect(faceChip).toBeVisible();
   await expect(noSubjectChip).toBeVisible();
 
   const faceTile = sheet.getByRole("button", { name: "Gesichter", exact: true });
-  const noSubjectTile = sheet.getByRole("button", { name: "Nichts gefunden", exact: true });
+  const noSubjectTile = sheet.getByRole("button", { name: "Ganz gezeigt", exact: true });
   // No filter is active yet: neither tile is dimmed, which is what the tap below changes.
-  await expect(sheet.locator(".tile.dim")).toHaveCount(0);
+  await expect(faceTile).not.toHaveClass(/dim/);
+  await expect(noSubjectTile).not.toHaveClass(/dim/);
 
   await faceChip.click();
   await expect(faceChip).toHaveAttribute("aria-pressed", "true");
@@ -151,7 +152,7 @@ test("E2E-096 the header shows the running faces-and-subjects search with its co
   );
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
 
   await expect(search).toBeVisible();
   await expect(search).toContainText("Motive werden gesucht · 0 von 2");

@@ -24,7 +24,7 @@
     toggleFullscreen,
   } from "../../ui-kit/fullscreen";
   import { performPlayerAction, playerActionForKey } from "./player-keys";
-  import { slideBoundaries, slideIndexAt } from "./slide-boundaries";
+  import { slideBoundaries, slideIndexAt } from "../../player/slide-boundaries";
   import { slideCaptionText, slideCaptureDate, slideCardShows } from "./slide-heading";
   import "./player-overlay.css";
 
@@ -114,7 +114,7 @@
     });
     player = created;
     if (startAt > 0) {
-      created.currentTime = startAt;
+      created.startAt(startAt);
     }
     const sync = () => {
       currentTime = created.currentTime;
@@ -215,7 +215,7 @@
       >
         <Icon name="close" />
       </button>
-      <div class="heading">
+      <div class="heading" data-testid="player-heading">
         {#if !slideHasCard}
           <span class="name">{slideshow.title}</span>
           {#if slideDate !== undefined}
