@@ -21,39 +21,28 @@ import { createDownloader } from "./app/glissando-file/download-file";
 import { browserLaunchQueue } from "./app/glissando-file/launched-files";
 import { browserObjectUrls } from "./app/media/object-urls";
 import { readClipPeaksWithMediabunny } from "./app/clip-editor/read-clip-peaks";
-import { browserMusicEditorAudio } from "./app/music-editor/music-editor-audio";
 import { createSessionFactories } from "./app/session-factories";
 import { browserSampleMusic } from "./app/sample-music/browser-sample-music";
 import { freeStorageBytes } from "./library/free-storage";
 import { browserIntakePorts } from "./app/import/browser-intake-ports";
 import { browserImmich } from "./immich/browser-immich";
 import { createImmichReaders } from "./immich/immich-readers";
-import { createMusicAudioContext, MusicOutput } from "./player";
 import { FocusPass } from "./library/focus-pass";
 import { serializeFocusDetector } from "./library/serialized-focus-detector";
 import { type IndexedDbLibraryStore, openLibraryStore } from "./library/indexeddb-store";
 import { startFocusWorker, WorkerFocusDetector } from "./focus/worker-focus-detector";
-import {
-  createFullRateDecoder,
-  probeDeviceSampleRate,
-} from "./music-analysis/decode-music-full-rate";
-import { startAnalysisWorker, WorkerMusicAnalyser } from "./music-analysis/worker-music-analyser";
-import { startBackgroundMusicPasses } from "./app/background-music-passes";
 import { requestPersistentStorage } from "./library/persistent-storage";
 import { browserPwaPorts } from "./pwa/browser-pwa";
 import { createStorageHintDismissalStore, PwaStatus } from "./pwa/pwa-status";
 import { sweepPrivateExports, type PrivateExportStorage } from "./video-export";
-import { HttpServerLibraryClient } from "./server-library/http-server-library-client";
-import { serverSlideshowSessions } from "./app/server-library/server-slideshow-sessions";
-import { createServerLibrary } from "./server-library/server-library";
-import { createStorageServerLibraryMemory } from "./server-library/server-library-memory";
-import { startServerFocusPass } from "./app/server-focus-pass";
 import { browserHtmlExportDevice } from "./app/html-export/browser-html-export-device";
 import { bundledFilePage } from "./file-page/browser/bundled-file-page";
 import { browserVideoExportDevice } from "./app/video-export/browser-video-export-device";
 import { createFrameServices } from "./app/frame/frame-services";
 import { browserMediaDecoders } from "./glissando-file/browser/media-decoders";
 import { decodeClipSound } from "./video-export/browser/decode-clip-sound";
+import { wireMusic } from "./wire-music";
+import { wireServer } from "./wire-server";
 
 const { client: immichClient, availability: immichAvailability } = browserImmich(window);
 
@@ -104,7 +93,6 @@ const store = await openLibraryOrShowFailure(shell);
 const newId = (): string => randomId(crypto);
 const now = (): Date => new Date();
 const random = (): number => Math.random();
-const musicOutput = new MusicOutput(createMusicAudioContext);
 // Reads __GLISSANDO_SAMPLE_MUSIC__ through browser-sample-music.ts, the constant's only reader.
 const sampleMusicDependencies = { store, target: window, onError: logError };
 const sampleMusic = browserSampleMusic(__GLISSANDO_SAMPLE_MUSIC__, sampleMusicDependencies);
@@ -142,29 +130,37 @@ const download = createDownloader({
 
 const immichReaders = createImmichReaders(immichClient, immichAvailability, logError);
 
-// Same origin: the self-hosted Glissando routes ./api/library to its library service (ADR-0018).
-const serverLibraryClient = new HttpServerLibraryClient({
-  appUrl: new URL("./", window.location.href),
-  fetch: window.fetch.bind(window),
-});
-const serverLibrary = createServerLibrary({
-  client: serverLibraryClient,
-  immichAvailability,
-  memory: createStorageServerLibraryMemory(window.localStorage, logError),
-  immich: immichReaders,
+// Read before the navigator exists, so its own first route is never raced by this one.
+const deepLinkedFrameAlbumId = parseFrameDeepLink(window.location.hash);
+const navigator = new Navigator(createWindowHistory(window));
+
+const server = wireServer(window, {
   deviceStore: store,
+  immichClient,
+  immichAvailability,
+  immichReaders,
+  focusDetector: serverFocusDetector,
+  navigator,
+  scheduler: browserScheduler,
+  onShareTurnedOff: () =>
+    toaster.show({ text: translator.current.t("share.turnedOff"), tone: "info" }),
   newId,
   now,
   log: logError,
+  reportError,
 });
+if (deepLinkedFrameAlbumId !== null) {
+  openDeepLinkedFrame(
+    deepLinkedFrameAlbumId,
+    server.serverLibrary.availability,
+    navigator,
+    browserClearDeepLinkHash(window),
+  );
+}
 
-const { analysisPass, serverAnalysisPass } = startBackgroundMusicPasses({
+const music = wireMusic({
   store,
-  serverStore: serverLibrary.store,
-  analyser: new WorkerMusicAnalyser(
-    createFullRateDecoder(probeDeviceSampleRate),
-    startAnalysisWorker,
-  ),
+  serverStore: server.serverLibrary.store,
   log: logError,
   reportError,
 });
@@ -178,37 +174,6 @@ const intakePorts = browserIntakePorts({
   log: logError,
   toaster,
   translator,
-});
-
-const serverSessions = serverSlideshowSessions(window, {
-  shareApi: serverLibraryClient,
-  slideshows: serverLibrary.store,
-  scheduler: browserScheduler,
-  onTurnedOff: () => toaster.show({ text: translator.current.t("share.turnedOff"), tone: "info" }),
-  onError: reportError,
-  log: logError,
-});
-
-// Read before the navigator exists, so its own first route is never raced by this one.
-const deepLinkedFrameAlbumId = parseFrameDeepLink(window.location.hash);
-const navigator = new Navigator(createWindowHistory(window));
-if (deepLinkedFrameAlbumId !== null) {
-  openDeepLinkedFrame(
-    deepLinkedFrameAlbumId,
-    serverLibrary.availability,
-    navigator,
-    browserClearDeepLinkHash(window),
-  );
-}
-
-const { serverFocusPass, serverLibrary: serverLibraryWithFocusStart } = startServerFocusPass({
-  serverLibrary,
-  detector: serverFocusDetector,
-  navigator,
-  immich: immichClient,
-  reportUnavailable: (kind) => immichReaders.reportUnavailable(kind),
-  log: logError,
-  reportError,
 });
 
 const services = {
@@ -225,20 +190,20 @@ const services = {
   appAddress: window.location.origin,
   build: __GLISSANDO_BUILD_INFO__,
   launchQueue: browserLaunchQueue(window),
-  musicOutput,
+  musicOutput: music.musicOutput,
   decodeClipSound,
-  musicAudio: browserMusicEditorAudio(musicOutput),
+  musicAudio: music.musicAudio,
   readClipPeaks: readClipPeaksWithMediabunny,
   focusPass,
-  serverFocusPass,
-  analysisPass,
-  serverAnalysisPass,
+  serverFocusPass: server.serverFocusPass,
+  analysisPass: music.analysisPass,
+  serverAnalysisPass: music.serverAnalysisPass,
   immich: { client: immichClient, availability: immichAvailability },
-  serverLibrary: serverLibraryWithFocusStart,
+  serverLibrary: server.serverLibrary,
   ...createSessionFactories({
     store,
-    serverLibrary: serverLibraryWithFocusStart,
-    serverLibraryForAdding: serverLibrary,
+    serverLibrary: server.serverLibrary,
+    serverLibraryForAdding: server.serverLibraryForAdding,
     intakePorts,
     sampleMusic,
     newId,
@@ -264,7 +229,7 @@ const services = {
   }),
   htmlExport: browserHtmlExportDevice({ window, download, log: logError }),
   playerPage: bundledFilePage,
-  ...serverSessions,
+  ...server.sessions,
   reload: () => window.location.reload(),
   ...createFrameServices(window, browserScheduler, logError),
   ...sampleMusic,

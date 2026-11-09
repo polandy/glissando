@@ -2,7 +2,9 @@
 
 `main.ts` is the composition root: it reads the settings ([THEMES.md](THEMES.md), [LANGUAGES.md](LANGUAGES.md)), opens the
 IndexedDB library, and builds the `Navigator` over `window.history` and the `Toaster`
-over real timers.
+over real timers. The server wiring (`wire-server.ts`: the server library, its share and TV
+sessions, its focus pass) and the music wiring (`wire-music.ts`: the shared `MusicOutput`, the
+background analysis passes) live beside it, each handed its ports by `main.ts`.
 
 - **Shared UI helpers**: `src/ui-kit/` holds the framework-free pieces that both the app and the
   exported web page's script (`src/export-player/`, HTML_EXPORT.md) use: the icon table, the
