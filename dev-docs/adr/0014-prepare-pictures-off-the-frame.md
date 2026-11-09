@@ -39,8 +39,8 @@ in WebKit and well under 1 ms in Chromium.
   garbage collector; destroying the player terminates the worker.
 - **Upload in slices before the picture is needed.** `SlideRenderer.prepare` does a bounded
   step of the work to draw a picture later. In WebGL: storage for the whole mip chain with a
-  first slice, each slice uploaded from a view of just its rows' bytes, then one slice of at most `UPLOAD_PIXELS_PER_FRAME` (1 Mi pixels, ~4 ms in the
-  WebKit benchmark) per call, the mipmaps in a call of their own, then the caption texture.
+  first slice, then one slice of at most `UPLOAD_PIXELS_PER_FRAME` (1 Mi pixels, ~4 ms in the
+  WebKit benchmark) per call, each uploaded from a view of just its rows' bytes, the mipmaps in a call of their own, then the caption texture.
   While playing, the player calls it after drawing each frame for the buffered pictures after
   the ones on screen. A picture drawn before it is fully prepared — after a seek — uploads the
   rest at once, as before.

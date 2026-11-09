@@ -116,7 +116,7 @@ export class WebGlRenderer implements SlideRenderer<PixelPicture> {
 
   /**
    * The lost context destroyed every GL object; rebuild them, then let the player redraw.
-   * Textures are not re-uploaded here: they are uploaded anew, from the bitmaps the player still
+   * Textures are not re-uploaded here: they are uploaded anew, from the bytes the player still
    * holds, when each picture is next prepared or drawn.
    */
   readonly #handleContextRestored = (): void => {
