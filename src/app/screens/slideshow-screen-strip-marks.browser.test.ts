@@ -32,12 +32,12 @@ describe("SlideshowScreen strip marks", () => {
     const noTransitions = withoutTransitions();
     mountScreen();
     const first = tile(1, "01.07.2025");
-    const grab = first.closest("li")?.querySelector<HTMLElement>(".grab");
+    const grab = first.closest("li")?.querySelector<HTMLElement>(".grab") ?? null;
 
     await userEvent.hover(first);
 
-    expect(grab).toBeDefined();
-    await expect.poll(() => first.matches(":hover")).toBe(true);
+    expect(grab).not.toBeNull();
+    expect(first.matches(":hover")).toBe(true);
     expect(getComputedStyle(grab as HTMLElement).opacity).toBe("1");
     expect(document.querySelector(".strip button.remove")).toBeNull();
     noTransitions.remove();
