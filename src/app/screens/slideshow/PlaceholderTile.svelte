@@ -42,7 +42,7 @@
     z-index: 1;
     height: 4px;
     overflow: hidden;
-    border-radius: 2px;
+    border-radius: var(--gl-radius-pill);
     background: var(--gl-photo-badge);
   }
   .bar i {
@@ -50,7 +50,7 @@
     top: 0;
     bottom: 0;
     width: 40%;
-    border-radius: 2px;
+    border-radius: var(--gl-radius-pill);
     background: var(--gl-mint);
     animation: run 1.2s infinite ease-in-out;
   }

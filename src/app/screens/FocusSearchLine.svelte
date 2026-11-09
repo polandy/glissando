@@ -52,13 +52,13 @@
     display: block;
     height: 2px;
     overflow: hidden;
-    border-radius: 1px;
+    border-radius: var(--gl-radius-pill);
     background: var(--gl-hover);
   }
   .hairline i {
     display: block;
     height: 100%;
-    border-radius: 1px;
+    border-radius: var(--gl-radius-pill);
     background: var(--gl-mint);
     transition: width 0.5s ease;
   }

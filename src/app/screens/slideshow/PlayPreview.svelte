@@ -61,7 +61,7 @@
     background: var(--gl-accent);
     color: var(--gl-accent-ink);
     font-size: var(--gl-size-small);
-    font-weight: 500;
+    font-weight: var(--gl-weight-medium);
   }
   .pill.pulse {
     animation: pulse 1s ease-out 1;
