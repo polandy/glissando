@@ -9,6 +9,7 @@ import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { MusicOutput } from "../../player";
 import { browserMusicEditorAudio } from "../music-editor/music-editor-audio";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
+import { createMountSlot, storedPicture } from "../testing/picture-fixtures";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { reactiveProps } from "../testing/reactive-props.svelte";
 import { Toaster } from "../toast/toaster";
@@ -21,24 +22,16 @@ const SHOW: StoredSlideshow = {
   id: "show",
   title: "Juli 2025",
   createdAt: "2025-07-02T00:00:00Z",
-  pictures: ["a", "b"].map((id) => ({
-    id,
-    capturedAt: "2025-07-01T10:00:00Z",
-    width: 100,
-    height: 100,
-    fileName: `${id}.jpg`,
-    colours: { veil: "#404040", accent: "#C0C0C0" },
-  })),
+  pictures: ["a", "b"].map((id) => storedPicture(id)),
   secondsPerPicture: 5,
   songs: [],
 };
 
-let destroy = () => {};
+const mountSlot = createMountSlot();
 
 /** Unmounts the route the last `mountRoute` mounted. */
 export function unmountRoute(): void {
-  destroy();
-  destroy = () => {};
+  mountSlot.release();
 }
 
 /** A store holding `SHOW`, its pictures as empty blobs. */
@@ -114,6 +107,6 @@ export function mountRoute(
     },
   });
   const mounted = mountWithTranslator(SlideshowRoute, props);
-  destroy = mounted.destroy;
+  mountSlot.hold(mounted.destroy);
   return { target: mounted.target, props, errors, toaster, randomDraws };
 }

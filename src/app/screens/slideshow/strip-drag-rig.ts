@@ -2,6 +2,7 @@ import { expect } from "vitest";
 import { page } from "vitest/browser";
 import { FakeFrameScheduler } from "../../../player/testing/fakes";
 import { FakeScheduler } from "../../../ui-kit/testing/fake-scheduler";
+import { pictureTile } from "../../testing/picture-fixtures";
 import { mountWithTranslator } from "../../testing/mount-with-translator";
 import type { PictureTile } from "../view-models";
 import PictureStrip from "./PictureStrip.svelte";
@@ -35,18 +36,7 @@ function thumbnail(index: number): string {
 }
 
 function picture(index: number): PictureTile {
-  return {
-    id: `p${index + 1}`,
-    thumbnailUrl: thumbnail(index),
-    capturedAt: "2025-07-01T10:00:00Z",
-    ownMotion: false,
-    ownDurationMs: null,
-    ownTransition: null,
-    pairedWithNumber: null,
-    blurredFill: false,
-    alone: false,
-    colours: { veil: "#404040", accent: "#C0C0C0" },
-  };
+  return pictureTile(`p${index + 1}`, thumbnail(index));
 }
 
 /** A finger as a test drives it: real touch input, or synthetic pointer events. */
