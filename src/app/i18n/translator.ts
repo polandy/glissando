@@ -151,7 +151,11 @@ export function createTranslator(language: Language): Translator {
 
   function t<Key extends MessageKey>(key: Key, ...args: MessageArgs<Key>): string {
     const params: Readonly<Record<string, ParamValue>> = args[0] ?? {};
-    return pick(key, catalogue[key], params).replace(PLACEHOLDER, (_, name: string) => {
+    const message = catalogue[key] as Message | undefined;
+    if (message === undefined) {
+      throw new Error(`unknown message "${key}"`);
+    }
+    return pick(key, message, params).replace(PLACEHOLDER, (_, name: string) => {
       const value = params[name];
       if (value === undefined) {
         throw new Error(`message "${key}" needs the parameter "${name}"`);

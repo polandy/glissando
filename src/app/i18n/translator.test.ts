@@ -56,7 +56,7 @@ describe("message types", () => {
     // @ts-expect-error -- "slideshow.play" has no placeholders
     expect(t("slideshow.play", { count: 1 })).toBe("Play");
     // @ts-expect-error -- unknown keys do not exist
-    expect(() => t("slideshow.nope")).toThrow();
+    expect(() => t("slideshow.nope")).toThrow(/unknown message "slideshow.nope"/);
   });
 });
 
