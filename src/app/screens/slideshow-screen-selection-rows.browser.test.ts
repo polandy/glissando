@@ -78,15 +78,22 @@ describe("selection bar at 360 px, German, one picture selected", () => {
     expect(visibleButtons().some((b) => b.getAttribute("aria-haspopup") !== null)).toBe(false);
     expect(bar().querySelector('[aria-label="Weitere Aktionen"]')).toBeNull();
 
-    const labels = visibleButtons().map((b) => b.querySelector(".label") as HTMLElement | null);
-    const texts = labels.map((l) => l?.innerText.trim());
-    expect(texts).toContain("Kapitel");
-    expect(texts).toContain("Verschieben");
+    const labels = visibleButtons()
+      .map((b) => b.querySelector<HTMLElement>(".label"))
+      .filter((label) => label !== null);
+    expect(labels.map((l) => l.innerText.trim())).toEqual([
+      "Früher",
+      "Später",
+      "Ab hier",
+      "Ansehen",
+      "Bearbeiten",
+      "Kapitel",
+      "Verschieben",
+      "Entfernen",
+    ]);
     for (const label of labels) {
-      if (label !== null) {
-        expect(label.scrollWidth).toBeLessThanOrEqual(label.clientWidth);
-        expect(label.getBoundingClientRect().width).toBeGreaterThan(0);
-      }
+      expect(label.scrollWidth).toBeLessThanOrEqual(label.clientWidth);
+      expect(label.getBoundingClientRect().width).toBeGreaterThan(0);
     }
   });
 

@@ -192,6 +192,7 @@ describe.each([1160, DESKTOP.width])("selection bar when %s px wide", (width) =>
       expect(box.height, label).toBeGreaterThanOrEqual(MIN_TARGET);
       const icon = button.querySelector("svg") as SVGElement;
       const text = button.querySelector(".label.long");
+      expect(text !== null, label).toBe(label !== "Fertig");
       if (text !== null) {
         expect(text.getBoundingClientRect().left, label).toBeGreaterThanOrEqual(
           icon.getBoundingClientRect().right,
