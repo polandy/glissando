@@ -1,6 +1,6 @@
 import { mount } from "svelte";
 import App from "./app/App.svelte";
-import { createErrorReporter } from "./app/errors/error-reporter";
+import { createErrorReporter, errorEventCause } from "./app/errors/error-reporter";
 import { appContext } from "./app/app-context";
 import { createWindowHistory, Navigator } from "./app/navigation/navigator";
 import { parseFrameDeepLink } from "./app/frame/frame-deep-link";
@@ -75,7 +75,7 @@ const reportError = createErrorReporter({
   toaster,
   text: () => translator.current.t("common.unexpectedError"),
 });
-window.addEventListener("error", (event) => reportError(event.error));
+window.addEventListener("error", (event) => reportError(errorEventCause(event)));
 window.addEventListener("unhandledrejection", (event) => reportError(event.reason));
 immichAvailability.check().catch(reportError);
 

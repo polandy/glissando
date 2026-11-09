@@ -14,3 +14,8 @@ export function createErrorReporter(options: {
     options.toaster.show({ text: options.text(), tone: "error" });
   };
 }
+
+/** A cross-origin script error arrives with a null `error`; its message is all there is. */
+export function errorEventCause(event: Pick<ErrorEvent, "error" | "message">): unknown {
+  return event.error ?? new Error(event.message);
+}
