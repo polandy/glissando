@@ -15,7 +15,7 @@ function serverSection(page: Page): Locator {
   return page.getByRole("region", { name: "Auf deinem Glissando-Server" });
 }
 
-test("E2E-034 a slideshow created on the Glissando server links its Immich photos, is edited there, copied to this device with its progress in the header and shows a photo deleted in Immich as missing", async ({
+test("E2E-034 a slideshow created on the Glissando server links its Immich photos, is edited there, copied to this device with its progress in the header, opens as that copy and shows a photo deleted in Immich as missing", async ({
   page,
 }) => {
   let jpeg: Uint8Array | null = null;
@@ -68,6 +68,17 @@ test("E2E-034 a slideshow created on the Glissando server links its Immich photo
   expect(server.slideshows[0]?.revision).toBe(2);
   expect(server.slideshows[0]?.document.slideshow.title).toBe(SERVER_TITLE);
 
+  // Opening the title slide stores it over the first picture, which the copy must carry over.
+  const dialog = page.getByRole("dialog");
+  const cardSaved = page.waitForResponse(
+    (response) => response.request().method() === "PUT" && SLIDESHOW_URL.test(response.url()),
+  );
+  await page.getByRole("button", { name: "Titelbild", exact: true }).click();
+  await cardSaved;
+  await dialog.getByRole("button", { name: "Fertig" }).click();
+  await expect(dialog).toBeHidden();
+  expect(server.slideshows[0]?.document.slideshow.openingCard?.background.kind).toBe("picture");
+
   await page.getByRole("button", { name: "Mehr" }).click();
   await page.getByRole("menuitem", { name: /Kopie auf diesem Gerät behalten/ }).click();
   originals.arm();
@@ -93,6 +104,14 @@ test("E2E-034 a slideshow created on the Glissando server links its Immich photo
   await expect(serverSection(page).getByRole("button", SERVER_TITLE_CARD)).toHaveCount(1);
   await expect(page.getByRole("main").getByRole("button", SERVER_TITLE_CARD)).toHaveCount(2);
   await expect(page.getByText("Noch nichts auf diesem Gerät.")).toHaveCount(0);
+
+  await page.reload();
+  // The device's grid comes before the server's section.
+  await page.getByRole("main").getByRole("button", SERVER_TITLE_CARD).first().click();
+  await expectSlideshowScreen(page);
+  await expect(page.getByRole("heading", { name: SERVER_TITLE })).toBeVisible();
+  await expect(page.getByText(/Etwas ist schiefgegangen/)).toHaveCount(0);
+  await page.getByRole("button", { name: "Zurück", exact: true }).click();
 
   const deleted = LIBRARY_PAGE.assets.items[2];
   if (deleted === undefined) throw new Error("the recorded page has three photos");
