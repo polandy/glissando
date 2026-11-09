@@ -15,5 +15,5 @@
   server (`e2e/support/fake-glissando-server.ts`), which runs the real hub and routes in the
   test's process: way A claims by code, chooses, presses pause on the remote and the TV reports
   `paused`; way B opens the remote from the share page's button, plays, pauses and skips. A
-  stream is held open by `vite preview` (`e2e/support/tv-stream-plugin.ts`), since a fulfilled
+  stream is held open by `vite preview` (`e2e/support/tv-stream-plugin.ts`, registered only when the Playwright web server sets `GLISSANDO_E2E_TV_STREAM=1`), since a fulfilled
   route always ends. All test pictures are generated.

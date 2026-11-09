@@ -15,6 +15,9 @@ export const TV_STREAM_QUERY = "e2eStream";
 /** Where `fake-tv-api.ts` pushes an event line (`?path=&line=`); a browser never requests it. */
 export const TV_STREAM_PUSH_PATH = "/__e2e-tv-stream-push__";
 
+/** Set by the Playwright web server commands; a plain `vite preview` leaves the plugin out. */
+export const E2E_TV_STREAM_ENV = "GLISSANDO_E2E_TV_STREAM";
+
 const HTTP_OK = 200;
 const HTTP_NO_CONTENT = 204;
 const HTTP_BAD_REQUEST = 400;
@@ -72,4 +75,8 @@ export function tvStreamPlugin(): Plugin {
       });
     },
   };
+}
+
+export function tvStreamPluginsFor(env: Readonly<Record<string, string | undefined>>): Plugin[] {
+  return env[E2E_TV_STREAM_ENV] === "1" ? [tvStreamPlugin()] : [];
 }

@@ -1,7 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
+import { E2E_TV_STREAM_ENV } from "./e2e/support/tv-stream-plugin.ts";
 import { BELOW_PATH, BELOW_PATH_PORT, BELOW_PATH_URL } from "./e2e/support/below-path.ts";
 
 const PREVIEW_PORT = 4173;
+const WITH_TV_STREAM = `${E2E_TV_STREAM_ENV}=1`;
 const BASE_URL = `http://localhost:${PREVIEW_PORT}`;
 
 export default defineConfig({
@@ -26,11 +28,11 @@ export default defineConfig({
   // Started in order, so the second preview serves the build the first one made.
   webServer: [
     {
-      command: `npx vite build && npx vite preview --port ${PREVIEW_PORT} --strictPort`,
+      command: `npx vite build && ${WITH_TV_STREAM} npx vite preview --port ${PREVIEW_PORT} --strictPort`,
       url: BASE_URL,
     },
     {
-      command: `npx vite preview --port ${String(BELOW_PATH_PORT)} --strictPort --base ${BELOW_PATH}`,
+      command: `${WITH_TV_STREAM} npx vite preview --port ${String(BELOW_PATH_PORT)} --strictPort --base ${BELOW_PATH}`,
       url: BELOW_PATH_URL,
     },
   ],

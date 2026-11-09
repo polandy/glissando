@@ -1,3 +1,4 @@
+import { env } from "node:process";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
@@ -10,7 +11,7 @@ import { remotePagePlugin } from "./build/remote-page-plugin.ts";
 import { sampleMusicConfigPlugin } from "./build/sample-music-config.ts";
 import { serviceWorkerPlugin } from "./build/service-worker-plugin.ts";
 import { sharePagePlugin } from "./build/share-page-plugin.ts";
-import { tvStreamPlugin } from "./e2e/support/tv-stream-plugin.ts";
+import { tvStreamPluginsFor } from "./e2e/support/tv-stream-plugin.ts";
 // Every module this config loads imports with explicit file extensions (ADR-0026).
 import { setCoarsePointer } from "./src/app/testing/coarse-pointer-command.ts";
 import { dispatchTouch, endTouchInput } from "./src/app/testing/touch-input-command.ts";
@@ -66,8 +67,8 @@ export default defineConfig({
     sampleMusicConfigPlugin(),
     committedLicensesPlugin(),
     serviceWorkerPlugin(),
-    // Only its configurePreviewServer hook does anything; e2e/support/fake-tv-api.ts needs it.
-    tvStreamPlugin(),
+    // Only the Playwright web servers turn this on; e2e/support/fake-tv-api.ts needs it.
+    ...tvStreamPluginsFor(env),
   ],
   test: {
     // e2e/ belongs to Playwright.
