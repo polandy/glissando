@@ -39,7 +39,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Screens
 
-- [ ] `CardTintPicker.svelte:59,66`, `CardEntrancePicker.svelte:59,66`, `PlayPreview.svelte:64`, `CardStylePicker.svelte:89`, `FocusSearchLine.svelte:50,56`, `PlaceholderTile.svelte:45,53`, `PanelTile.svelte:114` — Raw `font-weight`, `font-size: 22px` and 1–3 px radii instead of tokens. Fix: tokens (add a hairline radius token if needed).
 - [ ] `src/app/screens/slideshow/card-sheet/CardBackgroundPicker.svelte:96` — Magic `"plum"` duplicates `FALLBACK_CARD_SWATCH`. Fix: import it.
 - [ ] `src/app/screens/SlideshowScreen.svelte:96` — `$effect` writes `selection` which it reads; converges only by object identity. Fix: prune at the mutation sites or derive.
 - [ ] `src/app/screens/slideshow-screen-harness.ts:227,241` and `slideshow-route-harness.ts`, `strip-drag-rig.ts`, `picture-editor-route-harness.ts` — `card as StoredCard` cast, module-level mutable `destroy`, picture fixture duplicated four times. Fix: one typed fixture module.

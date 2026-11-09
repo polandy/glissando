@@ -111,7 +111,7 @@
     flex: none;
     width: 18px;
     height: 12px;
-    border-radius: 3px;
+    border-radius: var(--gl-radius-tiny);
     border: 1px solid var(--gl-line);
   }
   .value small {

@@ -86,7 +86,7 @@
     outline-offset: 2px;
   }
   .preview {
-    font-size: 22px;
+    font-size: var(--gl-size-style-sample);
   }
   .name {
     font-size: var(--gl-size-small);
