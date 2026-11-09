@@ -1,6 +1,7 @@
 <script lang="ts">
   import { CARD_TINTS } from "../../../../library/stored-card";
   import type { CardTint } from "../../../../library/stored-slideshow";
+  import ChipRow from "../../../components/ChipRow.svelte";
   import { getTranslator } from "../../../i18n/context";
 
   /**
@@ -21,59 +22,18 @@
 
 <div class="tint">
   <span class="eyebrow">{t("cards.tintLabel")}</span>
-  <div class="chiprow" role="group" aria-label={t("cards.tintLabel")}>
-    {#each CARD_TINTS as tintId (tintId)}
-      <button
-        class="chip"
-        class:checked={tint === tintId}
-        type="button"
-        aria-pressed={tint === tintId}
-        onclick={() => onChange(tintId)}
-      >
-        {t(`cards.tint-${tintId}`)}
-      </button>
-    {/each}
-  </div>
+  <ChipRow
+    choices={CARD_TINTS}
+    selected={tint}
+    label={(choice) => t(`cards.tint-${choice}`)}
+    ariaLabel={t("cards.tintLabel")}
+    {onChange}
+  />
 </div>
 
 <style>
   .tint {
     display: grid;
     gap: 4px;
-  }
-  .chiprow {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: 4px;
-    border-radius: var(--gl-radius);
-    background: var(--gl-hover);
-  }
-  .chip {
-    padding: 7px 10px;
-    border: 0;
-    border-radius: var(--gl-radius-small);
-    background: transparent;
-    color: inherit;
-    font-size: var(--gl-size-small);
-    font-weight: 500;
-    white-space: nowrap;
-    cursor: pointer;
-  }
-  .chip.checked {
-    background: var(--gl-surface);
-    box-shadow: var(--gl-shadow);
-    font-weight: 600;
-  }
-  .chip:focus-visible {
-    outline: 2px solid var(--gl-accent);
-    outline-offset: 2px;
-  }
-
-  @media (pointer: coarse) {
-    .chip {
-      min-height: var(--gl-hit-min);
-      padding-inline: 14px;
-    }
   }
 </style>
