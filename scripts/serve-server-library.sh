@@ -12,8 +12,6 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-# Ports other sessions on this machine serve on.
-readonly TAKEN_PORTS=(4180 4188 4191 4197 4215 4233 5180)
 readonly USAGE="usage: $0 <port> [--no-seed]"
 
 port=${1:-}
@@ -25,12 +23,6 @@ if [ $# -eq 2 ]; then
 fi
 [[ "$port" =~ ^[0-9]{1,5}$ ]] && [ "$port" -ge 1024 ] && [ "$port" -le 65535 ] ||
 	{ echo "the port must be a number from 1024 to 65535; $USAGE" >&2; exit 2; }
-for taken in "${TAKEN_PORTS[@]}"; do
-	if [ "$port" = "$taken" ]; then
-		echo "port $port is used by another session; pick another (not ${TAKEN_PORTS[*]})" >&2
-		exit 2
-	fi
-done
 if ss -Hltn "sport = :$port" | grep -q .; then
 	echo "port $port is already in use on this machine; pick another" >&2
 	exit 2
