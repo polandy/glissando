@@ -41,8 +41,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Tooling, docs and tests
 
-- [ ] `src/video-export/browser/run-video-export.browser.test.ts:204` — `if (browser !== "webkit") expect(...)` hides a skipped check. Fix: own case with `it.skipIf`.
-
 ## Not reviewed
 
 Vendored `src/import/libav`, `src/focus/onnx` models and `pico`, `compose/compose-slideshow` and chapters, `loudness/measure-loudness`, `beats/onset-envelope`/`tempo`/`fft`, most Svelte components outside `screens/` and the editors, `deploy/test-image*.sh` and the fake-Immich scripts, the bodies of the 15 largest unit tests.
