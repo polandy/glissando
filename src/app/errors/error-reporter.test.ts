@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { Toaster } from "../toast/toaster";
-import { createErrorReporter } from "./error-reporter";
+import { createErrorReporter, errorEventCause } from "./error-reporter";
 
 describe("createErrorReporter", () => {
   it("logs an unexpected error and shows it as a coral toast", () => {
@@ -29,5 +29,20 @@ describe("createErrorReporter", () => {
     report(new Error("boom"));
 
     expect(toaster.current?.text).toBe("Something went wrong.");
+  });
+});
+
+describe("errorEventCause", () => {
+  it("returns the thrown error", () => {
+    const failure = new Error("boom");
+
+    expect(errorEventCause({ error: failure, message: "Uncaught Error: boom" })).toBe(failure);
+  });
+
+  it("wraps the message of a cross-origin error, whose error is null", () => {
+    const cause = errorEventCause({ error: null, message: "Script error." });
+
+    expect(cause).toBeInstanceOf(Error);
+    expect((cause as Error).message).toBe("Script error.");
   });
 });
