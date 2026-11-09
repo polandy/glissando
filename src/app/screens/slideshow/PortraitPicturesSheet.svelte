@@ -8,7 +8,7 @@
   import ResetButton from "../../components/ResetButton.svelte";
   import SectionHead from "../../components/SectionHead.svelte";
   import Sheet from "../../components/Sheet.svelte";
-  import { radioIndexForKey } from "../../components/radio-keys";
+  import { radioGroupKeys } from "../../components/radio-group-keys";
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowDetails } from "../view-models";
   import PortraitPictureTile from "./PortraitPictureTile.svelte";
@@ -48,18 +48,6 @@
       onPortraitPictures(choice);
     }
   }
-
-  // Selection follows focus, as in the WAI-ARIA radio group: one tab stop, arrows choose.
-  function onkeydown(event: KeyboardEvent, index: number): void {
-    const next = radioIndexForKey(event.key, index, RESOLVED_PORTRAIT_PICTURES_CHOICES.length);
-    const choice = next === null ? undefined : RESOLVED_PORTRAIT_PICTURES_CHOICES[next];
-    if (next === null || choice === undefined) {
-      return;
-    }
-    event.preventDefault();
-    pick(choice);
-    radios[next]?.focus();
-  }
 </script>
 
 <Sheet labelId="portrait-pictures-title" onOpen={focusChosenPicture} {onClose}>
@@ -69,7 +57,12 @@
     stateText={isAutomatic ? t("portrait.default") : t("portrait.ownChoice")}
     own={!isAutomatic}
   />
-  <div class="options" role="radiogroup" aria-labelledby="portrait-pictures-title">
+  <div
+    class="options"
+    role="radiogroup"
+    aria-labelledby="portrait-pictures-title"
+    use:radioGroupKeys
+  >
     {#each RESOLVED_PORTRAIT_PICTURES_CHOICES as choice, index (choice)}
       <PortraitPictureTile
         bind:radio={radios[index]}
@@ -77,7 +70,6 @@
         checked={choice === slideshow.portraitPictures}
         automatic={isAutomatic}
         onPick={() => pick(choice)}
-        onKeydown={(event) => onkeydown(event, index)}
       />
     {/each}
   </div>

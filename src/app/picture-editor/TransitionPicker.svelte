@@ -7,7 +7,7 @@
     type TransitionChoice,
   } from "../../library/own-timing";
   import { MILLISECONDS_PER_SECOND } from "../../player";
-  import { radioIndexForKey } from "../components/radio-keys";
+  import { radioGroupKeys } from "../components/radio-group-keys";
   import { getTranslator } from "../i18n/context";
   import type { MotionPreviewPorts } from "./motion-preview";
   import type { PictureEditorView } from "./picture-editor-view";
@@ -68,18 +68,6 @@
           effect: t(`effect.${picture.transition.slideshowTransition}`),
         }),
   );
-
-  // Selection follows focus, as in the WAI-ARIA radio group: one tab stop, arrows choose.
-  function onkeydown(event: KeyboardEvent, index: number): void {
-    const next = radioIndexForKey(event.key, index, TRANSITION_CHOICES.length);
-    const choice = next === null ? undefined : TRANSITION_CHOICES[next];
-    if (next === null || choice === undefined) {
-      return;
-    }
-    event.preventDefault();
-    onTransition(choice);
-    radios[next]?.focus();
-  }
 </script>
 
 <div class="transition">
@@ -97,7 +85,7 @@
     <h3 class="sub" id="transition-label">
       {t("editor.transitionTo", { number: picture.number + 1 })}
     </h3>
-    <div class="tiles" role="radiogroup" aria-labelledby="transition-label">
+    <div class="tiles" role="radiogroup" aria-labelledby="transition-label" use:radioGroupKeys>
       {#each TRANSITION_CHOICES as choice, index (choice)}
         <TransitionTile
           bind:radio={radios[index]}
@@ -109,7 +97,6 @@
           {nextPictureUrl}
           {elapsedMs}
           onPick={() => onTransition(choice)}
-          onKeydown={(event) => onkeydown(event, index)}
         />
       {/each}
     </div>

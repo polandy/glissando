@@ -11,7 +11,7 @@
   import ResetButton from "../../components/ResetButton.svelte";
   import SectionHead from "../../components/SectionHead.svelte";
   import Sheet from "../../components/Sheet.svelte";
-  import { radioIndexForKey } from "../../components/radio-keys";
+  import { radioGroupKeys } from "../../components/radio-group-keys";
   import { getTranslator } from "../../i18n/context";
   import type { MotionPreviewPorts } from "../../picture-editor/motion-preview";
   import { FrameTicker } from "../../picture-editor/timing/frame-ticker";
@@ -98,18 +98,6 @@
   function focusCheckedTransition(): void {
     radios[SLIDESHOW_TRANSITIONS.indexOf(checkedTransition)]?.focus();
   }
-
-  // Selection follows focus, as in the WAI-ARIA radio group: one tab stop, arrows choose.
-  function onkeydown(event: KeyboardEvent, index: number): void {
-    const next = radioIndexForKey(event.key, index, SLIDESHOW_TRANSITIONS.length);
-    const choice = next === null ? undefined : SLIDESHOW_TRANSITIONS[next];
-    if (next === null || choice === undefined) {
-      return;
-    }
-    event.preventDefault();
-    onTransition(choice);
-    radios[next]?.focus();
-  }
 </script>
 
 <Sheet labelId="transitions-title" onOpen={focusCheckedTransition} {onClose}>
@@ -119,7 +107,7 @@
     stateText={isDefault ? t("transitions.default") : t("transitions.ownChoice")}
     own={!isDefault}
   />
-  <div class="tiles" role="radiogroup" aria-labelledby="transitions-title">
+  <div class="tiles" role="radiogroup" aria-labelledby="transitions-title" use:radioGroupKeys>
     {#each SLIDESHOW_TRANSITIONS as choice, index (choice)}
       <TransitionTile
         bind:radio={radios[index]}
@@ -131,7 +119,6 @@
         nextPictureUrl={secondUrl}
         {elapsedMs}
         onPick={() => onTransition(choice)}
-        onKeydown={(event) => onkeydown(event, index)}
       />
     {/each}
   </div>

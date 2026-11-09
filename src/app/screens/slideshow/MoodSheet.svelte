@@ -7,7 +7,7 @@
   import SectionHead from "../../components/SectionHead.svelte";
   import Sheet from "../../components/Sheet.svelte";
   import Switch from "../../components/Switch.svelte";
-  import { radioIndexForKey } from "../../components/radio-keys";
+  import { radioGroupKeys } from "../../components/radio-group-keys";
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowDetails } from "../view-models";
   import EnergyStrip from "./EnergyStrip.svelte";
@@ -75,17 +75,6 @@
   function pick(choice: SlideshowMood | undefined): void {
     onMood(choice);
   }
-
-  // Selection follows focus, as in the WAI-ARIA radio group: one tab stop, arrows choose.
-  function onkeydown(event: KeyboardEvent, index: number): void {
-    const next = radioIndexForKey(event.key, index, MOOD_CHOICES.length);
-    if (next === null) {
-      return;
-    }
-    event.preventDefault();
-    pick(MOOD_CHOICES[next]);
-    radios[next]?.focus();
-  }
 </script>
 
 <Sheet labelId="mood-title" onOpen={focusChosenMood} {onClose}>
@@ -106,14 +95,13 @@
       <EnergyStrip geometry={energyView.stripGeometry} />
     {/if}
   {/if}
-  <div class="tiles" role="radiogroup" aria-labelledby="mood-title">
+  <div class="tiles" role="radiogroup" aria-labelledby="mood-title" use:radioGroupKeys>
     {#each MOOD_CHOICES as choice, index (choice ?? "custom")}
       <MoodTile
         bind:radio={radios[index]}
         mood={choice}
         checked={choice === slideshow.mood}
         onPick={() => pick(choice)}
-        onKeydown={(event) => onkeydown(event, index)}
       />
     {/each}
   </div>

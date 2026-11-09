@@ -9,13 +9,11 @@
     checked,
     radio = $bindable(),
     onPick,
-    onKeydown,
   }: {
     mood: SlideshowMood | undefined;
     checked: boolean;
     radio?: HTMLButtonElement | undefined;
     onPick: () => void;
-    onKeydown: (event: KeyboardEvent) => void;
   } = $props();
 
   const { t } = getTranslator();
@@ -30,7 +28,6 @@
   tabindex={checked ? 0 : -1}
   data-choice={mood ?? "custom"}
   onclick={onPick}
-  onkeydown={onKeydown}
 >
   {moodName(t, mood)}
   <span class="tag">{moodSubtitle(t, mood)}</span>
