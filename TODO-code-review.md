@@ -37,8 +37,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### App shell, routing and editors
 
-- [ ] `src/app/navigation/navigator.ts:132` — A refused leave guard restores with one `push` after a multi-entry back, so later backs skip levels. Fix: `history.go(+n)` for the popped steps.
-- [ ] `src/app/navigation/navigator.ts:79-88` — A second `open()` while a pop is pending counts steps from the pending target. Fix: queue or ignore an open while `#pushAfterPop` is set.
 - [ ] `src/app/routes/PlayerLayer.svelte` (onMount) — If music, focus or beats fail to load, the player stays invisible. Fix: a failure state with the PlayerCard error and a way out.
 - [ ] `src/app/i18n/translator.ts:154` — An unknown runtime key fails with a misleading plural error. Fix: throw naming the missing key.
 - [ ] `src/main.ts:105` — `reportError(event.error)` gets `null` for cross-origin errors. Fix: `event.error ?? new Error(event.message)`.

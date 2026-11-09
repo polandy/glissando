@@ -14,10 +14,11 @@ screens below their slideshow
 - Every screen is one history entry; the back arrow calls history back, so it and the browser
   or phone back gesture do the same. `open(route)` pushes from the route's parent, or first goes
   back to that parent: the created slideshow replaces the import steps, so back leads to start.
+  An `open()` made while that move is still landing opens from where it lands, the last one wins.
 - A screen whose in-memory selection would be lost (import, add pictures) registers a leave guard
   with `guardLeave`. A history move away from it that `open()` did not start asks the guard with
-  the destination; on `false` the navigator pushes the entry back and the screen shows its
-  discard dialog. Moves between the selecting screens pass, and an `open()` climbing down skips
+  the destination; on `false` the navigator moves forward again over every entry the back
+  popped (a refused forward move pushes the entry back) and the screen shows its discard dialog. Moves between the selecting screens pass, and an `open()` climbing down skips
   the guard.
 - The header's crumbs before the current one are links to their screens (`Navigator.backTo`, so
   the leave guard applies); the import wizard's name is a label, not a link.

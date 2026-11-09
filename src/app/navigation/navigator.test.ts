@@ -207,4 +207,25 @@ describe("Navigator", () => {
     expect(navigator.route).toEqual(SHOW);
     expect(seen).toEqual([PLAYER]);
   });
+
+  it("opens from where a pending climb down lands when a second open() comes before it", () => {
+    const history = new FakeHistory();
+    const navigator = new Navigator(history);
+    navigator.open(SHOW);
+    navigator.open(PLAYER);
+    navigator.back();
+    history.deliverPop();
+    navigator.open({ screen: "add", slideshowId: "s1" });
+    const seen: Route[] = [];
+    navigator.subscribe((route) => seen.push(route));
+
+    navigator.open(PLAYER);
+    navigator.open(SETTINGS);
+    history.deliverAllPops();
+
+    expect(navigator.route).toEqual(SETTINGS);
+    expect(history.entries).toEqual([START, SETTINGS]);
+    expect(history.index).toBe(1);
+    expect(seen).toEqual([PLAYER, SETTINGS]);
+  });
 });

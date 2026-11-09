@@ -28,8 +28,8 @@ export class Navigator {
   readonly #history: HistoryPort;
   readonly #listeners = new Set<(route: Route) => void>();
   #route: Route;
-  /** A route to push once a backward move lands; set while `open` climbs the history down. */
-  #pushAfterPop: Route | null = null;
+  /** A move the navigator started: the route it lands on, then the route to open from there. */
+  #pendingMove: { landing: Route; then: Route | null } | null = null;
   #leaveGuard: LeaveGuard | null = null;
 
   constructor(history: HistoryPort) {
@@ -70,22 +70,21 @@ export class Navigator {
    * holds only the path to `target` (e.g. the created slideshow replaces the import steps).
    */
   open(target: Route): void {
+    const pending = this.#pendingMove;
+    const from = pending?.landing ?? this.#route;
     const parent = parentOf(target);
-    if (parent !== null && sameRoute(parent, this.#route)) {
-      this.#history.push(target);
-      this.#setRoute(target);
-      return;
-    }
-    const stepsDown = parent === null ? null : this.#stepsDownTo(parent);
-    if (stepsDown === null) {
+    if (parent === null || this.#stepsDown(from, parent) === null) {
       throw new Error(
-        `cannot open ${JSON.stringify(target)} from ${JSON.stringify(this.#route)}: ` +
+        `cannot open ${JSON.stringify(target)} from ${JSON.stringify(from)}: ` +
           "open its parent screen first",
       );
     }
-    this.#pushAfterPop = target;
     this.#setRoute(target);
-    this.#history.go(-stepsDown);
+    if (pending !== null) {
+      pending.then = target;
+    } else {
+      this.#openFrom(from, target);
+    }
   }
 
   /** One screen up; the route follows when the history move lands. */
@@ -109,9 +108,25 @@ export class Navigator {
     }
   }
 
+  /** Pushes `target` onto `from`, or climbs down to its parent first and pushes once there. */
+  #openFrom(from: Route, target: Route): void {
+    const parent = parentOf(target) ?? START_ROUTE;
+    const stepsDown = this.#stepsDown(from, parent) ?? 0;
+    if (stepsDown === 0) {
+      this.#history.push(target);
+      return;
+    }
+    this.#pendingMove = { landing: parent, then: target };
+    this.#history.go(-stepsDown);
+  }
+
   #stepsDownTo(ancestor: Route): number | null {
+    return this.#stepsDown(this.#route, ancestor);
+  }
+
+  #stepsDown(from: Route, ancestor: Route): number | null {
     let steps = 0;
-    for (let route: Route | null = this.#route; route !== null; route = parentOf(route)) {
+    for (let route: Route | null = from; route !== null; route = parentOf(route)) {
       if (sameRoute(route, ancestor)) {
         return steps;
       }
@@ -121,18 +136,31 @@ export class Navigator {
   }
 
   #onPop(state: unknown): void {
-    const pending = this.#pushAfterPop;
+    const pending = this.#pendingMove;
     if (pending !== null) {
-      this.#pushAfterPop = null;
-      this.#history.push(pending);
+      this.#pendingMove = null;
+      if (pending.then !== null) {
+        this.#openFrom(pending.landing, pending.then);
+      }
       return;
     }
     const next = parseRoute(state) ?? START_ROUTE;
     if (this.#leaveGuard !== null && !this.#leaveGuard(next)) {
-      this.#history.push(this.#route);
+      this.#restoreAfterRefusedLeave(next);
       return;
     }
     this.#setRoute(this.#leaveUnrestorable(next, this.#route));
+  }
+
+  /** Moves forward again over every entry a refused back popped; a refused forward move pushes. */
+  #restoreAfterRefusedLeave(to: Route): void {
+    const stepsBack = this.#stepsDownTo(to);
+    if (stepsBack === null || stepsBack === 0) {
+      this.#history.push(this.#route);
+      return;
+    }
+    this.#pendingMove = { landing: this.#route, then: null };
+    this.#history.go(stepsBack);
   }
 
   /** The nearest restorable ancestor of `route`; moves the history there when it differs. */
