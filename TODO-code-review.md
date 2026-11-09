@@ -39,7 +39,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Screens
 
-- [ ] `src/app/settings/SettingsSheet.svelte`, `src/app/screens/slideshow/export-sheet/ExportDialog.svelte` — Still carry their own dialog frame beside `components/Sheet.svelte`; their metrics differ (Settings docks top right, Export pads 20 px and grows to 92 %). Fix: settle the metrics, then frame both with `Sheet`.
 - [ ] `src/app/screens/slideshow-screen-strip-marks.browser.test.ts:39-40` — `toBeDefined()` on a `querySelector` result cannot fail; `expect.poll` on `:hover` is polling. Fix: `not.toBeNull()`, await the hover event.
 - [ ] `src/app/screens/slideshow/{Look,Mood,Transitions,PortraitPictures}Sheet.svelte` — Each reimplements radio arrow-key handling although `components/RadioGroup.svelte` exists. Fix: use it.
 - [ ] `src/app/screens/slideshow/MoreMenu.svelte:103,131` — `role="menu"` without arrow navigation; Tab leaves it open; double `<hr>` when `storage` is null. Fix: arrow keys; render the separator only before a non-empty group.

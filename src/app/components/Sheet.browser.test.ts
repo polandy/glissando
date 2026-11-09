@@ -1,18 +1,24 @@
 import { createRawSnippet, flushSync, mount, unmount } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
+import { page } from "vitest/browser";
 import Sheet from "./Sheet.svelte";
 
 let destroy = () => {};
 afterEach(() => destroy());
 
 const LABEL_ID = "sheet-test-title";
+const DESKTOP = { width: 1280, height: 800 };
+const PHONE = { width: 390, height: 844 };
 
 function mountSheet(props: {
   onClose?: () => void;
   onCancel?: () => void;
   onOpen?: () => void;
   closeOnScrim?: boolean;
+  placement?: "center" | "side" | "corner";
+  body?: string;
 }) {
+  const { body = `<button type="button">Innen</button>`, ...sheetProps } = props;
   const target = document.createElement("div");
   document.body.append(target);
   const instance = mount(Sheet, {
@@ -20,10 +26,9 @@ function mountSheet(props: {
     props: {
       labelId: LABEL_ID,
       onClose: () => {},
-      ...props,
+      ...sheetProps,
       children: createRawSnippet(() => ({
-        render: () =>
-          `<div><h2 id="${LABEL_ID}">Titel</h2><button type="button">Innen</button></div>`,
+        render: () => `<div><h2 id="${LABEL_ID}">Titel</h2>${body}</div>`,
       })),
     },
   });
@@ -121,5 +126,33 @@ describe("Sheet", () => {
     destroy = () => {};
 
     expect(dialog.open).toBe(false);
+  });
+
+  it("docks the corner placement 380 px wide under the header at the top right", async () => {
+    await page.viewport(DESKTOP.width, DESKTOP.height);
+    const { dialog } = mountSheet({ placement: "corner" });
+
+    const box = dialog.getBoundingClientRect();
+    expect(box.width).toBeCloseTo(380);
+    expect(box.top).toBeCloseTo(72);
+    expect(DESKTOP.width - box.right).toBeCloseTo(24);
+  });
+
+  it("makes the corner placement a bottom sheet on a phone", async () => {
+    await page.viewport(PHONE.width, PHONE.height);
+    const { dialog } = mountSheet({ placement: "corner" });
+
+    const box = dialog.getBoundingClientRect();
+    expect(box.width).toBeCloseTo(PHONE.width);
+    expect(box.bottom).toBeCloseTo(PHONE.height);
+  });
+
+  it("keeps a long unbroken line from widening the sheet", async () => {
+    await page.viewport(DESKTOP.width, DESKTOP.height);
+    const { dialog } = mountSheet({
+      body: `<p style="white-space: nowrap; overflow: hidden">${"x".repeat(400)}</p>`,
+    });
+
+    expect(dialog.scrollWidth).toBe(dialog.clientWidth);
   });
 });
