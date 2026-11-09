@@ -49,6 +49,7 @@ describe("Navigator leave guard (UX-23)", () => {
     const unregister = navigator.guardLeave(() => false);
 
     history.deliverPop(-1);
+    history.deliverAllPops();
 
     expect(navigator.route).toEqual(ADD);
     expect(history.entries).toEqual(entriesBefore);
@@ -87,5 +88,27 @@ describe("Navigator leave guard (UX-23)", () => {
     history.deliverPop(-1);
 
     expect(navigator.route).toEqual(ADD);
+  });
+
+  it("restores every entry of a multi-entry back the guard refuses, so later backs keep each level", () => {
+    const { history, navigator, seen } = onAddScreen();
+    let asked = 0;
+    const unregister = navigator.guardLeave(() => {
+      asked += 1;
+      return false;
+    });
+
+    history.deliverPop(-2);
+    history.deliverAllPops();
+
+    expect(navigator.route).toEqual(ADD);
+    expect(history.entries).toEqual([START, SHOW, ADD]);
+    expect(history.index).toBe(2);
+    expect(asked).toBe(1);
+    expect(seen).toEqual([]);
+
+    unregister();
+    history.deliverPop(-1);
+    expect(navigator.route).toEqual(SHOW);
   });
 });
