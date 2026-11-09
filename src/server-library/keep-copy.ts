@@ -96,17 +96,14 @@ export async function keepCopyOnDevice(
       const id = await claimed((musicId) => store.putMusic(musicId, audio));
       songs.push({ ...song, id });
     }
-    const renamed = (card: StoredCard | undefined) =>
-      cardFromManifest(
-        cardToManifest(
-          card,
-          slideshow.pictures.map(({ id }) => id),
-        ),
-        pictures.map(({ id }) => id),
-      );
+    const serverIds = slideshow.pictures.map(({ id }) => id);
+    const copyIds = pictures.map(({ id }) => id);
+    // A card names its picture by id, and every copied picture has a new one.
+    const overCopiedPicture = (card: StoredCard | undefined) =>
+      cardFromManifest(cardToManifest(card, serverIds), copyIds);
     const { openingCard, closingCard, ...settings } = slideshow;
-    const opening = renamed(openingCard);
-    const closing = renamed(closingCard);
+    const opening = overCopiedPicture(openingCard);
+    const closing = overCopiedPicture(closingCard);
     const copy: StoredSlideshow = {
       ...settings,
       id: ports.newId(),
