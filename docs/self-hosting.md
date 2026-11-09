@@ -70,6 +70,9 @@ services:
       - immich_api_key
     ports:
       - "8080:8080" # or no ports at all, when your reverse proxy is on the same Docker network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
 
 secrets:
   immich_api_key:
@@ -77,7 +80,8 @@ secrets:
 ```
 
 Then `docker compose up -d glissando`, and point your reverse proxy at port 8080 of the
-container. Pin a version (`ghcr.io/polandy/glissando:0.1.0`) instead of `latest` if you update
+container. The healthcheck asks `/healthz`, which answers 200 and stays out of the container's
+log. Pin a version (`ghcr.io/polandy/glissando:0.1.0`) instead of `latest` if you update
 deliberately.
 
 ### Settings
