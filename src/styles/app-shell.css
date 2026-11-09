@@ -61,6 +61,13 @@
   font-size: var(--gl-size-body);
   text-align: center;
 }
+.app-in-place-message {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gl-surface);
+}
 .app-shell-status {
   flex: none;
   min-height: 46px;

@@ -46,6 +46,9 @@ export const de = {
   "common.unexpectedError": "Etwas ist schiefgegangen. Bitte versuche es noch einmal.",
   "common.storageUnavailable":
     "Glissando kann seinen Speicher in diesem Browser nicht öffnen. Lade die Seite neu — hilft das nicht, prüfe, ob diese Seite Daten speichern darf.",
+  "common.newerVersionOpen":
+    "Eine neuere Version von Glissando ist in einem anderen Tab geöffnet. Lade diesen Tab neu, um sie zu verwenden.",
+  "common.reload": "Neu laden",
 
   "units.seconds": "{seconds} s",
   "units.pictures": { one: "{count} Bild", other: "{count} Bilder" },

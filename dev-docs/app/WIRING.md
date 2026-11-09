@@ -15,7 +15,11 @@ background analysis passes) live beside it, each handed its ports by `main.ts`.
   mounted, `main.ts` hands over (`shell/app-shell.ts`): the shell fades out over the app in
   0.18 s and is removed, at once with reduced motion. When the library store cannot open
   (IndexedDB blocked or refused), the app never mounts: the shell stops its breath and shows the
-  `common.storageUnavailable` message under the logo as an alert, and the error is reported. The app's stylesheets are linked by
+  `common.storageUnavailable` message under the logo as an alert, and the error is reported. A `VersionError` (another tab runs a newer schema) shows
+  `common.newerVersionOpen` with a Reload button instead. A `versionchange` on the open library
+  closes the connection and reloads the tab at once; while the player or the frame runs, the app is
+  unmounted for the same message and button, and only the button reloads. A blocked upgrade is
+  logged. The app's stylesheets are linked by
   `index.html`, not imported by `main.ts`, so the shell is styled from the first paint.
 
 - **Server library** (server_library/IN_THE_APP.md): `createServerLibrary` wires the

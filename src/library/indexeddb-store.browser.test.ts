@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { IndexedDbLibraryStore, LIBRARY_DATABASE_NAME, openLibraryStore } from "./indexeddb-store";
+import { IndexedDbLibraryStore, LIBRARY_DATABASE_NAME } from "./indexeddb-store";
+import { isNewerVersionError, openLibraryStore } from "./indexeddb-open";
 import { describeLibraryStoreContract } from "./testing/library-store-contract";
 import { MemoryLibraryStore } from "./testing/memory-store";
 
@@ -174,5 +175,63 @@ describe("IndexedDbLibraryStore schema upgrade", () => {
     } finally {
       await deleteLibraryDatabase();
     }
+  });
+});
+
+describe("IndexedDbLibraryStore beside another tab's schema version", () => {
+  const NEWER_VERSION = 1000;
+  const hooks = (events: string[]) => ({
+    onNewerVersion: () => events.push("newer"),
+    onBlocked: () => events.push("blocked"),
+  });
+
+  function openNewerVersion(onBlocked?: () => void): Promise<IDBDatabase> {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(LIBRARY_DATABASE_NAME, NEWER_VERSION);
+      request.onblocked = () => onBlocked?.();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () =>
+        reject(request.error ?? new Error("opening the newer version failed"));
+    });
+  }
+
+  it("rejects with a newer-version error when the library is at a higher schema version", async () => {
+    await deleteLibraryDatabase();
+    (await openNewerVersion()).close();
+
+    const error: unknown = await openLibraryStore(indexedDB, hooks([])).catch((e: unknown) => e);
+    expect(isNewerVersionError(error)).toBe(true);
+    expect(isNewerVersionError(new Error("other"))).toBe(false);
+    await deleteLibraryDatabase();
+  });
+
+  it("closes its connection and tells the app when a newer version upgrades the schema", async () => {
+    await deleteLibraryDatabase();
+    const events: string[] = [];
+    await openLibraryStore(indexedDB, hooks(events));
+
+    // Resolves only once this store let go; a connection left open would block it for good.
+    (await openNewerVersion(() => events.push("upgrade blocked"))).close();
+
+    expect(events).toEqual(["newer"]);
+    await deleteLibraryDatabase();
+  });
+
+  it("reports an upgrade that waits for another tab's open connection", async () => {
+    await deleteLibraryDatabase();
+    const holder = await new Promise<IDBDatabase>((resolve) => {
+      const request = indexedDB.open(LIBRARY_DATABASE_NAME, 1);
+      request.onsuccess = () => resolve(request.result);
+    });
+    const blocked = Promise.withResolvers<undefined>();
+
+    const opening = openLibraryStore(indexedDB, {
+      onNewerVersion: () => undefined,
+      onBlocked: () => blocked.resolve(undefined),
+    });
+    await blocked.promise;
+    holder.close();
+    (await opening).close();
+    await deleteLibraryDatabase();
   });
 });

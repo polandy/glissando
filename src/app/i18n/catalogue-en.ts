@@ -43,6 +43,9 @@ export const en: Catalogue = {
   "common.unexpectedError": "Something went wrong. Please try again.",
   "common.storageUnavailable":
     "Glissando can't open its storage in this browser. Reload the page — if that doesn't help, check that this site may store data.",
+  "common.newerVersionOpen":
+    "A newer version of Glissando is open in another tab. Reload this tab to use it.",
+  "common.reload": "Reload",
 
   "units.seconds": "{seconds} s",
   "units.pictures": { one: "{count} picture", other: "{count} pictures" },
