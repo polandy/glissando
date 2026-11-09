@@ -61,7 +61,7 @@
     serverRows = null,
     onStorageAction,
     fineSettingsFold,
-    selection = $bindable(NO_SELECTION),
+    selection: storedSelection = $bindable(NO_SELECTION),
     holdScheduler = browserScheduler,
     frameScheduler = animationFrames,
     focus,
@@ -82,11 +82,8 @@
     new Map(slideshow.pictures.map((picture) => [picture.id, picture.thumbnailUrl])),
   );
   // A selected picture that was removed meanwhile leaves no selection (and, unless "Select"
-  // started it, leaves selecting several too): kept in sync should the pictures prop change for
-  // some other reason too.
-  $effect(() => {
-    selection = withoutRemoved(selection, order);
-  });
+  // started it, leaves selecting several too), whatever removed it.
+  const selection = $derived(withoutRemoved(storedSelection, order));
   const showBar = $derived(selection.ids.size > 0 || selection.several);
 
   /**
@@ -97,7 +94,7 @@
     onRemoveGroup(pictureIds);
     if (pictureIds.length < order.length) {
       const removed = new Set(pictureIds);
-      selection = withoutRemoved(
+      storedSelection = withoutRemoved(
         selection,
         order.filter((id) => !removed.has(id)),
       );
@@ -169,7 +166,7 @@
         {pulsePlay}
         {onAddPictures}
         {newPictureIds}
-        bind:selection
+        bind:selection={() => selection, (next) => (storedSelection = next)}
         {mousePointer}
         {onEdit}
         onView={(pictureId) => (viewing = pictureId)}
@@ -213,7 +210,7 @@
       {onEdit}
       onView={(pictureId) => (viewing = pictureId)}
       {onPlayFrom}
-      onDone={() => (selection = endSelecting())}
+      onDone={() => (storedSelection = endSelecting())}
       onInsertChapter={insertAndOpenChapter}
       {onMoveGroup}
     />
@@ -232,7 +229,9 @@
     onRemove={slideshow.pictures.length > 1 ? onRemove : undefined}
     onClose={(pictureId) => {
       viewing = null;
-      if (!selection.several && selection.ids.size === 1) selection = soleSelection(pictureId);
+      if (!selection.several && selection.ids.size === 1) {
+        storedSelection = soleSelection(pictureId);
+      }
     }}
   />
 {/if}
