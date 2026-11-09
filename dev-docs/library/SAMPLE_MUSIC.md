@@ -32,8 +32,7 @@ grid looks the same offline.
 
 ## The build setting
 
-On in every build, the self-hosted Docker image included. `build/sample-music-config.ts` reads,
-following the demo slideshow's pattern (`build/demo-slideshow-config.ts`):
+On in every build, the self-hosted Docker image included. `build/sample-music-config.ts` reads:
 
 - `GLISSANDO_SAMPLE_MUSIC`: unset, sample music is offered; `off`, it is not — no block, no
   credit, nothing fetched. Any other value fails the build, naming the variable and the two
