@@ -2,7 +2,7 @@
 
 Captures every reachable screen of the built app at phone (390×844, touch, 2×) and desktop
 (1280×800) widths, light theme, with synthetic pictures and a generated WAV. A capture aid for
-UX reviews (`dev-docs/UX_BACKLOG.md`), not part of `npm run verify`.
+UX reviews, not part of `npm run verify`.
 
 ```
 npm run build && npx vite preview --host 127.0.0.1 --port 4173 --strictPort &
