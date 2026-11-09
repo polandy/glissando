@@ -28,7 +28,7 @@
 - **Slideshow** (`screens/SlideshowScreen.svelte`, parts in `screens/slideshow/`): breadcrumb
   "Library / title" and a ⋯ "More" button whose menu holds "Faces and subjects …" — with a
   subtitle only once the search is done and some pictures failed ("3 couldn't be looked at"); its
-  progress is background work, not the menu's — a separator and "Delete slideshow …" (a separator only between non-empty groups; the arrow keys, Home and End move through the items, Tab or Esc closes the menu). "Faces and
+  progress is background work, not the menu's — a separator and "Delete slideshow …". "Faces and
   subjects …" opens the Focus sheet (titled "Faces and subjects") (`screens/slideshow/FocusSheet.svelte`, mockup "Variant A · grid", ADR-0041): a
   bottom sheet on phone, a 440 px right panel from 720 px — a status line with the search's progress, a stacked bar and legend chips by result (filtering the grid below them, own
   motion as its own chip), a 4-column grid of the slideshow's pictures with a status dot and, on a
