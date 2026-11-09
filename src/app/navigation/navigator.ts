@@ -72,18 +72,12 @@ export class Navigator {
   open(target: Route): void {
     const pending = this.#pendingMove;
     const from = pending?.landing ?? this.#route;
-    const parent = parentOf(target);
-    if (parent === null || this.#stepsDown(from, parent) === null) {
-      throw new Error(
-        `cannot open ${JSON.stringify(target)} from ${JSON.stringify(from)}: ` +
-          "open its parent screen first",
-      );
-    }
+    const climb = this.#climbToOpen(from, target);
     this.#setRoute(target);
     if (pending !== null) {
       pending.then = target;
     } else {
-      this.#openFrom(from, target);
+      this.#openFrom(climb, target);
     }
   }
 
@@ -108,16 +102,27 @@ export class Navigator {
     }
   }
 
-  /** Pushes `target` onto `from`, or climbs down to its parent first and pushes once there. */
-  #openFrom(from: Route, target: Route): void {
-    const parent = parentOf(target) ?? START_ROUTE;
-    const stepsDown = this.#stepsDown(from, parent) ?? 0;
-    if (stepsDown === 0) {
+  /** The parent `target` is pushed onto and how far `from` lies above it; throws off the path. */
+  #climbToOpen(from: Route, target: Route): { parent: Route; stepsDown: number } {
+    const parent = parentOf(target);
+    const stepsDown = parent === null ? null : this.#stepsDown(from, parent);
+    if (parent === null || stepsDown === null) {
+      throw new Error(
+        `cannot open ${JSON.stringify(target)} from ${JSON.stringify(from)}: ` +
+          "open its parent screen first",
+      );
+    }
+    return { parent, stepsDown };
+  }
+
+  /** Pushes `target` now, or climbs down to its parent first and pushes once there. */
+  #openFrom(climb: { parent: Route; stepsDown: number }, target: Route): void {
+    if (climb.stepsDown === 0) {
       this.#history.push(target);
       return;
     }
-    this.#pendingMove = { landing: parent, then: target };
-    this.#history.go(-stepsDown);
+    this.#pendingMove = { landing: climb.parent, then: target };
+    this.#history.go(-climb.stepsDown);
   }
 
   #stepsDownTo(ancestor: Route): number | null {
@@ -140,7 +145,7 @@ export class Navigator {
     if (pending !== null) {
       this.#pendingMove = null;
       if (pending.then !== null) {
-        this.#openFrom(pending.landing, pending.then);
+        this.#openFrom(this.#climbToOpen(pending.landing, pending.then), pending.then);
       }
       return;
     }
