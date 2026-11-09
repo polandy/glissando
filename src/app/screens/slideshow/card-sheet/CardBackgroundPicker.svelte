@@ -1,5 +1,9 @@
 <script lang="ts">
-  import { DEFAULT_CARD_FADE, DEFAULT_CARD_TINT } from "../../../../library/stored-card";
+  import {
+    DEFAULT_CARD_FADE,
+    DEFAULT_CARD_TINT,
+    FALLBACK_CARD_SWATCH,
+  } from "../../../../library/stored-card";
   import type {
     CardColour,
     CardTint,
@@ -105,7 +109,8 @@
       role="radio"
       aria-checked={background.kind === "colour"}
       tabindex={background.kind === "colour" ? 0 : -1}
-      onclick={() => pickColour(background.kind === "colour" ? background.colour : "plum")}
+      onclick={() =>
+        pickColour(background.kind === "colour" ? background.colour : FALLBACK_CARD_SWATCH)}
     >
       {t("cards.backgroundColour")}
     </button>
