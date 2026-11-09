@@ -98,6 +98,18 @@ describe("SlideshowScreen editing", () => {
     expect(selectionBar()).toBeNull();
   });
 
+  it("drops the selection when its picture leaves the slideshow for another reason", () => {
+    const { props } = mountScreen();
+    tile(2, "02.07.2025").click();
+    flushSync();
+    expect(selectionBar()?.textContent).toContain("Bild 2 von 3");
+
+    props.slideshow = details(["a", "c"]);
+    flushSync();
+
+    expect(selectionBar()).toBeNull();
+  });
+
   it("moves the selected picture earlier and later from the selection bar", () => {
     const { calls } = mountScreen();
     tile(2, "02.07.2025").click();
