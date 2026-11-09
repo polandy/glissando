@@ -24,7 +24,9 @@
   import SlideshowRoute from "./routes/SlideshowRoute.svelte";
   import { leaveWithToast } from "./routes/slideshow-exits";
   import { existingSlideshowsOf } from "./import/existing-slideshows";
-  import { findSlideshowHome, serverRouteStore, type RouteStore } from "./routes/slideshow-home";
+  import { openedSlideshowOf } from "./routes/opened-slideshow";
+  import RouteSkeleton from "./routes/RouteSkeleton.svelte";
+  import { serverRouteStore, type RouteStore } from "./routes/slideshow-home";
   import type { SlideshowHome } from "./routes/slideshow-storage";
   import type { AppServices } from "./services";
   import type { SettingsState } from "./settings/app-settings";
@@ -61,19 +63,12 @@
   });
   // svelte-ignore state_referenced_locally
   const serverRoute = serverRouteStore(services.serverLibrary.store);
-
-  /** A slideshow opened by id, with the store of where it lives. */
-  async function openedSlideshow(
-    slideshowId: string,
-  ): Promise<{ home: SlideshowHome; store: RouteStore }> {
-    try {
-      const home = await findSlideshowHome(slideshowId, store);
-      return { home, store: home === "device" ? store : serverRoute };
-    } catch (error) {
-      reportError(error);
-      throw error;
-    }
-  }
+  const openedSlideshow = openedSlideshowOf({
+    device: store,
+    server: serverRoute,
+    reportError,
+    leave: () => navigator.back(),
+  });
   // svelte-ignore state_referenced_locally
   let serverState = $state.raw<ServerLibraryState>(services.serverLibrary.availability.state);
   // svelte-ignore state_referenced_locally
@@ -227,7 +222,9 @@
 {:else if route.screen === "slideshow" || route.screen === "player" || route.screen === "picture" || route.screen === "music"}
   {@const slideshowId = route.slideshowId}
   {#key slideshowId}
-    {#await openedSlideshow(slideshowId) then opened}
+    {#await openedSlideshow(slideshowId)}
+      <RouteSkeleton variant="strip" />
+    {:then opened}
       {@const onDevice = opened.home === "device"}
       {@const pulsePlay = importFlow.takePlayPulse(slideshowId)}
       <SlideshowRoute
@@ -276,6 +273,8 @@
         onSaveOnServer={(slideshow) => void serverCopies.saveOnServer(slideshow)}
         serverSessions={services}
       />
+    {:catch}
+      <!-- A failed lookup has already left for the parent screen. -->
     {/await}
   {/key}
 {/if}
