@@ -68,8 +68,8 @@ manifest and icons in `public/`; the PNG icons come from `scripts/brand/icons.sh
   progress, "Loading demo… 12 of 31 MB", with a hairline bar along the card's bottom edge
   (indeterminate until the download's `Content-Length` is known). Offline, the card is disabled
   (dimmed) with the hint "Needs a connection — once loaded, the demo works offline." A failed
-  download toasts "Couldn't load the demo — try again" and returns the card to idle. Credit for
-  the demo's pictures and music lives in the file's own content.
+  download toasts "Couldn't load the demo — try again" and returns the card to idle. The demo's
+  rights note sits beside the file, in `glissando-assets/demo/README.md`.
 - **Sample music** (library/SAMPLE_MUSIC.md, ADR-0042): on in every build, the public
   installation and the self-hosted Docker image alike; `GLISSANDO_SAMPLE_MUSIC=off` at build time
   (`build/sample-music-config.ts`, a Docker build argument) leaves it out, and
