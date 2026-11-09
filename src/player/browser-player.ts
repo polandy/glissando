@@ -125,6 +125,7 @@ export function createBrowserPlayer(
     openVideo: (src: string, volume: number, endMs: number) =>
       openVideoElement(src, volume, endMs, {
         output: videoOutput,
+        createElement: () => document.createElement("video"),
         ...(readVideo === undefined
           ? {}
           : { source: { openVideo: readVideo, urls: browserObjectUrls } }),

@@ -1,4 +1,4 @@
-import { VideoPlaybackError, type LiveFrame, type VideoPlayback } from "../ports";
+import { VideoPlaybackError } from "../ports";
 import { ClipSoundTrack } from "./clip-sound-track";
 import type { ClipSoundOutput } from "./music-output";
 import { HAVE_CURRENT_DATA, HAVE_FUTURE_DATA, playingSecondsOf } from "./media-position";
@@ -30,14 +30,35 @@ export interface VideoOutput {
   clipSoundOutput(): ClipSoundOutput | null;
 }
 
+/** What a clip's playback uses of its `<video>`; an `HTMLVideoElement` is one. */
+export type VideoElementPort = Pick<
+  HTMLVideoElement,
+  | "currentTime"
+  | "muted"
+  | "playsInline"
+  | "playbackRate"
+  | "preload"
+  | "readyState"
+  | "seeking"
+  | "paused"
+  | "src"
+  | "error"
+  | "play"
+  | "pause"
+  | "load"
+  | "removeAttribute"
+  | "addEventListener"
+>;
+
 /**
  * One clip played by an `HTMLVideoElement`, which also is the frame the renderers draw. The
  * element is always muted — iOS and iPadOS let only one media element with sound play at a time,
  * so an audible `<video>` would pause the music for the rest of the show (ADR-0035). The clip's
  * own sound, if any, plays through a `ClipSoundTrack` on the music's Web Audio context instead.
+ * `frame` hands out the element itself, so with an `HTMLVideoElement` this is a `VideoPlayback`.
  */
-export class VideoElementPlayback implements VideoPlayback {
-  readonly #element: HTMLVideoElement;
+export class VideoElementPlayback<Element extends VideoElementPort> {
+  readonly #element: Element;
   readonly #sound: ClipSoundTrack | null;
   readonly #sourceReady: Promise<void>;
   readonly #release: () => void;
@@ -55,7 +76,7 @@ export class VideoElementPlayback implements VideoPlayback {
    * decoding it; `endMs` is the clip's own file-time clamp, past which its sound never plays.
    */
   constructor(
-    element: HTMLVideoElement,
+    element: Element,
     volume: number,
     endMs: number,
     output: VideoOutput,
@@ -157,7 +178,7 @@ export class VideoElementPlayback implements VideoPlayback {
     this.#sound?.setVolume(volume);
   }
 
-  frame(): LiveFrame | null {
+  frame(): Element | null {
     return this.#hardSeekPending || this.#element.readyState < HAVE_CURRENT_DATA
       ? null
       : this.#element;

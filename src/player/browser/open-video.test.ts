@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { openVideoElement } from "./open-video";
 import type { ClipSoundOutput } from "./music-output";
-import type { VideoOutput } from "./video-playback";
+import type { VideoElementPort, VideoOutput } from "./video-playback";
 import { settleMicrotasks } from "../../testing/settle-microtasks";
 
 const OUTPUT: VideoOutput = {
@@ -10,14 +10,17 @@ const OUTPUT: VideoOutput = {
 };
 const END_MS = 4000;
 
-class FakeElement extends EventTarget {
+class FakeElement extends EventTarget implements VideoElementPort {
   src = "";
   currentTime = 0;
   muted = false;
   playsInline = false;
-  preload = "";
+  playbackRate = 1;
+  preload: VideoElementPort["preload"] = "";
   readyState = 0;
   seeking = false;
+  paused = true;
+  error = null;
   play = () => Promise.resolve();
   pause = () => undefined;
   load = () => undefined;
@@ -35,7 +38,7 @@ function setUp(
   const open = (src: string, volume = 1) =>
     openVideoElement(src, volume, END_MS, {
       output: OUTPUT,
-      createElement: () => element as unknown as HTMLVideoElement,
+      createElement: () => element,
       source: {
         openVideo: read,
         urls: {
@@ -57,7 +60,7 @@ describe("openVideoElement", () => {
     const element = new FakeElement();
     openVideoElement("https://x/clip.mp4", 1, END_MS, {
       output: OUTPUT,
-      createElement: () => element as unknown as HTMLVideoElement,
+      createElement: () => element,
     });
     expect(element.src).toBe("https://x/clip.mp4");
   });
@@ -66,7 +69,7 @@ describe("openVideoElement", () => {
     const element = new FakeElement();
     openVideoElement("https://x/clip.mp4", 1, END_MS, {
       output: OUTPUT,
-      createElement: () => element as unknown as HTMLVideoElement,
+      createElement: () => element,
     });
     expect(element.muted).toBe(true);
   });
