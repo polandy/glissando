@@ -39,8 +39,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Screens
 
-- [ ] `src/app/screens/slideshow-screen-harness.ts:227,241` and `slideshow-route-harness.ts`, `strip-drag-rig.ts`, `picture-editor-route-harness.ts` — `card as StoredCard` cast, module-level mutable `destroy`, picture fixture duplicated four times. Fix: one typed fixture module.
-
 ### Tooling, docs and tests
 
 - [ ] `dev-docs/library/SAMPLE_MUSIC.md:36` — Points to `build/demo-slideshow-config.ts`, which does not exist. Fix: drop or repoint.

@@ -9,6 +9,7 @@ import type { ReadClipPeaks } from "../clip-editor/clip-sound-wave";
 import { SlideshowEditor } from "../editing/slideshow-editor";
 import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
+import { createMountSlot, storedPicture } from "../testing/picture-fixtures";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { reactiveProps } from "../testing/reactive-props.svelte";
 import { Toaster } from "../toast/toaster";
@@ -23,23 +24,8 @@ const SHOW: StoredSlideshow = {
   title: "Juli 2025",
   createdAt: "2025-07-02T00:00:00Z",
   pictures: [
-    ...["a", "b"].map((id) => ({
-      id,
-      capturedAt: "2025-07-01T10:00:00Z",
-      width: 100,
-      height: 100,
-      fileName: `${id}.jpg`,
-      colours: { veil: "#404040", accent: "#C0C0C0" },
-    })),
-    {
-      id: "c",
-      capturedAt: "2025-07-01T10:00:00Z",
-      width: 100,
-      height: 100,
-      fileName: "c.mp4",
-      colours: { veil: "#404040", accent: "#C0C0C0" },
-      video: CLIP_VIDEO,
-    },
+    ...["a", "b"].map((id) => storedPicture(id)),
+    storedPicture("c", { fileName: "c.mp4", video: CLIP_VIDEO }),
   ],
   secondsPerPicture: 5,
   songs: [],
@@ -55,17 +41,7 @@ export const SHOW_WITH_OWN_MOTION: StoredSlideshow = {
   id: "show-own",
   title: "Eigene Bewegung",
   createdAt: "2025-07-02T00:00:00Z",
-  pictures: [
-    {
-      id: "p",
-      capturedAt: "2025-07-01T10:00:00Z",
-      width: 100,
-      height: 100,
-      fileName: "p.jpg",
-      colours: { veil: "#404040", accent: "#C0C0C0" },
-      kenBurns: OWN_MOTION,
-    },
-  ],
+  pictures: [storedPicture("p", { kenBurns: OWN_MOTION })],
   secondsPerPicture: 5,
   songs: [],
 };
@@ -112,10 +88,10 @@ export function stateOf(
   });
 }
 
-let destroy = () => {};
+const mountSlot = createMountSlot();
 
 export function unmountRoute(): void {
-  destroy();
+  mountSlot.release();
 }
 
 export async function mountRoute(
@@ -197,7 +173,7 @@ export async function mountRoute(
     readClipPeaks,
   });
   const mounted = mountWithTranslator(PictureEditorRoute, props);
-  destroy = mounted.destroy;
+  mountSlot.hold(mounted.destroy);
   return {
     target: mounted.target,
     backs: () => backs,

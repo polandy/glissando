@@ -5,7 +5,7 @@ import type { SlideshowLook } from "../../player";
 import type { SlideshowMood } from "../../library/slideshow-mood";
 import type { ResolvedPortraitPictures } from "../../library/portrait-pictures";
 import type { StoredCard } from "../../library/stored-slideshow";
-import type { CardInput } from "../../library/stored-card";
+import { checkStoredCard, type CardInput } from "../../library/stored-card";
 import { FakeClock, FakeFrameScheduler } from "../../player/testing/fakes";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { mountWithTranslator } from "../testing/mount-with-translator";
@@ -20,8 +20,14 @@ import type { SlideshowSearch } from "../../library/focus-pass";
 import type { ChapterSettingsEditor } from "../editing/chapter-settings-editor";
 import { createStorageFineSettingsFoldStore } from "./slideshow/fine-settings-fold";
 import { moodPreviewPortsFixture } from "./slideshow/mood-preview-ports-fixture";
+import { createMountSlot, pictureTile } from "../testing/picture-fixtures";
 import { createMemoryStorage } from "../testing/memory-storage";
 import { withClosingCard, withMood, withOpeningCard } from "./slideshow-screen-harness-cards";
+
+/** `card` as the stored card the editor would keep; throws when it is not a valid one. */
+function checkedCard(card: CardInput, slideshow: SlideshowDetails): StoredCard {
+  return checkStoredCard(card, new Set(slideshow.pictures.map((tile) => tile.id)), "harness card");
+}
 
 /** The title slide a bare `ensureOpeningCard` call creates, for tests that don't care about it. */
 const DEFAULT_OPENING_CARD: StoredCard = {
@@ -44,12 +50,11 @@ const DEFAULT_CLOSING_CARD: StoredCard = {
   motion: true,
 };
 
-let destroy = () => {};
+const mountSlot = createMountSlot();
 
 /** Unmounts the screen the last `mountScreen` mounted. */
 export function unmountScreen(): void {
-  destroy();
-  destroy = () => {};
+  mountSlot.release();
 }
 
 // A transparent pixel stands in for every thumbnail.
@@ -77,18 +82,9 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
     pairCount: 0,
     capturedFrom: "2025-07-01T10:00:00Z",
     capturedTo: "2025-07-03T10:00:00Z",
-    pictures: ids.map((id, index) => ({
-      id,
-      thumbnailUrl: PIXEL,
-      capturedAt: `2025-07-0${index + 1}T10:00:00Z`,
-      ownMotion: false,
-      ownDurationMs: null,
-      ownTransition: null,
-      pairedWithNumber: null,
-      blurredFill: false,
-      alone: false,
-      colours: { veil: "#404040", accent: "#C0C0C0" },
-    })),
+    pictures: ids.map((id, index) =>
+      pictureTile(id, PIXEL, { capturedAt: `2025-07-0${index + 1}T10:00:00Z` }),
+    ),
   };
   return { ...base, ...overrides };
 }
@@ -226,7 +222,7 @@ export function mountScreen(
       },
       onOpeningCard: (card: CardInput) => {
         calls.openingCards.push(card);
-        props.slideshow = withOpeningCard(props.slideshow, card as StoredCard);
+        props.slideshow = withOpeningCard(props.slideshow, checkedCard(card, props.slideshow));
       },
       onRemoveOpeningCard: () => {
         calls.openingCardsRemoved += 1;
@@ -240,7 +236,7 @@ export function mountScreen(
       },
       onClosingCard: (card: CardInput) => {
         calls.closingCards.push(card);
-        props.slideshow = withClosingCard(props.slideshow, card as StoredCard);
+        props.slideshow = withClosingCard(props.slideshow, checkedCard(card, props.slideshow));
       },
       onRemoveClosingCard: () => {
         calls.closingCardsRemoved += 1;
@@ -276,7 +272,7 @@ export function mountScreen(
     props,
     english ? { current: createTranslator("en") } : undefined,
   );
-  destroy = mounted.destroy;
+  mountSlot.hold(mounted.destroy);
   return { target: mounted.target, props, calls, clock, frames, holdScheduler, dragFrames };
 }
 
