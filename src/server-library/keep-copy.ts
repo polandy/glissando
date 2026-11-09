@@ -1,9 +1,15 @@
 import { FOCUS_DETECTOR_VERSION } from "../focus/focus-detector-version";
+import { cardFromManifest, cardToManifest } from "../glissando-file/manifest-card";
 import { uniqueTitle } from "../glissando-file/unique-title";
 import type { ImmichPhoto } from "../immich/immich-client";
 import { immichPictureSource, type ImmichPictureReaders } from "../import/immich-picture-source";
 import type { LibraryStore, SlideshowStore } from "../library/library-store";
-import type { StoredMusic, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
+import type {
+  StoredCard,
+  StoredMusic,
+  StoredPicture,
+  StoredSlideshow,
+} from "../library/stored-slideshow";
 
 export interface KeepCopyPorts {
   /** The device's store the copy goes into. */
@@ -90,13 +96,26 @@ export async function keepCopyOnDevice(
       const id = await claimed((musicId) => store.putMusic(musicId, audio));
       songs.push({ ...song, id });
     }
+    const renamed = (card: StoredCard | undefined) =>
+      cardFromManifest(
+        cardToManifest(
+          card,
+          slideshow.pictures.map(({ id }) => id),
+        ),
+        pictures.map(({ id }) => id),
+      );
+    const { openingCard, closingCard, ...settings } = slideshow;
+    const opening = renamed(openingCard);
+    const closing = renamed(closingCard);
     const copy: StoredSlideshow = {
-      ...slideshow,
+      ...settings,
       id: ports.newId(),
       title: uniqueTitle(slideshow.title, options.existingTitles),
       createdAt: ports.now().toISOString(),
       pictures,
       songs,
+      ...(opening === undefined ? {} : { openingCard: opening }),
+      ...(closing === undefined ? {} : { closingCard: closing }),
     };
     await store.saveSlideshow(copy);
     await store.releaseClaim(claimId);
