@@ -3,7 +3,7 @@
   import ResetButton from "../../components/ResetButton.svelte";
   import SectionHead from "../../components/SectionHead.svelte";
   import Sheet from "../../components/Sheet.svelte";
-  import { radioIndexForKey } from "../../components/radio-keys";
+  import { radioGroupKeys } from "../../components/radio-group-keys";
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowDetails } from "../view-models";
   import LookFilterDefs from "./LookFilterDefs.svelte";
@@ -45,18 +45,6 @@
   function focusChosenLook(): void {
     radios[SLIDESHOW_LOOKS.indexOf(slideshow.look)]?.focus();
   }
-
-  // Selection follows focus, as in the WAI-ARIA radio group: one tab stop, arrows choose.
-  function onkeydown(event: KeyboardEvent, index: number): void {
-    const next = radioIndexForKey(event.key, index, SLIDESHOW_LOOKS.length);
-    const choice = next === null ? undefined : SLIDESHOW_LOOKS[next];
-    if (next === null || choice === undefined) {
-      return;
-    }
-    event.preventDefault();
-    onLook(choice);
-    radios[next]?.focus();
-  }
 </script>
 
 <LookFilterDefs prefix={filterPrefix} />
@@ -84,7 +72,7 @@
       onPick={(index) => (previewIndex = index)}
     />
   {/if}
-  <div class="tiles" role="radiogroup" aria-labelledby="look-title">
+  <div class="tiles" role="radiogroup" aria-labelledby="look-title" use:radioGroupKeys>
     {#each SLIDESHOW_LOOKS as look, index (look)}
       <LookTile
         bind:radio={radios[index]}
@@ -94,7 +82,6 @@
         pictureUrl={previewPicture?.thumbnailUrl ?? null}
         filterUrl={lookFilterUrl(filterPrefix, look)}
         onPick={() => onLook(look)}
-        onKeydown={(event) => onkeydown(event, index)}
       />
     {/each}
   </div>
