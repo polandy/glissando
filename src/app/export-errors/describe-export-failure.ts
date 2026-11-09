@@ -18,16 +18,26 @@ export type ExportProblem =
   | { readonly kind: "unsupported" }
   | { readonly kind: "failed"; readonly error: unknown };
 
-export interface ExportFailureDescription {
+/** The titles that take a "{clip}" parameter. */
+export type ClipTitleKey = "exportErrors.clipVideoTitle" | "exportErrors.clipPageTitle";
+export type PlainTitleKey = Exclude<MessageKey, ClipTitleKey> & `exportErrors.${string}Title`;
+
+interface ExportFailureBase {
   readonly failure: ExportFailureClass;
-  readonly title: MessageKey;
   readonly text: MessageKey;
-  /** The 1-based clip the title names ("{clip}"), else null. */
-  readonly clip: number | null;
   readonly action: ExportFailureAction;
   /** The raw error as one line, for the "Show details" fold only. */
   readonly details: string;
 }
+
+export type ExportFailureDescription = ExportFailureBase &
+  (
+    | {
+        readonly title: ClipTitleKey;
+        /** The 1-based clip the title names. */ readonly clip: number;
+      }
+    | { readonly title: PlainTitleKey; readonly clip: null }
+  );
 
 /** Only keys: a sheet never renders an `Error`'s own message (scripts/no-raw-error-text.sh). */
 export function describeExportFailure(error: unknown, kind: ExportKind): ExportFailureDescription {
