@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.1](https://github.com/polandy/glissando/compare/glissando-v0.1.0...glissando-v0.1.1) (2026-11-10)
+
+
+### Features
+
+* offer a demo slideshow on the public install's empty start screen ([#84](https://github.com/polandy/glissando/issues/84)) ([0e61a62](https://github.com/polandy/glissando/commit/0e61a62e5f0b22dce4a024a5c53a2961941c4eef))
+
+
+### Bug Fixes
+
+* **library:** size the sample song tiles to about 140 px on wide screens ([#326](https://github.com/polandy/glissando/issues/326)) ([8e546f7](https://github.com/polandy/glissando/commit/8e546f7f7cef818bcc413896c4fe1c22454927d2))
+* **player:** upload each picture slice from its own rows' bytes ([#323](https://github.com/polandy/glissando/issues/323)) ([992f4b8](https://github.com/polandy/glissando/commit/992f4b87c21b6086f3396a05be58434053995bba))
+* **server-library:** a kept copy's title and closing slides point at the copy's own pictures ([#325](https://github.com/polandy/glissando/issues/325)) ([7149f17](https://github.com/polandy/glissando/commit/7149f1700bda19eb31af33f7c62b6b84a25034ab))
+
 ## [0.1.0](https://github.com/polandy/glissando/compare/glissando-v0.0.12...glissando-v0.1.0) (2026-11-09)
 
 
