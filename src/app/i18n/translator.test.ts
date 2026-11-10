@@ -149,6 +149,15 @@ describe("formatters", () => {
   });
 
   it.each([
+    ["de", "Juli 2025", "Jul"],
+    ["en", "Jul 2025", "Jul"],
+  ] as const)("in %s formats a month as %s and its name as %s", (language, full, name) => {
+    const translator = createTranslator(language);
+    expect(translator.formatMonth("2025-07")).toBe(full);
+    expect(translator.formatMonthName("2025-07")).toBe(name);
+  });
+
+  it.each([
     ["de", "2025-07-12T08:00:00Z", "2025-07-19T20:00:00Z", "12.–19. Juli 2025"],
     ["en", "2025-07-12T08:00:00Z", "2025-07-19T20:00:00Z", "12\u2009–\u200919 July 2025"],
     ["de", "2025-05-04T08:00:00Z", "2025-05-04T20:00:00Z", "4. Mai 2025"],

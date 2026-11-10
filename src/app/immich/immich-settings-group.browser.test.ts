@@ -79,3 +79,29 @@ describe("ImmichSettingsGroup", () => {
     expect(calls).toEqual(["reload"]);
   });
 });
+
+describe("ImmichSettingsGroup, optional tools", () => {
+  it("names each tool the server's key lacks with its permission", () => {
+    const { text } = mountGroup({
+      kind: "available",
+      version: "3.3.1",
+      albumCount: 41,
+      missingPermissions: ["person.read", "folder.read"],
+    });
+
+    expect(text()).toContain(
+      "Hidden, the server's key lacks: People (person.read), Folders (folder.read)",
+    );
+  });
+
+  it("names nothing when the key has every permission", () => {
+    const { text } = mountGroup({
+      kind: "available",
+      version: "3.3.1",
+      albumCount: 41,
+      missingPermissions: [],
+    });
+
+    expect(text()).not.toContain("Hidden");
+  });
+});

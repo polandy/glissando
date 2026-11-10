@@ -37,7 +37,7 @@
   // svelte-ignore state_referenced_locally
   let feedState = $state.raw(feed.state);
   $effect(() => feed.subscribe((next) => (feedState = next)));
-  const days = $derived(groupByDay(feedState.photos));
+  const days = $derived(groupByDay(feedState.photos, feedState.hiddenTakenAt));
 
   function loadMore(): void {
     feed.loadMore().catch(onError);

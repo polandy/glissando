@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { rootFolders, subfolders } from "./folder-tree";
+import { folderCrumbs, rootFolders, subfolders } from "./folder-tree";
 
 const PATHS = ["photos/2020/summer", "photos/2021", "photos/2020/winter/snow", "scans"];
 
@@ -34,5 +34,19 @@ describe("subfolders", () => {
     ["missing", []],
   ])("lists what lies directly below %s", (parent, expected) => {
     expect(subfolders(PATHS, parent)).toEqual(expected);
+  });
+});
+
+describe("folderCrumbs", () => {
+  it("names each folder on the way down with the path that opens it", () => {
+    expect(folderCrumbs("photos/2020/summer")).toEqual([
+      { name: "photos", path: "photos" },
+      { name: "2020", path: "photos/2020" },
+      { name: "summer", path: "photos/2020/summer" },
+    ]);
+  });
+
+  it("is empty for the top", () => {
+    expect(folderCrumbs(null)).toEqual([]);
   });
 });

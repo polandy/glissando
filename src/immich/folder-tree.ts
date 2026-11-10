@@ -43,3 +43,18 @@ export function subfolders(
 export function rootFolders(uniquePaths: readonly string[]): readonly FolderEntry[] {
   return subfolders(uniquePaths, null);
 }
+
+export interface FolderCrumb {
+  readonly name: string;
+  readonly path: string;
+}
+
+/** The folders from the top down to `path`, each with the path that opens it. */
+export function folderCrumbs(path: string | null): readonly FolderCrumb[] {
+  if (path === null) return [];
+  const segments = path.split(SEPARATOR);
+  return segments.map((name, index) => ({
+    name,
+    path: segments.slice(0, index + 1).join(SEPARATOR),
+  }));
+}

@@ -144,7 +144,7 @@ describe("ImmichRoute, one album", () => {
     const client = new FakeImmichClient();
     client.albumList = [LAKE];
     client.photoAnswers.push({ photos: [], nextPage: null });
-    const { target } = mountRoute(client, "lake");
+    const { target } = mountRoute(client, { kind: "album", id: "lake" });
     flushSync();
 
     expect(target.textContent).toContain("Loading the album …");
@@ -154,7 +154,7 @@ describe("ImmichRoute, one album", () => {
     const client = new FakeImmichClient();
     client.albumsError = new ImmichUnavailableError("permissionMissing");
     client.photoAnswers.push({ photos: [photo("l1")], nextPage: null });
-    const { browser, target, button } = mountRoute(client, "lake");
+    const { browser, target, button } = mountRoute(client, { kind: "album", id: "lake" });
     await until(browser, (state) => state.albumsFailure !== null);
     flushSync();
     expect(target.textContent).toContain("The key lacks permissions");
@@ -171,13 +171,13 @@ describe("ImmichRoute, one album", () => {
   it("names a failed Select all in the album and keeps its photos", async () => {
     const client = new FakeImmichClient();
     client.albumList = [LAKE];
-    const { browser, target, button } = mountRoute(client, "lake");
+    const { browser, target, button } = mountRoute(client, { kind: "album", id: "lake" });
     await browser.loadAlbums();
     client.photoAnswers.push(new ImmichUnavailableError("keyRejected"));
     flushSync();
 
     button("Select all")?.click();
-    await until(browser, (state) => state.albumFailures.has("lake"));
+    await until(browser, (state) => state.sourceFailures.has("album:lake"));
     flushSync();
 
     expect(target.querySelector("h1")?.textContent).toBe("Lake");

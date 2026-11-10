@@ -37,7 +37,14 @@ export class FakeImmichClient implements ImmichClient {
   paths: readonly string[] = [];
   /** Rejects every `albums()` while set. */
   albumsError: Error | null = null;
+  /** Reject `timelineMonths()`, `people()` and `folderPaths()` while set. */
+  monthsError: Error | null = null;
+  peopleError: Error | null = null;
+  foldersError: Error | null = null;
   albumsCalls = 0;
+  monthsCalls = 0;
+  peopleCalls = 0;
+  folderCalls = 0;
   statusCalls = 0;
   #heldStatus: Promise<ImmichStatus> | null = null;
   #heldPhotos: Promise<PhotoAnswer> | null = null;
@@ -80,15 +87,18 @@ export class FakeImmichClient implements ImmichClient {
   }
 
   timelineMonths(): Promise<readonly TimelineMonth[]> {
-    return Promise.resolve(this.months);
+    this.monthsCalls += 1;
+    return answer(this.months, this.monthsError);
   }
 
   people(): Promise<readonly ImmichPerson[]> {
-    return Promise.resolve(this.peopleList);
+    this.peopleCalls += 1;
+    return answer(this.peopleList, this.peopleError);
   }
 
   folderPaths(): Promise<readonly string[]> {
-    return Promise.resolve(this.paths);
+    this.folderCalls += 1;
+    return answer(this.paths, this.foldersError);
   }
 
   personThumbnailUrl(personId: string): string {
@@ -114,6 +124,10 @@ export class FakeImmichClient implements ImmichClient {
   faces(): Promise<readonly ImmichFace[]> {
     return Promise.resolve([]);
   }
+}
+
+function answer<T>(value: T, error: Error | null): Promise<T> {
+  return error === null ? Promise.resolve(value) : Promise.reject(error);
 }
 
 function next<T>(answers: T[], call: string): T {

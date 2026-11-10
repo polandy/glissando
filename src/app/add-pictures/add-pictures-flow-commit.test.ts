@@ -94,9 +94,9 @@ describe("AddPicturesFlow committing", () => {
     flow.open(SHOW_1, "device");
 
     flow.follow({ screen: "add", slideshowId: "s1" });
-    flow.follow({ screen: "immich", albumId: null, slideshowId: null });
+    flow.follow({ screen: "immich", opened: null, slideshowId: null });
     expect(log).toEqual([]);
-    flow.follow({ screen: "immich", albumId: "a1", slideshowId: "s2" });
+    flow.follow({ screen: "immich", opened: { kind: "album", id: "a1" }, slideshowId: "s2" });
 
     expect(log).toEqual(["back"]);
   });

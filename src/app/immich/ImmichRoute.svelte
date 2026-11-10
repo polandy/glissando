@@ -1,38 +1,41 @@
 <script lang="ts">
-  import type { ImmichAlbum, ImmichPhoto } from "../../immich/immich-client";
+  import type { OptionalImmichPermission } from "../../immich/immich-client";
+  import type { ImmichAlbum, ImmichPerson, ImmichPhoto } from "../../immich/immich-client";
   import type { PhotoFeed } from "../../immich/photo-feed";
+  import type { OpenedSource } from "../navigation/route";
   import type { Crumb } from "../components/crumbs";
   import Header from "../components/Header.svelte";
-  import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
-  import AlbumGrid from "./AlbumGrid.svelte";
-  import AlbumView from "./AlbumView.svelte";
-  import BrowseFailed from "./BrowseFailed.svelte";
-  import BrowseState from "./BrowseState.svelte";
+  import AlbumsTab from "./AlbumsTab.svelte";
+  import { albumSource, folderSource, personSource, type BrowseSource } from "./browse-source";
+  import BrowserTabs from "./BrowserTabs.svelte";
   import { browserEndObserver, type EndObserver } from "./end-observer";
-  import type { BrowserTab, ImmichBrowser } from "./immich-browser";
+  import FoldersTab from "./FoldersTab.svelte";
+  import type { ImmichBrowser } from "./immich-browser";
   import ImmichFooter from "./ImmichFooter.svelte";
-  import {
-    albumsWithSelection,
-    filterAlbums,
-    NOTHING_ALREADY_IN,
-    selectionSummary,
-    type AlreadyIn,
-  } from "./immich-view";
+  import { hiddenTools, shownTab, visibleTabs } from "./immich-tools";
+  import { NOTHING_ALREADY_IN, selectionSummary, sourceSpans, type AlreadyIn } from "./immich-view";
+  import OpenedGone from "./OpenedGone.svelte";
+  import PeopleTab from "./PeopleTab.svelte";
   import PhotoFeedView from "./PhotoFeedView.svelte";
+  import PhotosTab from "./PhotosTab.svelte";
+  import SourceView from "./SourceView.svelte";
 
   /**
-   * The Immich browser: All photos and Albums, or one album; picks join the pictures being taken
-   * in on Add.
+   * The Immich browser: All pictures, Albums, People and Folders, or one album or person; picks
+   * join the pictures being taken in on Add.
    */
   let {
     browser,
     parentCrumbs,
     alreadyIn = NOTHING_ALREADY_IN,
-    albumId,
+    opened,
+    missingPermissions = [],
     thumbnailUrl,
+    faceUrl,
     onBack,
     onOpenAlbum,
+    onOpenPerson,
     onAdd,
     onError,
     onReload,
@@ -43,12 +46,16 @@
     parentCrumbs: readonly Crumb[];
     /** Photos already in the slideshow or already taken in: shown, never selected. */
     alreadyIn?: AlreadyIn;
-    /** One album's photos; the tabs without it. */
-    albumId: string | null;
+    /** One album's or person's pictures; the tabs without it. */
+    opened: OpenedSource | null;
+    /** What the server's key lacks, from the status: those tools are hidden. */
+    missingPermissions?: readonly OptionalImmichPermission[];
     thumbnailUrl: (photoId: string) => string;
-    /** A level up: album → albums → pictures step. */
+    faceUrl: (personId: string) => string;
+    /** A level up: album or person → its tab → pictures step. */
     onBack: () => void;
     onOpenAlbum: (album: ImmichAlbum) => void;
+    onOpenPerson: (person: ImmichPerson) => void;
     onAdd: (photos: readonly ImmichPhoto[]) => void;
     onError: (error: unknown) => void;
     /** Reloads the app: the remedy for an expired sign-in at the owner's proxy. */
@@ -56,7 +63,6 @@
     observeEnd?: EndObserver;
   } = $props();
 
-  const TABS: readonly BrowserTab[] = ["photos", "albums"];
   const { t } = getTranslator();
 
   // The browser lives as long as the import session, longer than this route.
@@ -64,23 +70,50 @@
   let browserState = $state.raw(browser.state);
   // svelte-ignore state_referenced_locally
   let selected = $state.raw(browser.selection.photos());
-  let filter = $state("");
   $effect(() => browser.subscribe((next) => (browserState = next)));
   $effect(() => browser.selection.subscribe((next) => (selected = next)));
 
   const selectedIds = $derived(new Set(selected.map(({ id }) => id)));
-  const album = $derived(browserState.albums?.find(({ id }) => id === albumId) ?? null);
+  const hidden = $derived(
+    hiddenTools(missingPermissions, {
+      months: browserState.months,
+      people: browserState.people,
+      folderPaths: browserState.folderPaths,
+    }),
+  );
+  const tabs = $derived(visibleTabs(hidden));
+  const tab = $derived(shownTab(browserState.tab, hidden));
+  const album = $derived(
+    opened?.kind === "album"
+      ? (browserState.albums?.find(({ id }) => id === opened.id) ?? null)
+      : null,
+  );
+  const person = $derived(
+    opened?.kind === "person"
+      ? (browserState.people.items?.find(({ id }) => id === opened.id) ?? null)
+      : null,
+  );
+  const openedName = $derived(album?.name ?? person?.name ?? null);
   const summary = $derived(
-    selectionSummary(selected.length, albumsWithSelection(browserState.membership, selectedIds)),
+    selectionSummary(selected.length, sourceSpans(browserState.membership, selectedIds)),
   );
   const crumbs = $derived([
     ...parentCrumbs,
     t("immich.name"),
-    ...(album === null ? [] : [album.name]),
+    ...(openedName === null ? [] : [openedName]),
   ]);
 
   $effect(() => {
-    if (albumId !== null || browserState.tab === "albums") browser.loadAlbums().catch(onError);
+    if (opened?.kind === "album" || (opened === null && tab === "albums")) {
+      browser.loadAlbums().catch(onError);
+    }
+    if (opened?.kind === "person" || (opened === null && tab === "people")) {
+      browser.loadPeople().catch(onError);
+    }
+    if (opened === null && tab === "photos" && !hidden.has("months")) {
+      browser.loadMonths().catch(onError);
+    }
+    if (opened === null && tab === "folders") browser.loadFolders().catch(onError);
   });
 
   function selectDay(photos: readonly ImmichPhoto[], select: boolean): void {
@@ -88,12 +121,8 @@
     else browser.selection.deselectAll(photos);
   }
 
-  function toggleAlbum(target: ImmichAlbum): void {
-    browser.toggleAlbum(target.id, alreadyIn).catch(onError);
-  }
-
-  function retryAlbums(): void {
-    browser.retryAlbums().catch(onError);
+  function toggleSource(source: BrowseSource): void {
+    browser.toggleSource(source, alreadyIn).catch(onError);
   }
 
   function add(): void {
@@ -118,89 +147,129 @@
   />
 {/snippet}
 
+{#snippet sourcePane(
+  source: BrowseSource,
+  declaredCount: number | null,
+  emptyTitle: string,
+  emptyText: string,
+)}
+  {@const key = `${source.kind}:${source.id}`}
+  <SourceView
+    feed={browser.sourceFeed(source)}
+    {emptyTitle}
+    {emptyText}
+    {declaredCount}
+    membership={browserState.membership.get(key)}
+    busy={browserState.busySources.has(key)}
+    failure={browserState.sourceFailures.get(key) ?? null}
+    {selectedIds}
+    {alreadyIn}
+    onToggleAll={() => toggleSource(source)}
+    {feedView}
+  />
+{/snippet}
+
 <div class="screen">
   <Header {crumbs} {onBack} />
   <main class="content browse">
-    {#if albumId !== null}
+    {#if opened?.kind === "album"}
       {#if album !== null}
-        <AlbumView
-          {album}
-          feed={browser.albumFeed(album.id)}
-          membership={browserState.membership.get(album.id)}
-          busy={browserState.busyAlbumIds.has(album.id)}
-          failure={browserState.albumFailures.get(album.id) ?? null}
-          {selectedIds}
-          {alreadyIn}
-          onToggleAll={() => toggleAlbum(album)}
-          {feedView}
-        />
-      {:else if browserState.albumsFailure !== null}
-        <BrowseFailed failure={browserState.albumsFailure} onRetry={retryAlbums} {onReload} />
-      {:else if browserState.albums === null}
-        <BrowseState icon="image" title={t("immich.loadingAlbum")} />
+        <h1 class="title">{album.name}</h1>
+        {@render sourcePane(
+          albumSource(album.id),
+          album.photoCount,
+          t("immich.emptyAlbum"),
+          t("immich.emptyAlbumText"),
+        )}
       {:else}
-        <BrowseState icon="image" title={t("immich.albumGone")}>
-          {#snippet action()}
-            <button class="btn" type="button" onclick={onBack}>{t("immich.backToAlbums")}</button>
-          {/snippet}
-        </BrowseState>
+        <OpenedGone
+          loadingTitle={t("immich.loadingAlbum")}
+          goneTitle={t("immich.albumGone")}
+          backLabel={t("immich.backToAlbums")}
+          failure={browserState.albumsFailure}
+          loaded={browserState.albums !== null}
+          onRetry={() => browser.retryAlbums().catch(onError)}
+          {onBack}
+          {onReload}
+        />
+      {/if}
+    {:else if opened?.kind === "person"}
+      {#if person !== null}
+        <h1 class="title">{person.name}</h1>
+        {@render sourcePane(
+          personSource(person.id),
+          null,
+          t("immich.emptySource"),
+          t("immich.emptySourceText"),
+        )}
+      {:else}
+        <OpenedGone
+          loadingTitle={t("immich.loadingPerson")}
+          goneTitle={t("immich.personGone")}
+          backLabel={t("immich.backToPeople")}
+          failure={browserState.people.failure}
+          loaded={browserState.people.items !== null}
+          onRetry={() => browser.retryPeople().catch(onError)}
+          {onBack}
+          {onReload}
+        />
       {/if}
     {:else}
       <div class="browse-head">
-        <div class="tabs" role="tablist" aria-label={t("immich.views")}>
-          {#each TABS as tab (tab)}
-            <button
-              type="button"
-              role="tab"
-              aria-selected={browserState.tab === tab}
-              onclick={() => browser.showTab(tab)}
-            >
-              {tab === "photos" ? t("immich.tabPhotos") : t("immich.tabAlbums")}
-            </button>
-          {/each}
-        </div>
-        {#if browserState.tab === "photos"}
-          <span class="hint">{t("immich.newestFirst")}</span>
-        {:else}
-          <label class="filter">
-            <Icon name="search" />
-            <input
-              class="field"
-              type="search"
-              autocomplete="off"
-              placeholder={t("immich.filter")}
-              aria-label={t("immich.filter")}
-              bind:value={filter}
-            />
-          </label>
-        {/if}
+        <BrowserTabs {tabs} {tab} onPick={(picked) => browser.showTab(picked)} />
       </div>
-      {#if browserState.tab === "photos"}
-        {@render feedView(browser.library)}
-      {:else if browserState.albumsFailure !== null}
-        <BrowseFailed failure={browserState.albumsFailure} onRetry={retryAlbums} {onReload} />
+      {#if tab === "photos"}
+        <PhotosTab
+          feed={browser.library}
+          months={hidden.has("months") ? null : browserState.months.items}
+          monthsFailure={hidden.has("months") ? null : browserState.months.failure}
+          month={browserState.month}
+          favourites={browserState.favourites}
+          onMonth={(month) => browser.jumpToMonth(month)}
+          onFavourites={(on) => browser.setFavourites(on)}
+          onRetryMonths={() => browser.retryMonths().catch(onError)}
+          {feedView}
+        />
+      {:else if tab === "people"}
+        <PeopleTab
+          people={browserState.people}
+          {faceUrl}
+          onOpen={onOpenPerson}
+          onRetry={() => browser.retryPeople().catch(onError)}
+          {onReload}
+        />
+      {:else if tab === "folders"}
+        <FoldersTab
+          folders={browserState.folderPaths}
+          folderPath={browserState.folderPath}
+          onOpenFolder={(path) => browser.openFolder(path)}
+          onRetry={() => browser.retryFolders().catch(onError)}
+          {onReload}
+        >
+          {#snippet pictures(path)}
+            {@render sourcePane(
+              folderSource(path),
+              null,
+              t("immich.emptySource"),
+              t("immich.emptySourceText"),
+            )}
+          {/snippet}
+        </FoldersTab>
       {:else}
-        {@const shown =
-          browserState.albums === null ? null : filterAlbums(browserState.albums, filter)}
-        {#if shown !== null && shown.length === 0}
-          <BrowseState
-            icon="search"
-            title={t("immich.noAlbumMatches")}
-            text={t("immich.noAlbumMatchesText", { filter: filter.trim() })}
-          />
-        {:else}
-          <AlbumGrid
-            albums={shown}
-            membership={browserState.membership}
-            busyAlbumIds={browserState.busyAlbumIds}
-            albumFailures={browserState.albumFailures}
-            {selectedIds}
-            {alreadyIn}
-            {thumbnailUrl}
-            onOpen={onOpenAlbum}
-            onToggle={toggleAlbum}
-          />
-        {/if}
+        <AlbumsTab
+          albums={browserState.albums}
+          failure={browserState.albumsFailure}
+          membership={browserState.membership}
+          busySources={browserState.busySources}
+          sourceFailures={browserState.sourceFailures}
+          {selectedIds}
+          {alreadyIn}
+          {thumbnailUrl}
+          onOpen={onOpenAlbum}
+          onToggle={(target) => toggleSource(albumSource(target.id))}
+          onRetry={() => browser.retryAlbums().catch(onError)}
+          {onReload}
+        />
       {/if}
     {/if}
   </main>
@@ -219,65 +288,9 @@
     justify-content: space-between;
     gap: 12px;
   }
-  .hint {
-    color: var(--gl-muted);
-    font-size: var(--gl-size-meta);
-  }
-  .tabs {
-    display: inline-flex;
-    gap: 2px;
-    padding: 3px;
-    border-radius: var(--gl-radius);
-    background: var(--gl-hover);
-  }
-  .tabs button {
-    padding: 7px 14px;
-    border: 0;
-    border-radius: var(--gl-radius-small);
-    background: transparent;
-    color: var(--gl-muted);
-    font: inherit;
-    font-weight: var(--gl-weight-semibold);
-    cursor: pointer;
-  }
-  .tabs button[aria-selected="true"] {
-    background: var(--gl-surface);
-    color: var(--gl-ink);
-    box-shadow: var(--gl-shadow);
-  }
-  .filter {
-    --gl-icon-size: var(--gl-size-icon-small);
-    position: relative;
-    width: 260px;
-    max-width: 100%;
-    color: var(--gl-faint);
-  }
-  .filter :global(.icon) {
-    position: absolute;
-    top: 11px;
-    left: 11px;
-  }
-  .field {
-    width: 100%;
-    height: 38px;
-    padding: 0 11px 0 34px;
-    border: 1px solid var(--gl-line);
-    border-radius: var(--gl-radius);
-    outline: none;
-    background: var(--gl-raised);
-    color: var(--gl-ink);
-    font: inherit;
-    font-size: var(--gl-size-body);
-  }
-  .field:focus {
-    border-color: var(--gl-accent);
-  }
   @container (max-width: 720px) {
     .browse {
       padding: 16px;
-    }
-    .filter {
-      width: 100%;
     }
   }
 </style>

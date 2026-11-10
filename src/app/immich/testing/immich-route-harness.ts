@@ -1,5 +1,11 @@
-import type { ImmichAlbum, ImmichPhoto } from "../../../immich/immich-client";
+import type {
+  ImmichAlbum,
+  ImmichPerson,
+  ImmichPhoto,
+  OptionalImmichPermission,
+} from "../../../immich/immich-client";
 import type { FakeImmichClient } from "../../../immich/testing/fake-immich-client";
+import type { OpenedSource } from "../../navigation/route";
 import { createTranslator } from "../../i18n/translator";
 import { mountWithTranslator } from "../../testing/mount-with-translator";
 import type { EndObserver } from "../end-observer";
@@ -55,13 +61,15 @@ export function until<State>(
 
 export function mountRoute(
   client: FakeImmichClient,
-  albumId: string | null = null,
+  open: OpenedSource | null = null,
   alreadyIn: AlreadyIn = NOTHING_ALREADY_IN,
+  missingPermissions: readonly OptionalImmichPermission[] = [],
 ) {
   const browser = new ImmichBrowser({ client, reportUnavailable: () => undefined });
   const end = fakeEndObserver();
   const added: (readonly ImmichPhoto[])[] = [];
   const opened: string[] = [];
+  const people: string[] = [];
   const calls = { back: 0, reload: 0 };
   const view = mountWithTranslator(
     ImmichRoute,
@@ -69,11 +77,14 @@ export function mountRoute(
       browser,
       parentCrumbs: ["New slideshow", "Pictures"],
       alreadyIn,
-      albumId,
+      opened: open,
+      missingPermissions,
       thumbnailUrl: (id: string) => `data:,${id}`,
+      faceUrl: (id: string) => `data:,face-${id}`,
       onBack: () => (calls.back += 1),
       onReload: () => (calls.reload += 1),
       onOpenAlbum: (album: ImmichAlbum) => opened.push(album.id),
+      onOpenPerson: (person: ImmichPerson) => people.push(person.id),
       onAdd: (photos: readonly ImmichPhoto[]) => added.push(photos),
       onError: (error: unknown) => {
         throw error;
@@ -87,5 +98,5 @@ export function mountRoute(
   const button = (label: string) =>
     [...target.querySelectorAll("button")].find((b) => b.textContent.trim() === label);
   const footer = () => target.querySelector(".actions")?.textContent.replace(/\s+/g, " ").trim();
-  return { browser, target, end, added, opened, calls, button, footer };
+  return { browser, target, end, added, opened, people, calls, button, footer };
 }

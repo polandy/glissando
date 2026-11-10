@@ -4,6 +4,7 @@
   import Icon from "../components/Icon.svelte";
   import VideoBadge from "../components/VideoBadge.svelte";
   import { getTranslator } from "../i18n/context";
+  import HiddenNote from "./HiddenNote.svelte";
   import { dayToggle, type AlreadyIn } from "./immich-view";
 
   /**
@@ -39,6 +40,9 @@
     <div class="day-head">
       <h2>{formatDay(day.day)}</h2>
       <span class="count mono">{day.photos.length}</span>
+      {#if day.hidden > 0}
+        <HiddenNote count={day.hidden} />
+      {/if}
       {#if toggle !== null}
         <button
           class="btn ghost small"

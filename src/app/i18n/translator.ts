@@ -60,6 +60,10 @@ export interface Translator {
   formatMinuteRange(fromIsoDateTime: string, toIsoDateTime: string): string;
   /** A day heading from `YYYY-MM-DD`, with the weekday: "Sat, 12 July 2025". */
   formatDay(day: string): string;
+  /** A month from `YYYY-MM`, abbreviated with its year: "Jul 2025". */
+  formatMonth(month: string): string;
+  /** A month's abbreviated name from `YYYY-MM`, without the year: "Jul". */
+  formatMonthName(month: string): string;
   /** The days between two date-times, read in UTC, as compact as the locale allows. */
   formatDayRange(fromIsoDateTime: string, toIsoDateTime: string): string;
   /** A moment's day and month in the local time zone: "2 Nov"; with the year unless it is `relativeTo`'s. */
@@ -124,6 +128,12 @@ export function createTranslator(language: Language): Translator {
     year: "numeric",
     timeZone: "UTC",
   });
+  const months = new Intl.DateTimeFormat(locale, {
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+  const monthNames = new Intl.DateTimeFormat(locale, { month: "short", timeZone: "UTC" });
   // A moment such as a creation time, unlike a capture date, is read in the viewer's time zone.
   const shortDates = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" });
   const shortDatesWithYear = new Intl.DateTimeFormat(locale, {
@@ -207,6 +217,12 @@ export function createTranslator(language: Language): Translator {
     },
     formatDay(day) {
       return days.format(parseDate(day));
+    },
+    formatMonth(month) {
+      return months.format(parseDate(`${month}-01`));
+    },
+    formatMonthName(month) {
+      return monthNames.format(parseDate(`${month}-01`));
     },
     formatDayRange(fromIsoDateTime, toIsoDateTime) {
       return dayRanges.formatRange(parseDate(fromIsoDateTime), parseDate(toIsoDateTime));

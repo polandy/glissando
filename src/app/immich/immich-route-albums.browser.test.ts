@@ -43,8 +43,8 @@ describe("ImmichRoute, Albums", () => {
     flushSync();
 
     target.querySelector<HTMLButtonElement>(".album .check")?.click();
-    await until(browser, (state) => state.membership.get("lake")?.complete === true);
-    await until(browser, (state) => state.busyAlbumIds.size === 0);
+    await until(browser, (state) => state.membership.get("album:lake")?.complete === true);
+    await until(browser, (state) => state.busySources.size === 0);
     flushSync();
 
     expect(browser.selection.count).toBe(2);
@@ -62,7 +62,7 @@ describe("ImmichRoute, Albums", () => {
     flushSync();
 
     target.querySelector<HTMLButtonElement>(".album .check")?.click();
-    await until(browser, (state) => state.albumFailures.has("lake"));
+    await until(browser, (state) => state.sourceFailures.has("album:lake"));
     flushSync();
 
     expect(target.querySelectorAll(".album .name")).toHaveLength(2);
@@ -74,7 +74,7 @@ describe("ImmichRoute, Albums", () => {
   it("says an album that is gone is gone, and leads back to the albums", async () => {
     const client = new FakeImmichClient();
     client.albumList = [LAKE];
-    const { browser, target, calls, button } = mountRoute(client, "gone");
+    const { browser, target, calls, button } = mountRoute(client, { kind: "album", id: "gone" });
 
     await until(browser, (state) => state.albums !== null);
     flushSync();
@@ -87,7 +87,7 @@ describe("ImmichRoute, Albums", () => {
   it("offers Reload, not Try again, when the sign-in in front of Glissando has expired", async () => {
     const client = new FakeImmichClient();
     client.albumsError = new ImmichUnavailableError("signInExpired");
-    const { browser, target, calls, button } = mountRoute(client, "lake");
+    const { browser, target, calls, button } = mountRoute(client, { kind: "album", id: "lake" });
 
     await until(browser, (state) => state.albumsFailure !== null);
     flushSync();

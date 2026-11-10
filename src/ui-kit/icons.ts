@@ -185,6 +185,8 @@ export const ICONS = {
   },
   addToHome: { shapes: [rect(4, 4, 16, 16, 3), path("M12 8v8M8 12h8")] },
   menuDots: { shapes: [circle(12, 5, 1.2), circle(12, 12, 1.2), circle(12, 19, 1.2)] },
+  star: { shapes: [path("M12 3.8l2.5 5.2 5.7.8-4.1 4 1 5.7-5.1-2.7-5.1 2.7 1-5.7-4.1-4 5.7-.8z")] },
+  down: { shapes: [path("M6 9l6 6 6-6")] },
   check: { shapes: [path("M5 12.5l4.5 4.5L19 7.5")] },
   shuffle: {
     shapes: [path("M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5")],

@@ -78,21 +78,30 @@
     onDiscard={(leave) => void addFlow.discard(leave)}
     onCommit={() => addFlow.commit()}
     immich={immichState}
-    onOpenImmich={() => navigator.open({ screen: "immich", albumId: null, slideshowId })}
+    onOpenImmich={() => navigator.open({ screen: "immich", opened: null, slideshowId })}
     onImmichSettings={() => navigator.open({ screen: "settings" })}
   />
 {:else if route.screen === "immich" && feed !== null}
-  {@const { albumId, slideshowId } = route}
+  {@const { opened, slideshowId } = route}
   {#key feed.intake}
     <ImmichIntakeRoute
       intake={feed.intake}
       addPhotos={feed.addPhotos}
       browser={immichBrowsers.for(feed.intake, feed.withVideos)}
       parentCrumbs={feed.crumbs}
-      {albumId}
+      {opened}
+      missingPermissions={immichState.kind === "available" ? immichState.missingPermissions : []}
       thumbnailUrl={(photoId) => immich.client.thumbnailUrl(photoId)}
+      faceUrl={(personId) => immich.client.personThumbnailUrl(personId)}
       onBack={() => navigator.back()}
-      onOpenAlbum={(album) => navigator.open({ screen: "immich", albumId: album.id, slideshowId })}
+      onOpenAlbum={(album) =>
+        navigator.open({ screen: "immich", opened: { kind: "album", id: album.id }, slideshowId })}
+      onOpenPerson={(person) =>
+        navigator.open({
+          screen: "immich",
+          opened: { kind: "person", id: person.id },
+          slideshowId,
+        })}
       onAdded={() =>
         navigator.open(
           slideshowId === null
