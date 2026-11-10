@@ -34,6 +34,22 @@ describe("ImmichRoute, All photos", () => {
     expect(end.watched()).toBe(0);
   });
 
+  it("counts the hidden pictures at the end, even when no JPEG is listed", async () => {
+    const client = new FakeImmichClient();
+    client.photoAnswers.push({
+      photos: [],
+      hiddenTakenAt: ["2025-07-12T09:00:00.000Z", "2025-07-11T09:00:00.000Z"],
+      nextPage: null,
+    });
+    const { browser, target, end } = mountRoute(client);
+
+    end.reachEnd();
+    await until(browser.library, (state) => state.done);
+    flushSync();
+
+    expect(target.textContent).toContain("That's all · 0 pictures · 2 not JPEG, hidden");
+  });
+
   it("selects a day, counts it in the footer and adds exactly those photos", async () => {
     const client = new FakeImmichClient();
     client.photoAnswers.push({
