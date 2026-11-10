@@ -16,8 +16,15 @@ twice the preview storage, and is outside the app.
 
 - **A per-device setting "Quality of server slideshows"**: Automatic (the default), 1440 pixels,
   4K. Automatic plays 4K only on a screen whose short edge in device pixels (screen size ×
-  `devicePixelRatio`) is larger than the preview's 1440, else 1440. It is shown only where the
+  `devicePixelRatio`) is at least the 4K rendition's 2160, else 1440. It is shown only where the
   server library is on. Device slideshows are unaffected: they are stored as display renditions.
+- **Automatic stops at 2160, not at the preview's 1440**, because decoding an original costs
+  frames while a slideshow plays. Measured on a generated 40 MP JPEG (26 MB) in the CI image's
+  browsers: Firefox's `createImageBitmap` decodes it on the main thread, from a worker too,
+  blocking it for about 280 ms per picture; the whole display rendition takes about 360 ms there.
+  Chromium decodes off the main thread but blocks it about 70 ms to scale and encode. Preparing
+  runs behind the slides, so these blocks land in transitions and stutter. A laptop between the
+  two (a MacBook Air at 1912) gains at most a third more pixels for it; a 4K screen gains half.
 - **1440 is Immich's preview; 4K is the original made into the display rendition on the device**,
   the same path as "Keep a copy on this device" — no change to Immich.
 - **The player prepares before it plays.** It prepares the first two pictures as playing needs
@@ -48,6 +55,12 @@ twice the preview storage, and is outside the app.
   wired TV and a phone on a weak Wi-Fi; too short stalls, too long makes everyone wait.
 - **Cache decoded bitmaps** — no decode when the slide comes, but a 4K bitmap is 33 MB in memory
   against 1–2 MB as a JPEG; a dozen would exhaust a TV browser.
+- **Automatic above the preview's 1440** — sharper on laptops and tablets, but those then decode
+  every original during playback and stutter (Firefox most); the gain there is at most a third.
+- **More prepare-ahead headroom** — moves waiting, not the decode: preparing still runs while
+  slides play, and holding everything ahead before the start meets the 60-rendition bound.
+- **Immich's fullsize rendition** — for a JPEG, Immich redirects it to the original, so the
+  decode is the same.
 - **Only the Immich 2160 preview** — sharp and instant, but outside the app, costs Immich storage
   and a full thumbnail job, and leaves the default setup soft on a TV.
 
@@ -59,6 +72,8 @@ twice the preview storage, and is outside the app.
 - Every server picture now goes through the prepare flow, also in 1440: one at a time instead of
   three parallel downloads. A preview usually takes well under a slide, so this shows only as the
   brief measuring screen.
+- On a laptop or tablet, Automatic plays Immich's preview, scaled up at most a third; "Large"
+  still picks 4K by hand, and in Firefox it may stutter while originals are decoded.
 - Memory holds at most 60 renditions; a slideshow needing more than that ahead may wait mid-way
   with the player's existing waiting state.
 - Shared links (ADR-0025) still play Immich's preview; for them, the Immich 2160 preview remains
