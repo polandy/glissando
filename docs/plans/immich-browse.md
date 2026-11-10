@@ -67,7 +67,8 @@ machine learning being set up. Each tool narrows the same search (`POST /api/sea
 
 ## Permissions and docs
 
-People, months and folders each need a further read permission on the server's key. A key
+People, months and folders each need a further read permission on the server's key (names as in
+Immich's API key dialog, to verify against the owner's Immich version before building). A key
 without it answers 403 on that call only: the tab or the month button is then hidden, the rest
 works, and Settings names the missing permission — never a "permission missing" for the whole
 Immich box. The setup guide (`docs/self-hosting.md`, "exactly these permissions") lists the new
@@ -99,3 +100,5 @@ ones; the app's `immich.problemPermissionMissing` line and its five-permission l
    the five and drop the month jump and People?
 6. **Hidden note**: count what is hidden per day and per album (recommended), once on top of the
    list, or not at all?
+7. **Footer with several kinds of source**: "n selected · from 3 sources" when albums, people and
+   folders mix (recommended), or keep "from k albums" and count only albums?
