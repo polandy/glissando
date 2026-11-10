@@ -51,11 +51,7 @@ export interface ImmichBrowserOptions {
   readonly withVideos?: boolean;
 }
 
-/**
- * The Immich browser's memory for one import: the selection, the tab, the lists and the feeds
- * already read, so going into an album and back, or to the pictures step and back, keeps them.
- * Published with the Svelte store contract.
- */
+/** One import's Immich selection, tab, lists and feeds, kept across visits (Svelte store). */
 export class ImmichBrowser {
   readonly selection = new PhotoSelection();
   readonly #client: ImmichClient;
@@ -181,11 +177,7 @@ export class ImmichBrowser {
     return feed;
   }
 
-  /**
-   * Selects every photo of the source not already in, or deselects them when all already are. A
-   * toggle while the source's photos are being fetched is ignored; a photo deselected meanwhile
-   * stays deselected.
-   */
+  /** Selects the whole source, or deselects it when all is selected; ignored while busy. */
   async toggleSource(
     source: BrowseSource,
     alreadyIn: AlreadyIn = NOTHING_ALREADY_IN,

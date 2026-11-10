@@ -11,10 +11,7 @@ export interface PhotoDay {
 /** `takenAt` is wall time with a `Z` (see `ImmichPhoto`), so its date part is the local day. */
 const DATE_PART_LENGTH = "YYYY-MM-DD".length;
 
-/**
- * Consecutive photos of one day, in the given order; a day split by other days repeats. A hidden
- * asset counts on the day of its `takenAt`; a day with no listed photo gets no group.
- */
+/** Consecutive photos of one day with that day's hidden count; a day of hidden ones only is left out. */
 export function groupByDay(
   photos: readonly ImmichPhoto[],
   hiddenTakenAt: readonly string[] = [],

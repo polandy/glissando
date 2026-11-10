@@ -28,11 +28,7 @@ export interface PhotoFeedOptions {
 
 const FIRST_PAGE = 1;
 
-/**
- * The photos of one source, a page at a time, published with the Svelte store
- * contract. The infinite-scroll list calls `loadMore()` whenever its end comes into view, so
- * calls while a page is under way, after the last page or after a failure are ignored.
- */
+/** One source's photos a page at a time (Svelte store); `loadMore()` may be called freely. */
 export class PhotoFeed {
   readonly #client: ImmichClient;
   readonly #source: PhotoSource;
