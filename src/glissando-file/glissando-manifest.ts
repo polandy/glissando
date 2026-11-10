@@ -107,7 +107,7 @@ export interface ManifestPicture {
   readonly video?: ManifestVideo;
   /** The nearest bundled place to the picture's GPS, resolved at import; absent: none (ADR-0043). */
   readonly place?: Place;
-  /** The focus found on this picture and the detector version that found it; absent: none yet (ADR-0053). */
+  /** The focus found on this picture and the detector version that found it (ADR-0053). */
   readonly focus?: StoredFocus;
 }
 
