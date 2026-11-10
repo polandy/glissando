@@ -1,3 +1,4 @@
+import { DISPLAY_BOUND } from "../../import/downscale.ts";
 import type { KeyValueStorage } from "../storage/storage-port.ts";
 import { createStoredChoice, type StoredChoice } from "./stored-choice.ts";
 
@@ -15,9 +16,6 @@ export type PlaybackQualityPreference = (typeof PLAYBACK_QUALITY_PREFERENCES)[nu
 const DEFAULT_PLAYBACK_QUALITY_PREFERENCE: PlaybackQualityPreference = "auto";
 
 const PLAYBACK_QUALITY_KEY = "glissando.playbackQuality";
-
-/** The short edge of Immich's preview by default: a screen up to it shows the preview sharp. */
-const PREVIEW_SHORT_EDGE = 1440;
 
 export type PlaybackQualityStore = StoredChoice<PlaybackQualityPreference>;
 
@@ -48,11 +46,14 @@ export function browserScreenShortEdge(window: Window): number {
   return screenShortEdge({ width, height, devicePixelRatio: window.devicePixelRatio });
 }
 
-/** "auto" plays 4K only on a screen whose short edge has more pixels than the preview. */
+/**
+ * "auto" plays 4K only on a screen whose short edge holds the whole 4K rendition: below it, the
+ * gain over the preview does not pay for decoding each original during playback (ADR-0027).
+ */
 export function effectivePlaybackQuality(
   preference: PlaybackQualityPreference,
   shortEdge: number,
 ): PlaybackQuality {
   if (preference !== "auto") return preference;
-  return shortEdge > PREVIEW_SHORT_EDGE ? "4k" : "1440";
+  return shortEdge >= DISPLAY_BOUND.shortEdge ? "4k" : "1440";
 }

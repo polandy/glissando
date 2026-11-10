@@ -23,8 +23,10 @@ describe("effectivePlaybackQuality", () => {
   it.each<[PlaybackQualityPreference, number, PlaybackQuality]>([
     ["auto", 1280, "1440"],
     ["auto", 1440, "1440"],
-    ["auto", 1441, "4k"],
+    ["auto", 1912, "1440"],
+    ["auto", 2159, "1440"],
     ["auto", 2160, "4k"],
+    ["auto", 2880, "4k"],
     ["1440", 2160, "1440"],
     ["4k", 1280, "4k"],
   ])("plays %s on a screen with a %i-pixel short edge in %s", (preference, edge, quality) => {

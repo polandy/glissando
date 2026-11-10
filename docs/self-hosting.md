@@ -174,11 +174,12 @@ a `.local` or `.lan` name, a private IP) only works at home, and the app says so
 paths, tokens included, unless you filter them there.
 
 **For 4K on a TV**: server slideshows played in the app follow the setting "Quality of server
-slideshows" on each device. On a screen sharper than 1440 pixels, "Automatic" plays 4K: Glissando
-downloads each original from Immich and makes it into a 4K picture on the device. That takes
-longer than a slide is shown, so before the slideshow starts, Glissando prepares as many pictures
-as it needs to never stop on the way, and shows how long that takes; "Start now" or "Play in 1440"
-skip the wait. Nothing needs to change in Immich for this.
+slideshows" on each device. On a 4K screen (at least 2160 pixels on its short edge, such as a
+4K TV), "Automatic" plays 4K: Glissando downloads each original from Immich and makes it into a
+4K picture on the device. That takes longer than a slide is shown, so before the slideshow
+starts, Glissando prepares as many pictures as it needs to never stop on the way, and shows how
+long that takes; "Start now" or "Play in 1440" skip the wait. Phones, tablets and laptops get 1440, which is sharp there. Nothing needs to change
+in Immich for this.
 
 Shared slideshows always show Immich's preview of each photo, which is 1440 pixels on its short
 edge by default: sharp on phones and laptops, soft on a 4K TV. For 4K there, in Immich, go to

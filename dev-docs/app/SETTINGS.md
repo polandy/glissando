@@ -22,7 +22,7 @@ comes in):
   on large screens; prepares pictures before it starts") — the one size scale Small / Standard /
   Large the export sheets use too (`sizeScale.*`). Automatic plays 4K only when the screen's short edge in
   device pixels (screen size × `devicePixelRatio`, `screenShortEdge` in
-  `settings/playback-quality.ts`) is larger than 1440. What a server slideshow then does before
+  `settings/playback-quality.ts`) is at least 2160, the 4K rendition's own short edge. What a server slideshow then does before
   it plays: [PREPARING.md](PREPARING.md), ADR-0027.
 - **Picture frame** (`settings/FrameSettingsGroup.svelte`), only while the server library is on:
   "Set up a picture frame" opens the frame's set-up screen ([FRAME.md](FRAME.md)); the switch
