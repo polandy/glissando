@@ -48,8 +48,13 @@ excerpt under 500 ms, and a chapter's picture index past the picture count or re
 
 No stored field may be lost between export and open: `round-trip-every-field.test.ts` exports a
 slideshow with every optional field set, nested ones included, and opens it as an equal copy
-but for its ids and title. Its fixture (`testing/every-field-fixture.ts`) is typed so that a
-field added to a stored type does not compile until the fixture sets it.
+but for its ids and title, with each picture's focus and the bytes of every picture, thumbnail,
+clip and song. Its fixture (`testing/every-field-fixture.ts`) is typed so that a field added to
+a stored type does not compile until the fixture sets it. `round-trip-every-value.test.ts`
+sends each setting's whole range through the same round trip: every choice of a transition,
+look, mood, portrait layout, card style, position, entrance, tint and swatch, every sample
+track, each kind of focus, and the bounds of every number. A beat grid and a loudness are
+results of the music analysis, not settings; the receiving device works them out again.
 
 Export, the check before a file is stored, write, and `index.html`:
 [GLISSANDO_FILE_IO](GLISSANDO_FILE_IO.md).
