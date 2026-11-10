@@ -20,12 +20,7 @@ export type DemoFetch = (url: string) => Promise<DemoFetchResponse>;
 /** The `Content-Encoding` under which Content-Length counts the bytes the body yields. */
 const IDENTITY_ENCODING = "identity";
 
-/**
- * Streams the response, reporting bytes received against Content-Length as they arrive. Under a
- * content encoding (GitHub Pages gzips the demo) Content-Length counts the encoded bytes, so the
- * total reported never drops below the bytes received; without one, a body that ends short of
- * it is a download cut short and rejects.
- */
+/** Streams the response with its progress; a body cut short rejects (ADR-0052). */
 export function browserDemoDownload(fetchDemo: DemoFetch): DemoDownloadPort {
   return {
     async download(url, onProgress) {
