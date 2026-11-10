@@ -65,11 +65,13 @@ function fakeConnectivity(online: boolean): DemoConnectivity & { setOnline(next:
 interface TestPorts extends DemoSlideshowFlowPorts {
   readonly shownToasts: readonly string[];
   readonly openedFiles: readonly File[];
+  readonly logged: readonly unknown[];
 }
 
 function ports(overrides: Partial<DemoSlideshowFlowPorts> = {}): TestPorts {
   const shownToasts: string[] = [];
   const openedFiles: File[] = [];
+  const logged: unknown[] = [];
   return {
     url: DEMO_URL,
     download: fakeDownload(),
@@ -77,8 +79,11 @@ function ports(overrides: Partial<DemoSlideshowFlowPorts> = {}): TestPorts {
     openFile: (file) => openedFiles.push(file),
     toaster: { show: (toast) => shownToasts.push(toast.text) },
     failedText: () => FAILED_TEXT,
+    isWholeFile: () => Promise.resolve(true),
+    log: (error) => logged.push(error),
     shownToasts,
     openedFiles,
+    logged,
     ...overrides,
   };
 }
@@ -147,6 +152,28 @@ describe("DemoSlideshowFlow", () => {
     expect(flow.state).toEqual({ kind: "idle", online: true });
     expect(demoPorts.shownToasts).toEqual([FAILED_TEXT]);
     expect(demoPorts.openedFiles).toHaveLength(0);
+    expect(demoPorts.logged).toEqual([new Error("network error")]);
+  });
+
+  it("shows the download-failed toast, not the import's damaged-file notice, for a download that is no whole .glissando file", async () => {
+    const download = fakeDownload();
+    const checked: string[] = [];
+    const demoPorts = ports({
+      download,
+      isWholeFile: async (file) => {
+        checked.push(await file.text());
+        return false;
+      },
+    });
+    const flow = new DemoSlideshowFlow(demoPorts);
+    const starting = flow.start();
+    download.resolve("the demo file, cut short");
+    await starting;
+    expect(checked).toEqual(["the demo file, cut short"]);
+    expect(flow.state).toEqual({ kind: "idle", online: true });
+    expect(demoPorts.shownToasts).toEqual([FAILED_TEXT]);
+    expect(demoPorts.openedFiles).toHaveLength(0);
+    expect(demoPorts.logged).toHaveLength(1);
   });
 
   it("ignores a second start() while one is already loading", async () => {

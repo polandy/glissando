@@ -9,7 +9,7 @@ without internet. If you use a self-hosted Glissando, open its address instead
 
 Nothing to show yet? On <https://polandy.github.io/glissando/>, an empty library offers the
 **See Glissando in action** card above **New slideshow**. It downloads a demo slideshow (about
-80 MB) with its own pictures, video clips and music; once loaded, it plays offline like any
+32 MB) with its own pictures, video clips and music; once loaded, it plays offline like any
 other slideshow. A self-hosted Glissando has no demo.
 
 ## Make a slideshow

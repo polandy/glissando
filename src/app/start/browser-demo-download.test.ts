@@ -77,6 +77,40 @@ describe("browserDemoDownload", () => {
     expect(seen).toEqual([null]);
   });
 
+  it("rejects a body that ends before its Content-Length, so a cut-short download is never opened", async () => {
+    const download = browserDemoDownload(
+      fakeFetch({
+        ok: true,
+        headers: { get: (name) => (name === "content-length" ? "9" : null) },
+        body: fakeStream([chunk("abc"), chunk("def")]),
+      }),
+    );
+    await expect(
+      download.download("https://example.invalid/demo.glissando", () => {}),
+    ).rejects.toThrow(/6 of 9 bytes/);
+  });
+
+  it("takes a content-encoded body past its Content-Length, which counts the encoded bytes, and never reports a total below the bytes received", async () => {
+    const seen: Array<{ received: number; total: number | null }> = [];
+    const headers: Record<string, string> = { "content-length": "4", "content-encoding": "gzip" };
+    const download = browserDemoDownload(
+      fakeFetch({
+        ok: true,
+        headers: { get: (name) => headers[name] ?? null },
+        body: fakeStream([chunk("abc"), chunk("def")]),
+      }),
+    );
+    const blob = await download.download(
+      "https://example.invalid/demo.glissando",
+      (received, total) => seen.push({ received, total }),
+    );
+    expect(seen).toEqual([
+      { received: 3, total: 4 },
+      { received: 6, total: 6 },
+    ]);
+    expect(await blob.text()).toBe("abcdef");
+  });
+
   it("rejects on a non-2xx response, naming its status", async () => {
     const download = browserDemoDownload(
       fakeFetch({ ok: false, status: 404, statusText: "Not Found" }),

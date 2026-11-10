@@ -66,10 +66,16 @@ manifest and icons in `public/`; the PNG icons come from `scripts/brand/icons.sh
   file takes (`app/start/demo-slideshow-flow.ts`). The demo file is never part of the bundle or
   the precache, so its size costs nothing until someone asks for it. While loading, the card's action line carries
   progress, "Loading demo… 12 of 31 MB", with a hairline bar along the card's bottom edge
-  (indeterminate until the download's `Content-Length` is known). Offline, the card is disabled
-  (dimmed) with the hint "Needs a connection — once loaded, the demo works offline." A failed
-  download toasts "Couldn't load the demo — try again" and returns the card to idle. The demo's
-  rights note sits beside the file, in `glissando-assets/demo/README.md`.
+  (indeterminate until the download's `Content-Length` is known; GitHub Pages sends the file
+  gzip-encoded, so that length is the compressed one and the total grows to the bytes received).
+  Offline, the card is disabled (dimmed) with the hint "Needs a connection — once loaded, the demo
+  works offline." The whole file (about 32 MB) is downloaded before the import, which checks
+  every medium before writing (ADR-0052). A download that fails, or that ends short of its
+  `Content-Length` or of a whole ZIP directory, never reaches the import (whose "damaged" notice
+  is for a truly damaged file): it is logged, toasts "Couldn't load the demo — try again" and
+  returns the card to idle. The service worker leaves the download alone, as it answers only
+  requests inside its scope (ADR-0005). The demo's rights note sits beside the file, in
+  `glissando-assets/demo/README.md`.
 - **Sample music** (library/SAMPLE_MUSIC.md, ADR-0042): on in every build, the public
   installation and the self-hosted Docker image alike; `GLISSANDO_SAMPLE_MUSIC=off` at build time
   (`build/sample-music-config.ts`, a Docker build argument) leaves it out, and

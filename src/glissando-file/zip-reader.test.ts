@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest";
 import { crc32 } from "./crc32";
 import { StoredZipWriter } from "./stored-zip";
 import { rawZip } from "./testing/raw-zip";
-import { readEntry, readZipDirectory, startsLikeZip, type ZipEntry } from "./zip-reader";
+import {
+  isWholeZip,
+  readEntry,
+  readZipDirectory,
+  startsLikeZip,
+  type ZipEntry,
+} from "./zip-reader";
 
 const MODIFIED = new Date("2025-07-01T10:30:14Z");
 const text = (value: string): Blob => new Blob([new TextEncoder().encode(value)]);
@@ -93,6 +99,16 @@ describe("startsLikeZip", () => {
   it("tells a ZIP from a file that does not start like one", async () => {
     expect(await startsLikeZip(await storedZipOf({ "a.txt": "x" }))).toBe(true);
     expect(await startsLikeZip(text("\xff\xd8\xff a JPEG, say"))).toBe(false);
+  });
+});
+
+describe("isWholeZip", () => {
+  it("takes a ZIP whose every entry its directory lists, and refuses one cut short or no ZIP at all", async () => {
+    const zip = await storedZipOf({ "glissando.json": "{}", "pictures/0001.jpg": "jpeg bytes" });
+    expect(await isWholeZip(zip)).toBe(true);
+    expect(await isWholeZip(zip.slice(0, zip.size - 10))).toBe(false);
+    expect(await isWholeZip(zip.slice(0, 40))).toBe(false);
+    expect(await isWholeZip(text("not a zip"))).toBe(false);
   });
 });
 

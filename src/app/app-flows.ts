@@ -1,5 +1,6 @@
 import type { AddPicturesSession } from "./add-pictures/add-pictures-session";
 import { AddPicturesFlow } from "./add-pictures/add-pictures-flow";
+import { isWholeZip } from "../glissando-file/zip-reader";
 import { refusalToast } from "./editing/edit-refusal";
 import { ExportJob } from "./glissando-file/export-job";
 import { OpenFlow } from "./glissando-file/open-flow";
@@ -46,8 +47,10 @@ export function createAppFlows(
     download: services.demoSlideshow.download,
     connectivity: services.demoSlideshow.connectivity,
     openFile: (file) => void openFlow.open(file, "library"),
+    isWholeFile: isWholeZip,
     toaster: services.toaster,
     failedText: () => t("start.demoLoadFailed"),
+    log: (error) => services.log(error),
   });
   return { importFlow, addFlow, exportJob, openFlow, immichBrowsers, demoSlideshowFlow };
 }
