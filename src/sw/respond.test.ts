@@ -173,10 +173,16 @@ describe("answersRequest", () => {
       answers: true,
     },
     {
-      what: "a GET of an immich path outside the app",
+      what: "a GET outside the app's scope on its origin, such as the demo slideshow on GitHub Pages",
       method: "GET",
-      url: `${ORIGIN}/immich/api/albums`,
-      answers: true,
+      url: `${ORIGIN}/glissando-assets/demo/glissando-demo.glissando`,
+      answers: false,
+    },
+    {
+      what: "a GET of a path that merely starts like the app's scope",
+      method: "GET",
+      url: `${ORIGIN}/app-assets/demo.glissando`,
+      answers: false,
     },
     { what: "a POST", method: "POST", url: HASHED_URL, answers: false },
     {

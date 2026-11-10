@@ -27,7 +27,7 @@ const IMMICH_ROUTE = "immich/";
 const SERVER_ROUTES = ["api", "s", "r", "tv"] as const;
 
 /**
- * Only the app's own reads are answered; any other request goes to the network untouched.
+ * Only the app's own reads, inside its scope, are answered; any other request goes to the network.
  * A navigation to a path outside the app but inside the scope gets the app too: the scope is
  * the app's directory, so nothing else lives there — except the Immich and server routes, which
  * are live data and never come from or go into a cache (ADR-0013, ADR-0018, ADR-0025).
@@ -41,7 +41,7 @@ export function answersRequest(request: Pick<Request, "method" | "url">, scope: 
   });
   return (
     request.method === GET &&
-    url.origin === immichRoute.origin &&
+    url.href.startsWith(scope) &&
     !url.pathname.startsWith(immichRoute.pathname) &&
     !isServerRoute
   );

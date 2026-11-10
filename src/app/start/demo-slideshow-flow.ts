@@ -33,8 +33,11 @@ export interface DemoSlideshowFlowPorts {
   readonly connectivity: DemoConnectivity;
   /** Hands the downloaded bytes to the existing .glissando import, exactly as a picked file would. */
   openFile(file: File): void;
+  /** Whether the download is a whole .glissando container; one cut short never reaches the import. */
+  isWholeFile(file: Blob): Promise<boolean>;
   readonly toaster: Pick<Toaster, "show">;
   failedText(): string;
+  log(error: unknown): void;
 }
 
 /** The start screen's third hero button shows only on the public install with an empty library. */
@@ -82,10 +85,14 @@ export class DemoSlideshowFlow {
       const blob = await this.#ports.download.download(this.#ports.url, (received, total) =>
         this.#publish({ kind: "loading", online: this.#state.online, received, total }),
       );
+      if (!(await this.#ports.isWholeFile(blob))) {
+        throw new Error(`the demo download of ${blob.size} bytes is no whole .glissando file`);
+      }
       this.#loading = false;
       this.#publish({ kind: "idle", online: this.#state.online });
       this.#ports.openFile(new File([blob], DEMO_FILE_NAME, { type: blob.type }));
-    } catch {
+    } catch (error) {
+      this.#ports.log(error);
       this.#loading = false;
       this.#publish({ kind: "idle", online: this.#state.online });
       this.#ports.toaster.show({ text: this.#ports.failedText(), tone: "error" });

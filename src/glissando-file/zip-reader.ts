@@ -75,6 +75,11 @@ export async function readZipDirectory(file: Blob): Promise<ZipEntry[] | null> {
   return entries;
 }
 
+/** Whether the file is a ZIP with its every entry in place, as a download cut short is not. */
+export async function isWholeZip(file: Blob): Promise<boolean> {
+  return (await startsLikeZip(file)) && (await readZipDirectory(file)) !== null;
+}
+
 export interface ReadEntryOptions {
   /** The blob's MIME type. */
   readonly type?: string;

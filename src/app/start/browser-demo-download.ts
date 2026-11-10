@@ -17,7 +17,10 @@ export interface DemoFetchResponse {
 
 export type DemoFetch = (url: string) => Promise<DemoFetchResponse>;
 
-/** Streams the response, reporting bytes received against Content-Length as they arrive. */
+/** The `Content-Encoding` under which Content-Length counts the bytes the body yields. */
+const IDENTITY_ENCODING = "identity";
+
+/** Streams the response with its progress; a body cut short rejects (ADR-0052). */
 export function browserDemoDownload(fetchDemo: DemoFetch): DemoDownloadPort {
   return {
     async download(url, onProgress) {
@@ -31,7 +34,12 @@ export function browserDemoDownload(fetchDemo: DemoFetch): DemoDownloadPort {
         onProgress(blob.size, total);
         return blob;
       }
-      return readBody(response.body.getReader(), total, onProgress);
+      const encoding = response.headers.get("content-encoding") ?? IDENTITY_ENCODING;
+      const blob = await readBody(response.body.getReader(), total, onProgress);
+      if (encoding === IDENTITY_ENCODING && total !== null && blob.size < total) {
+        throw new Error(`the demo download ended after ${blob.size} of ${total} bytes`);
+      }
+      return blob;
     },
   };
 }
@@ -51,7 +59,7 @@ async function readBody(
     if (value !== undefined) {
       chunks.push(value);
       received += value.byteLength;
-      onProgress(received, total);
+      onProgress(received, total === null ? null : Math.max(total, received));
     }
   }
   return new Blob(chunks as BlobPart[]);
