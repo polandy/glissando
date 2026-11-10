@@ -224,6 +224,6 @@ describe("ImmichRoute, hidden notes", () => {
     flushSync();
 
     const notes = [...target.querySelectorAll(".note")].map((note) => note.textContent.trim());
-    expect(notes).toEqual(["2 not JPEG, hidden", "2 not JPEG, hidden"]);
+    expect(notes).toEqual(["2 not JPEG, hidden", "2 not JPEG, hidden", "2 not JPEG, hidden"]);
   });
 });
