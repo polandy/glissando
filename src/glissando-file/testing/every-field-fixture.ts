@@ -7,6 +7,8 @@ import type {
   StoredSlideshow,
 } from "../../library/stored-slideshow";
 import type { StoredVideo } from "../../library/own-video";
+import type { StoredFocus } from "../../library/picture-focus";
+import { FOCUS_DETECTOR_VERSION } from "../../focus/focus-detector-version";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { tinyPicture } from "./glissando-fixtures";
 
@@ -128,7 +130,23 @@ export const EVERY_FIELD_SLIDESHOW: Complete<StoredSlideshow> = {
   addedChapters: [ADDED_CHAPTER],
 };
 
-/** A store holding every medium `EVERY_FIELD_SLIDESHOW` names. */
+/** The focus stored for each picture of `EVERY_FIELD_SLIDESHOW`, one of each kind of result. */
+export const EVERY_FIELD_FOCUS: ReadonlyMap<string, StoredFocus> = new Map([
+  [
+    FIRST_PICTURE.id,
+    {
+      focus: {
+        kind: "subject",
+        box: { x: 0.2, y: 0.1, width: 0.3, height: 0.4 },
+        foundBy: "immich-faces",
+      },
+      detector: FOCUS_DETECTOR_VERSION,
+    },
+  ],
+  [SECOND_PICTURE.id, { focus: { kind: "scenery" }, detector: FOCUS_DETECTOR_VERSION }],
+]);
+
+/** A store holding every medium and focus `EVERY_FIELD_SLIDESHOW` names. */
 export async function everyFieldStore(): Promise<MemoryLibraryStore> {
   const store = new MemoryLibraryStore();
   for (const { id } of EVERY_FIELD_SLIDESHOW.pictures) {
@@ -139,5 +157,8 @@ export async function everyFieldStore(): Promise<MemoryLibraryStore> {
   }
   await store.putVideo(VIDEO.mediaId, new Blob(["clip"], { type: "video/mp4" }));
   await store.putMusic(SONG.id, new Blob(["music"], { type: SONG.mimeType }));
+  for (const [pictureId, stored] of EVERY_FIELD_FOCUS) {
+    await store.putPictureFocus(pictureId, stored);
+  }
   return store;
 }
