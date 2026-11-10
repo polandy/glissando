@@ -59,6 +59,7 @@ const READER_ONLY_RULES = [
   "a video excerpt lies within its sourceMs and lasts at least the shortest excerpt",
   "a chapter edit's or added chapter's picture index is below the number of pictures, naming each picture at most once",
   "a chapter's title or subtitle, when given, is non-empty and at most 80 user-perceived characters",
+  "a focus box has a width and height above 0 and lies within the picture",
 ];
 
 /**

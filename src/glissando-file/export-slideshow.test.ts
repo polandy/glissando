@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { storedFocus } from "../library/focus-pass-fixtures";
 import { MemoryLibraryStore } from "../library/testing/memory-store";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 import { exportSlideshow, glissandoFileName } from "./export-slideshow";
@@ -111,25 +110,6 @@ describe("exportSlideshow", () => {
     const read = await contents(file);
     expect(read["music/track-1.m4a"]).toBe("music bytes");
     expect(read["music/track-2.mp3"]).toBe("polka bytes");
-  });
-
-  it("carries no picture's focus, even one stored on this device (ADR-0012)", async () => {
-    const store = await storeWithMedia();
-    await store.putPictureFocus(
-      "p1",
-      storedFocus({
-        kind: "subject",
-        box: { x: 0.2, y: 0.1, width: 0.3, height: 0.4 },
-        foundBy: "face",
-      }),
-    );
-    expect((await store.pictureFocus(["p1"])).has("p1")).toBe(true);
-
-    const file = await exportSlideshow(slideshow, store, OPTIONS);
-
-    const json = (await contents(file))["glissando.json"] ?? "";
-    expect(json).toContain('"capturedAt"');
-    expect(json).not.toMatch(/focus|"box"/i);
   });
 
   it("reports progress per media file up to all of them", async () => {

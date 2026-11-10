@@ -5,6 +5,7 @@ import {
   OWN_DURATION_STEP_MS,
 } from "../library/own-timing";
 import { TRANSITION_CHOICES } from "../library/own-timing";
+import { SUBJECT_FINDERS } from "../library/picture-focus";
 import { MIN_KEN_BURNS_ZOOM } from "../player/slideshow";
 import {
   CAPTION_SCHEMA,
@@ -53,6 +54,54 @@ const PLACE_SCHEMA: JsonSchema = {
   additionalProperties: false,
 };
 
+const FRACTION_SCHEMA: JsonSchema = { type: "number", minimum: 0, maximum: 1 };
+
+/**
+ * A subject's box; a size above 0 and `x + width <= 1`, `y + height <= 1` stay reader-only, see
+ * `manifest-schema-reader-only.test.ts`.
+ */
+const FOCUS_BOX_SCHEMA: JsonSchema = {
+  type: "object",
+  properties: {
+    x: FRACTION_SCHEMA,
+    y: FRACTION_SCHEMA,
+    width: FRACTION_SCHEMA,
+    height: FRACTION_SCHEMA,
+  },
+  required: ["x", "y", "width", "height"],
+  additionalProperties: false,
+};
+
+/** The focus found on the picture and the detector version that found it (ADR-0053). */
+const STORED_FOCUS_SCHEMA: JsonSchema = {
+  type: "object",
+  properties: {
+    focus: {
+      anyOf: [
+        {
+          type: "object",
+          properties: {
+            kind: { const: "subject" },
+            box: FOCUS_BOX_SCHEMA,
+            foundBy: { enum: SUBJECT_FINDERS },
+          },
+          required: ["kind", "box", "foundBy"],
+          additionalProperties: false,
+        },
+        {
+          type: "object",
+          properties: { kind: { enum: ["scenery", "none"] } },
+          required: ["kind"],
+          additionalProperties: false,
+        },
+      ],
+    },
+    detector: POSITIVE_SAFE_INTEGER_SCHEMA,
+  },
+  required: ["focus", "detector"],
+  additionalProperties: false,
+};
+
 /** A manifest picture; `immichAssetId` and `fileBytes` may each appear, never both. */
 export const PICTURE_SCHEMA: JsonSchema = {
   type: "object",
@@ -78,6 +127,7 @@ export const PICTURE_SCHEMA: JsonSchema = {
     alone: { const: true },
     video: VIDEO_SCHEMA,
     place: PLACE_SCHEMA,
+    focus: STORED_FOCUS_SCHEMA,
   },
   required: ["file", "capturedAt", "width", "height", "fileName", "colours"],
   additionalProperties: false,

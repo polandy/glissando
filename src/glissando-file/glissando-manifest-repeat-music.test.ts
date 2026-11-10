@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  GLISSANDO_FORMAT_VERSION,
-  manifestFor,
-  REPEAT_MUSIC_FROM_VERSION,
-} from "./glissando-manifest";
+import { manifestFor, REPEAT_MUSIC_FROM_VERSION } from "./glissando-manifest";
 import { readManifest } from "./read-manifest";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 
@@ -41,7 +37,7 @@ function written(
 
 describe("the slideshow's music repeat in the .glissando file (ADR-0047)", () => {
   it("is written as the format version that carries it", () => {
-    expect(REPEAT_MUSIC_FROM_VERSION).toBe(GLISSANDO_FORMAT_VERSION);
+    expect(REPEAT_MUSIC_FROM_VERSION).toBe(21);
     expect(manifestFor(repeated, [JPEG]).slideshow.repeatMusic).toBe(true);
   });
 

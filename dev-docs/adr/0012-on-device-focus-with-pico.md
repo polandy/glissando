@@ -44,8 +44,8 @@ is the share of pictures whose chosen focus point lies inside a tagged face (box
   not looked at yet plays today's motion.
 - **Where:** a `focus` IndexedDB store keyed by picture id, beside the media and deleted
   with it — not on `StoredPicture`, whose record the editor rewrites from its in-memory copy.
-- **`.glissando` files do not carry it** (format unchanged): the focus is an automatic result, like
-  the automatic motion; the receiving device detects it again in the background.
+- **`.glissando` files carry it** with its detector version, so the receiving device detects only
+  what is missing or outdated (ADR-0053).
 - **Override:** a picture's chosen motion (ADR-0006) still replaces the automatic one, focus or not.
 
 ## Options weighed
@@ -60,8 +60,8 @@ is the share of pictures whose chosen focus point lies inside a tagged face (box
 - _A saliency heuristic, no model_ — free, but no better than aiming at the middle.
 - _At import_ — would lengthen every import; a background pass also covers existing slideshows
   and opened files.
-- _Carry the focus in `.glissando` files_ — saves the receiver a few seconds per hundred pictures
-  but needs a format version and freezes today's detector into every file.
+- _Carry the focus in `.glissando` files_ — first rejected as freezing today's detector into
+  every file; taken up with the detector version in ADR-0053.
 
 ## Consequences
 

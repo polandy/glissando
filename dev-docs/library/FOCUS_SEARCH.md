@@ -11,7 +11,8 @@ neither, a wide picture that is mostly green or blue, or has a calm sky over a b
 the `FOCUS_DETECTOR_VERSION` that found it (1 faces, ADR-0012; 2 objects, ADR-0036; 3 scenery,
 ADR-0037); a record from an older version is outdated and is looked at again, the old result used
 until the new one is stored (ADR-0041). It starts when the app opens and again whenever a
-slideshow is created (an import, an opened file); a start while it runs only takes up the
+slideshow is created (an import, an opened file, whose carried focus is stored on opening and
+needs no search while current, ADR-0053); a start while it runs only takes up the
 slideshows created since, so two never run at once. `lookAgain(pictureIds)` asks for specific
 pictures regardless of their record — a slideshow-wide look-again is the caller passing all its
 picture ids — ahead of the background scan; a picture already queued moves to the front instead
