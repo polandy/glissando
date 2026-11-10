@@ -8,7 +8,13 @@ test.use(GERMAN_BROWSER);
 
 // The reference phone (dev-docs/library/SAMPLE_MUSIC.md, "The grid").
 const PHONE = { width: 412, height: 915 };
+// The owner's laptop (MacBook Air), where a third of the panel made each cover far too large.
+const LAPTOP = { width: 1470, height: 956 };
 const SAMPLE_TRACK_COUNT = 9;
+const PHONE_COLUMNS = 3;
+// A cover's width range on a laptop: 140 px up to the widest of five columns with 12 px gaps.
+const TILE_MIN_PX = 140;
+const TILE_MAX_PX = 171;
 // The sample-music base URL every build defaults to; no byte of it leaves the machine.
 const SAMPLE_MUSIC_BASE_URL = "https://polandy.github.io/glissando-assets/music/";
 
@@ -108,4 +114,20 @@ test("E2E-125 on a phone in German, every dot in a sample track's mood gets room
       );
     }
   }
+});
+
+test("E2E-127 on a laptop, the sample track covers stay about 140 px wide in more than three columns", async ({
+  page,
+}) => {
+  await page.setViewportSize(LAPTOP);
+  await page.getByRole("button", { name: `Alle ${SAMPLE_TRACK_COUNT} zeigen` }).click();
+  await expect(page.getByTestId("sample-more")).toBeVisible();
+  const covers = sampleCards(page).getByTestId("sample-card-cover");
+  await expect(covers).toHaveCount(SAMPLE_TRACK_COUNT);
+
+  const boxes = await Promise.all((await covers.all()).map((cover) => cover.boundingBox()));
+  const lefts = new Set(boxes.map((box) => box?.x));
+  expect(lefts.size).toBeGreaterThan(PHONE_COLUMNS);
+  const widths = boxes.map((box) => box?.width ?? 0);
+  expect(widths.filter((width) => width < TILE_MIN_PX || width >= TILE_MAX_PX)).toEqual([]);
 });
