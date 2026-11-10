@@ -10,7 +10,12 @@ import { browserScreenShortEdge } from "./app/settings/playback-quality";
 import { bootstrapSettings } from "./app/settings/bootstrap-settings";
 import { createDeviceSettingsStores } from "./app/device-settings-stores";
 import { browserScheduler } from "./ui-kit/scheduler";
-import { handOverFromShell, showInPlaceOfApp, showStartupFailure } from "./app/shell/app-shell";
+import {
+  handOverFromShell,
+  requirePageElement,
+  showInPlaceOfApp,
+  showStartupFailure,
+} from "./app/shell/app-shell";
 import { consumeFirstLaunch, createStorageFirstLaunchStore } from "./app/start/first-launch";
 import {
   createStorageRefusalNoticeStore,
@@ -42,6 +47,7 @@ import { browserVideoExportDevice } from "./app/video-export/browser-video-expor
 import { createFrameServices } from "./app/frame/frame-services";
 import { browserMediaDecoders } from "./glissando-file/browser/media-decoders";
 import { decodeClipSound } from "./video-export/browser/decode-clip-sound";
+import { createDemoSlideshowServices } from "./app/start/demo-slideshow-services";
 import { wireMusic } from "./wire-music";
 import { wireServer } from "./wire-server";
 
@@ -49,14 +55,8 @@ const { client: immichClient, availability: immichAvailability } = browserImmich
 
 const { settings, translator } = bootstrapSettings(window, document.documentElement);
 
-const target = document.getElementById("app");
-if (!target) {
-  throw new Error("Mount point #app is missing from index.html");
-}
-const shell = document.getElementById("app-shell");
-if (!shell) {
-  throw new Error("The app shell #app-shell is missing from index.html");
-}
+const target = requirePageElement(document, "app");
+const shell = requirePageElement(document, "app-shell");
 
 const toaster = new Toaster(browserScheduler);
 const logError = (error: unknown): void => console.error(error);
@@ -204,6 +204,8 @@ const intakePorts = browserIntakePorts({
   translator,
 });
 
+const demoSlideshow = createDemoSlideshowServices(window);
+
 const services = {
   store,
   navigator,
@@ -260,6 +262,7 @@ const services = {
   ...server.sessions,
   reload: () => window.location.reload(),
   ...createFrameServices(window, browserScheduler, logError),
+  demoSlideshow,
   ...sampleMusic,
   ...createDeviceSettingsStores(window.localStorage),
 };

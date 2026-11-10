@@ -3,6 +3,7 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
 import { buildInfoPlugin } from "./build/build-info.ts";
+import { demoSlideshowConfigPlugin } from "./build/demo-slideshow-config.ts";
 import { committedLicensesPlugin } from "./build/committed-licenses.ts";
 import { exportPlayerPlugin } from "./build/export-player-plugin.ts";
 import { filePagePlugin } from "./build/file-page-plugin.ts";
@@ -59,6 +60,7 @@ export default defineConfig({
   plugins: [
     svelte(),
     buildInfoPlugin(),
+    demoSlideshowConfigPlugin(),
     pinnedThemePlugin(),
     exportPlayerPlugin(),
     filePagePlugin(),

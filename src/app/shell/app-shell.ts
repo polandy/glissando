@@ -40,6 +40,15 @@ export function handOverFromShell(shell: HTMLElement): Promise<void> {
   });
 }
 
+/** The element index.html carries under `id`; a missing one is a broken page, so it throws. */
+export function requirePageElement(document: Document, id: string): HTMLElement {
+  const element = document.getElementById(id);
+  if (element === null) {
+    throw new Error(`#${id} is missing from index.html`);
+  }
+  return element;
+}
+
 /** A button under a message, e.g. to reload the page. */
 export interface ReloadAction {
   readonly label: string;

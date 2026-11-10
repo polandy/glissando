@@ -62,6 +62,12 @@ function mountStart(store: MemoryLibraryStore) {
     onSetUpFrame: () => {},
     onHideFrameCard: () => {},
     frameCardShown: false,
+    demoSlideshow: {
+      state: { kind: "idle", online: true },
+      subscribe: () => () => {},
+      start: async () => {},
+    },
+    publicInstall: false,
   });
   destroy = mounted.destroy;
   return mounted.target;
