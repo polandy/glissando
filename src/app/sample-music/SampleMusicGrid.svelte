@@ -197,11 +197,17 @@
   }
   .grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 12px;
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+  /* Narrower than three 140 px tiles and their gaps: the phone's three columns. */
+  @container (width < 444px) {
+    .grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
   .toggle {
     display: flex;

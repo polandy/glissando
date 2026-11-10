@@ -65,7 +65,9 @@ both as build arguments (`deploy/Dockerfile`).
   toggle itself sits at the block's bottom and reads "Show fewer" once open, which folds the block
   again. Nothing scrolls sideways. Unfolded or not, the block keeps its state while the step is
   open.
-- **The grid**: 3 columns at every width. A card is a square cover with its caption below it.
+- **The grid**: tiles about 140 px wide, as many columns as fit (5–6 on a laptop, more on a
+  large desktop); narrower than three such tiles — a phone, the Add a song sheet — 3 columns
+  that share the width. A card is a square cover with its caption below it.
   Only the play button (bottom left) and "+" (top right, `aria-label` "Add <title>"; "✓" once
   added) sit on the cover; the title, the mood and the length (mono font) follow under it as plain
   text, title and mood wrapping in full — never clamped or cut with an ellipsis, in either

@@ -13,6 +13,13 @@ import { settleMicrotasks } from "../../testing/settle-microtasks";
 const ADD_SONG_SHEET_WIDTH_PX = 280;
 /** The grid's width in the import music step on the 412 px reference phone. */
 const IMPORT_STEP_WIDTH_PX = 350;
+/** Grid widths on laptop and large-desktop screens, where tiles keep their size and add columns. */
+const WIDE_WIDTHS_PX = [900, 1400];
+/** A card's width there: 140 px up to the widest of five columns with 12 px gaps. */
+const TILE_MIN_PX = 140;
+const TILE_MAX_PX = 171;
+/** The phone layout: three columns of cards. */
+const PHONE_COLUMNS = 3;
 
 let unmounts: (() => void)[] = [];
 afterEach(() => {
@@ -59,6 +66,10 @@ const showsInFull = (element: HTMLElement): boolean =>
   element.scrollWidth <= element.clientWidth + SUBPIXEL_ROUNDING_PX &&
   element.scrollHeight <= element.clientHeight + SUBPIXEL_ROUNDING_PX;
 
+/** How many columns the cards stand in: their distinct left edges. */
+const columnCount = (target: HTMLElement): number =>
+  new Set(cards(target).map((card) => card.getBoundingClientRect().left)).size;
+
 function overlaps(a: Element, b: Element): boolean {
   const boxA = a.getBoundingClientRect();
   const boxB = b.getBoundingClientRect();
@@ -74,6 +85,13 @@ describe.each([
   ["the Add song sheet", ADD_SONG_SHEET_WIDTH_PX],
   ["the import music step", IMPORT_STEP_WIDTH_PX],
 ])("SampleMusicGrid in German, at the width of %s", (_where, widthPx) => {
+  it("lays the cards out in three columns", async () => {
+    const target = await mountGerman(widthPx);
+
+    expect(cards(target)).toHaveLength(SAMPLE_TRACKS.length);
+    expect(columnCount(target)).toBe(PHONE_COLUMNS);
+  });
+
   it("shows every card's title and mood in full", async () => {
     const target = await mountGerman(widthPx);
 
@@ -98,5 +116,15 @@ describe.each([
         : [];
     });
     expect(crowded).toEqual([]);
+  });
+});
+
+describe.each(WIDE_WIDTHS_PX)("SampleMusicGrid %i px wide", (widthPx) => {
+  it("keeps every card near 140 px wide and adds columns instead", async () => {
+    const target = await mountGerman(widthPx);
+
+    expect(columnCount(target)).toBeGreaterThan(PHONE_COLUMNS);
+    const widths = cards(target).map((card) => card.getBoundingClientRect().width);
+    expect(widths.filter((width) => width < TILE_MIN_PX || width >= TILE_MAX_PX)).toEqual([]);
   });
 });
