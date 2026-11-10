@@ -125,7 +125,8 @@ groups; choose a row and its sheet opens, with **Back** (or Esc) to the list and
 - Glissando looks for faces and other subjects in the background, so motion aims well; while it
   runs, the bar at the top of every screen and each card show how far it got. **Faces and subjects
   …** in a slideshow's ⋯ menu lets you look again at any picture,
-  including one it couldn't look at the first time.
+  including one it couldn't look at the first time. A `.glissando` file brings what was found
+  on the device that saved it, so opening one needs no new search.
 - The phone's back gesture or the browser's back button asks before it drops pictures you have
   chosen but not yet used, the same as the Back arrow.
 - Your pictures stay on your device. Nothing is uploaded unless you use a server you run yourself.

@@ -22,7 +22,7 @@ const JSON_INDENT = 2;
 
 export type ExportMedia = Pick<
   LibraryStore,
-  "pictureBlob" | "thumbnailBlob" | "musicBlob" | "videoBlob"
+  "pictureBlob" | "thumbnailBlob" | "musicBlob" | "videoBlob" | "pictureFocus"
 >;
 
 export interface ExportOptions {
@@ -37,7 +37,8 @@ export interface ExportOptions {
 /**
  * The slideshow as a .glissando file: `glissando.json` first (it marks the file as one), then
  * its schema, a README and the player page, then each picture in play order with its thumbnail,
- * then the music, then each clip a video slide plays, once. The media is read from the store one
+ * then the music, then each clip a video slide plays, once. Each picture's stored focus goes into
+ * the manifest, so opening the file needs no detection for it (ADR-0053). The media is read from the store one
  * file at a time; the container is built from their blobs.
  */
 export async function exportSlideshow(
@@ -80,6 +81,7 @@ export async function exportSlideshow(
     slideshow,
     types,
     new Map([...clipBlobs].map(([mediaId, blob]) => [mediaId, blob.type])),
+    await media.pictureFocus(slideshow.pictures.map((picture) => picture.id)),
   );
   const zip = new StoredZipWriter(options.modifiedAt);
   await zip.add(

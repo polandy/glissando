@@ -131,6 +131,7 @@ describe("video slides in a .glissando file", () => {
     const failing: WritePorts["store"] = {
       claimMedia: (...args) => store.claimMedia(...args),
       putPicture: (...args) => store.putPicture(...args),
+      putPictureFocus: (...args) => store.putPictureFocus(...args),
       putMusic: (...args) => store.putMusic(...args),
       putVideo: (id, blob) =>
         ++clips === 2 ? Promise.reject(new Error("quota")) : store.putVideo(id, blob),

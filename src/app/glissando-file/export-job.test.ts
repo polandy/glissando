@@ -174,5 +174,6 @@ function pick(store: MemoryLibraryStore): ExportJobPorts["store"] {
     thumbnailBlob: (id) => store.thumbnailBlob(id),
     musicBlob: (id) => store.musicBlob(id),
     videoBlob: (id) => store.videoBlob(id),
+    pictureFocus: (ids) => store.pictureFocus(ids),
   };
 }

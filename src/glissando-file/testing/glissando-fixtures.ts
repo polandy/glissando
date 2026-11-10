@@ -1,3 +1,4 @@
+import type { StoredFocus } from "../../library/picture-focus";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { exportSlideshow } from "../export-slideshow";
@@ -98,8 +99,11 @@ export const EXPORTED_MEDIA_BYTES =
     0,
   ) + EXPORTED_MUSIC_BYTES_TEXT.length;
 
-/** A .glissando file as the export writes it. */
-export async function exportedFile(slideshow = EXPORTED_SLIDESHOW): Promise<Blob> {
+/** A .glissando file as the export writes it, `focus` stored for its pictures by id. */
+export async function exportedFile(
+  slideshow = EXPORTED_SLIDESHOW,
+  focus: ReadonlyMap<string, StoredFocus> = new Map(),
+): Promise<Blob> {
   const store = new MemoryLibraryStore();
   const { displayOne, thumbOne, displayTwo, thumbTwo } = EXPORTED_PICTURE_MARKERS;
   await store.putPicture("src-p1", {
@@ -111,6 +115,9 @@ export async function exportedFile(slideshow = EXPORTED_SLIDESHOW): Promise<Blob
     thumbnail: tinyPicture(thumbTwo),
   });
   await store.putMusic("src-m1", new Blob([EXPORTED_MUSIC_BYTES_TEXT], { type: "audio/mp4" }));
+  for (const [pictureId, stored] of focus) {
+    await store.putPictureFocus(pictureId, stored);
+  }
   return exportSlideshow(slideshow, store, EXPORT_OPTIONS);
 }
 

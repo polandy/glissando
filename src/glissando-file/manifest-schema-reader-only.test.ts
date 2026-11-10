@@ -73,6 +73,20 @@ describe("reader-only rules: accepted by the schema, refused by the reader", () 
       "a chapter title past the 80-grapheme limit",
       withAt(BASE_MANIFEST, ["slideshow", "chapterEdits", 0, "title"], "a".repeat(81)),
     ],
+    [
+      "a focus box reaching past the picture's right edge",
+      withAt(BASE_MANIFEST, ["slideshow", "pictures", 0, "focus"], {
+        focus: { kind: "subject", box: { x: 0.8, y: 0, width: 0.3, height: 0.5 }, foundBy: "face" },
+        detector: 3,
+      }),
+    ],
+    [
+      "a focus box of no width",
+      withAt(BASE_MANIFEST, ["slideshow", "pictures", 0, "focus"], {
+        focus: { kind: "subject", box: { x: 0.2, y: 0, width: 0, height: 0.5 }, foundBy: "face" },
+        detector: 3,
+      }),
+    ],
   ])("%s", (_name, doc) => {
     expect(validateManifestSchema(doc)).toBe(true);
     expect(readManifest(JSON.stringify(doc)).kind).not.toBe("ok");

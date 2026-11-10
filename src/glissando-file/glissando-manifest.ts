@@ -1,5 +1,6 @@
 import type { OwnKenBurns } from "../library/own-ken-burns";
 import type { PictureColours } from "../library/picture-colours";
+import type { StoredFocus } from "../library/picture-focus";
 import type { PictureLength } from "../library/picture-length";
 import type { PortraitPictures } from "../library/portrait-pictures";
 import type { BetweenSongs, MusicTrim, PictureChanges } from "../library/own-music";
@@ -52,16 +53,16 @@ export const GLISSANDO_FORMAT_ID = "glissando";
  * (`dev-docs/player/TRIP_CHAPTERS.md`), version 18 the slideshow's colour grade, `look`
  * (ADR-0044), version 19 the slideshow's mood (ADR-0045), version 20 the slideshow's energy
  * pacing, `energyPacing` (ADR-0046), version 21 the slideshow's music repeat, `repeatMusic`
- * (ADR-0047).
+ * (ADR-0047), version 22 a picture's found focus, `focus` (ADR-0053).
  *
- * Versions 13 to 21 are read (a version 13 file holds no clips, versions 13 and 14 no song
+ * Versions 13 to 22 are read (a version 13 file holds no clips, versions 13 and 14 no song
  * volume, versions 13 to 15 no sample-track id, versions 13 to 16 no place or chapters, versions
- * 13 to 17 no look, versions 13 to 18 no mood, versions 13 to 19 no energy pacing, and versions 13
- * to 20 no music repeat). Any older file is refused rather than migrated, as there is no
+ * 13 to 17 no look, versions 13 to 18 no mood, versions 13 to 19 no energy pacing, versions 13
+ * to 20 no music repeat, and versions 13 to 21 no focus). Any older file is refused rather than migrated, as there is no
  * production instance yet; before version 10 a file carried `music`, not `songs`, which cannot be
  * told apart from the rest of such a document.
  */
-export const GLISSANDO_FORMAT_VERSION = 21;
+export const GLISSANDO_FORMAT_VERSION = 22;
 export const OLDEST_READABLE_FORMAT_VERSION = 13;
 /** The first version that carries a song's own volume. */
 export const MUSIC_VOLUME_FROM_VERSION = 15;
@@ -79,6 +80,8 @@ export const MOOD_FROM_VERSION = 19;
 export const ENERGY_PACING_FROM_VERSION = 20;
 /** The first version that carries the slideshow's music repeat. */
 export const REPEAT_MUSIC_FROM_VERSION = 21;
+/** The first version that carries a picture's found focus. */
+export const FOCUS_FROM_VERSION = 22;
 export const MANIFEST_ENTRY_NAME = "glissando.json";
 
 export interface ManifestPicture {
@@ -104,6 +107,8 @@ export interface ManifestPicture {
   readonly video?: ManifestVideo;
   /** The nearest bundled place to the picture's GPS, resolved at import; absent: none (ADR-0043). */
   readonly place?: Place;
+  /** The focus found on this picture and the detector version that found it; absent: none yet (ADR-0053). */
+  readonly focus?: StoredFocus;
 }
 
 export interface ManifestMusic {
@@ -167,11 +172,15 @@ export type ManifestReading =
   | { readonly kind: "newer" }
   | { readonly kind: "damaged"; readonly reason: string };
 
-/** The manifest of `slideshow`; `pictureTypes` holds each picture's types, in play order. */
+/**
+ * The manifest of `slideshow`; `pictureTypes` holds each picture's types, in play order, `focus`
+ * the stored focus of those pictures that have one, by picture id.
+ */
 export function manifestFor(
   slideshow: StoredSlideshow,
   pictureTypes: readonly PictureTypes[],
   clipTypes: ReadonlyMap<string, string> = new Map(),
+  focus: ReadonlyMap<string, StoredFocus> = new Map(),
 ): GlissandoManifest {
   const clipFiles = new Map(
     distinctClipIds(slideshow.pictures).map((mediaId, index) => {
@@ -179,23 +188,27 @@ export function manifestFor(
       return [mediaId, { file: clipPath(index, mimeType), mimeType }] as const;
     }),
   );
-  const pictures = slideshow.pictures.map((picture, index): ManifestPicture => ({
-    ...picturePaths(index, typesAt(pictureTypes, index)),
-    capturedAt: picture.capturedAt,
-    width: picture.width,
-    height: picture.height,
-    fileName: picture.fileName,
-    colours: picture.colours,
-    ...(picture.kenBurns === undefined ? {} : { kenBurns: picture.kenBurns }),
-    ...(picture.caption === undefined ? {} : { caption: picture.caption }),
-    ...(picture.durationMs === undefined ? {} : { durationMs: picture.durationMs }),
-    ...(picture.transition === undefined ? {} : { transition: picture.transition }),
-    ...(picture.immichAssetId === undefined ? {} : { immichAssetId: picture.immichAssetId }),
-    ...(picture.fileBytes === undefined ? {} : { fileBytes: picture.fileBytes }),
-    ...(picture.alone === true ? { alone: true } : {}),
-    ...(picture.video === undefined ? {} : { video: manifestVideo(picture.video, clipFiles) }),
-    ...(picture.place === undefined ? {} : { place: picture.place }),
-  }));
+  const pictures = slideshow.pictures.map((picture, index): ManifestPicture => {
+    const found = focus.get(picture.id);
+    return {
+      ...picturePaths(index, typesAt(pictureTypes, index)),
+      capturedAt: picture.capturedAt,
+      width: picture.width,
+      height: picture.height,
+      fileName: picture.fileName,
+      colours: picture.colours,
+      ...(picture.kenBurns === undefined ? {} : { kenBurns: picture.kenBurns }),
+      ...(picture.caption === undefined ? {} : { caption: picture.caption }),
+      ...(picture.durationMs === undefined ? {} : { durationMs: picture.durationMs }),
+      ...(picture.transition === undefined ? {} : { transition: picture.transition }),
+      ...(picture.immichAssetId === undefined ? {} : { immichAssetId: picture.immichAssetId }),
+      ...(picture.fileBytes === undefined ? {} : { fileBytes: picture.fileBytes }),
+      ...(picture.alone === true ? { alone: true } : {}),
+      ...(picture.video === undefined ? {} : { video: manifestVideo(picture.video, clipFiles) }),
+      ...(picture.place === undefined ? {} : { place: picture.place }),
+      ...(found === undefined ? {} : { focus: found }),
+    };
+  });
   const songs = slideshow.songs.map((song, index) => ({
     file: songPath(index, song.fileName),
     fileName: song.fileName,

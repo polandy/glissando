@@ -18,6 +18,7 @@ export interface WritePorts {
     LibraryStore,
     | "claimMedia"
     | "putPicture"
+    | "putPictureFocus"
     | "putMusic"
     | "putVideo"
     | "saveSlideshow"
@@ -80,12 +81,15 @@ export async function writeGlissandoFile(
     for (const [index, picture] of slideshow.pictures.entries()) {
       options.onStep?.({ kind: "picture", number: index + 1, count, fraction: written / files });
       const id = requireId(pictureIds, index, "picture");
-      await claimed(id, async (pictureId) =>
-        store.putPicture(pictureId, {
+      await claimed(id, async (pictureId) => {
+        await store.putPicture(pictureId, {
           display: await contents.media(picture.file),
           thumbnail: await contents.media(picture.thumbnail),
-        }),
-      );
+        });
+        if (picture.focus !== undefined) {
+          await store.putPictureFocus(pictureId, picture.focus);
+        }
+      });
       written += 2;
     }
     for (const [index, song] of slideshow.songs.entries()) {

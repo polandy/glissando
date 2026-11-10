@@ -203,6 +203,7 @@ describe("writeGlissandoFile", () => {
       claimMedia: (claimId, startedAt, mediaId) => store.claimMedia(claimId, startedAt, mediaId),
       putPicture: (id, blobs) =>
         ++pictures === 2 ? Promise.reject(quota) : store.putPicture(id, blobs),
+      putPictureFocus: (id, focus) => store.putPictureFocus(id, focus),
       putMusic: (id, blob) => store.putMusic(id, blob),
       putVideo: (id, blob) => store.putVideo(id, blob),
       saveSlideshow: (slideshow) => store.saveSlideshow(slideshow),
@@ -228,6 +229,7 @@ describe("writeGlissandoFile", () => {
     const releasing: WritePorts["store"] = {
       claimMedia: (claimId, startedAt, mediaId) => store.claimMedia(claimId, startedAt, mediaId),
       putPicture: (id, blobs) => store.putPicture(id, blobs),
+      putPictureFocus: (id, focus) => store.putPictureFocus(id, focus),
       putMusic: (id, blob) => store.putMusic(id, blob),
       putVideo: (id, blob) => store.putVideo(id, blob),
       saveSlideshow: (slideshow) => store.saveSlideshow(slideshow),

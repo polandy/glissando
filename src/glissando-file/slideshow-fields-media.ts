@@ -10,8 +10,10 @@ import {
   checkSampleTrack,
   InvalidOwnMusicError,
 } from "../library/own-music";
+import { readStoredFocus } from "../library/read-stored-focus";
 import type { Place } from "../places/nearest-place";
 import {
+  FOCUS_FROM_VERSION,
   MUSIC_VOLUME_FROM_VERSION,
   PLACE_FROM_VERSION,
   SAMPLE_TRACK_FROM_VERSION,
@@ -42,11 +44,12 @@ export function pictureKeys(version: number): string[] {
     "transition",
     "alone",
     ...(version >= PLACE_FROM_VERSION ? ["place"] : []),
+    ...(version >= FOCUS_FROM_VERSION ? ["focus"] : []),
   ];
 }
 
 export function readPictureFields(picture: JsonObject, path: string): PictureFields {
-  const { kenBurns, caption, durationMs, transition, alone, place } = picture;
+  const { kenBurns, caption, durationMs, transition, alone, place, focus } = picture;
   if (alone !== undefined && alone !== true) {
     throw new DocumentFormatError(`${path}.alone`, "true or absent", alone);
   }
@@ -66,6 +69,7 @@ export function readPictureFields(picture: JsonObject, path: string): PictureFie
       : { transition: readOwnTiming(checkTransitionChoice, transition, path) }),
     ...(alone === true ? { alone: true } : {}),
     ...(place === undefined ? {} : { place: readPlace(place, `${path}.place`) }),
+    ...(focus === undefined ? {} : { focus: readStoredFocus(focus, `${path}.focus`) }),
   };
 }
 
