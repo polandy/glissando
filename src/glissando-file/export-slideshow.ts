@@ -38,8 +38,8 @@ export interface ExportOptions {
  * The slideshow as a .glissando file: `glissando.json` first (it marks the file as one), then
  * its schema, a README and the player page, then each picture in play order with its thumbnail,
  * then the music, then each clip a video slide plays, once. Each picture's stored focus goes into
- * the manifest, so opening the file needs no detection for it (ADR-0053). The media is read from the store one
- * file at a time; the container is built from their blobs.
+ * the manifest, so opening the file needs no detection for it (ADR-0053). The media is read from
+ * the store one file at a time; the container is built from their blobs.
  */
 export async function exportSlideshow(
   slideshow: StoredSlideshow,

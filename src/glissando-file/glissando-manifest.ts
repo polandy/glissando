@@ -58,9 +58,9 @@ export const GLISSANDO_FORMAT_ID = "glissando";
  * Versions 13 to 22 are read (a version 13 file holds no clips, versions 13 and 14 no song
  * volume, versions 13 to 15 no sample-track id, versions 13 to 16 no place or chapters, versions
  * 13 to 17 no look, versions 13 to 18 no mood, versions 13 to 19 no energy pacing, versions 13
- * to 20 no music repeat, and versions 13 to 21 no focus). Any older file is refused rather than migrated, as there is no
- * production instance yet; before version 10 a file carried `music`, not `songs`, which cannot be
- * told apart from the rest of such a document.
+ * to 20 no music repeat, and versions 13 to 21 no focus). Any older file is refused rather than
+ * migrated, as there is no production instance yet; before version 10 a file carried `music`, not
+ * `songs`, which cannot be told apart from the rest of such a document.
  */
 export const GLISSANDO_FORMAT_VERSION = 22;
 export const OLDEST_READABLE_FORMAT_VERSION = 13;
