@@ -21,6 +21,7 @@
   .filter {
     --gl-icon-size: var(--gl-size-icon-small);
     position: relative;
+    display: block;
     width: 260px;
     max-width: 100%;
     color: var(--gl-faint);
