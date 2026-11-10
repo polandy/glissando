@@ -4,11 +4,13 @@ import {
   type BrowseFailure,
   type ReportUnavailable,
 } from "./browse-failure";
-import type { ImmichClient, ImmichPhoto } from "./immich-client";
+import type { ImmichClient, ImmichPhoto, PhotoSource } from "./immich-client";
 
 export interface PhotoFeedState {
   /** Every photo loaded so far, newest first. */
   readonly photos: readonly ImmichPhoto[];
+  /** The `takenAt` of every image left out so far because it is not a JPEG. */
+  readonly hiddenTakenAt: readonly string[];
   readonly loading: boolean;
   /** The last page has arrived. */
   readonly done: boolean;
@@ -19,8 +21,7 @@ export interface PhotoFeedState {
 export interface PhotoFeedOptions {
   readonly client: ImmichClient;
   readonly reportUnavailable: ReportUnavailable;
-  /** One album's photos; the whole library without it. */
-  readonly albumId?: string;
+  readonly source: PhotoSource;
   /** Videos among the photos, as a device import downloads them. */
   readonly withVideos?: boolean;
 }
@@ -28,22 +29,28 @@ export interface PhotoFeedOptions {
 const FIRST_PAGE = 1;
 
 /**
- * The library's or an album's photos, a page at a time, published with the Svelte store
+ * The photos of one source, a page at a time, published with the Svelte store
  * contract. The infinite-scroll list calls `loadMore()` whenever its end comes into view, so
  * calls while a page is under way, after the last page or after a failure are ignored.
  */
 export class PhotoFeed {
   readonly #client: ImmichClient;
-  readonly #albumId: string | undefined;
+  readonly #source: PhotoSource;
   readonly #withVideos: boolean;
   readonly #reportUnavailable: ReportUnavailable;
   readonly #listeners = new Set<(state: PhotoFeedState) => void>();
-  #state: PhotoFeedState = { photos: [], loading: false, done: false, failure: null };
+  #state: PhotoFeedState = {
+    photos: [],
+    hiddenTakenAt: [],
+    loading: false,
+    done: false,
+    failure: null,
+  };
   #nextPage = FIRST_PAGE;
 
   constructor(options: PhotoFeedOptions) {
     this.#client = options.client;
-    this.#albumId = options.albumId;
+    this.#source = options.source;
     this.#withVideos = options.withVideos === true;
     this.#reportUnavailable = options.reportUnavailable;
   }
@@ -73,18 +80,21 @@ export class PhotoFeed {
   async #load(): Promise<void> {
     this.#publish({ ...this.#state, loading: true });
     try {
-      const page = await this.#client.photos({
-        page: this.#nextPage,
-        ...(this.#albumId === undefined ? {} : { albumId: this.#albumId }),
-        ...(this.#withVideos ? { withVideos: true } : {}),
-      });
-      if (page.nextPage !== null) this.#nextPage = page.nextPage;
-      this.#publish({
-        photos: [...this.#state.photos, ...page.photos],
-        loading: false,
-        done: page.nextPage === null,
-        failure: null,
-      });
+      // A page without a JPEG still has a next one; reading on keeps the end-of-list observer going.
+      for (;;) {
+        const page = await this.#client.photos({
+          page: this.#nextPage,
+          source: this.#source,
+          ...(this.#withVideos ? { withVideos: true } : {}),
+        });
+        if (page.nextPage !== null) this.#nextPage = page.nextPage;
+        const done = page.nextPage === null;
+        const photos = [...this.#state.photos, ...page.photos];
+        const hiddenTakenAt = [...this.#state.hiddenTakenAt, ...page.hiddenTakenAt];
+        const keepReading = !done && page.photos.length === 0;
+        this.#publish({ photos, hiddenTakenAt, loading: keepReading, done, failure: null });
+        if (!keepReading) return;
+      }
     } catch (error) {
       const failure = browseFailureOf(error, this.#reportUnavailable);
       this.#publish({ ...this.#state, loading: false, failure });

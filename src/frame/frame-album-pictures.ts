@@ -13,7 +13,7 @@ export async function fetchAlbumPictures(
   const pictures: ImmichPhoto[] = [];
   let page = FIRST_PAGE;
   for (;;) {
-    const result = await client.photos({ page, albumId });
+    const result = await client.photos({ page, source: { kind: "album", albumId } });
     pictures.push(...result.photos);
     if (result.nextPage === null) {
       return pictures;

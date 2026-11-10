@@ -2,13 +2,17 @@ import type {
   ImmichAlbum,
   ImmichClient,
   ImmichFace,
+  ImmichPerson,
   ImmichPhoto,
   ImmichPhotoPage,
   ImmichStatus,
+  TimelineMonth,
 } from "../immich-client";
 
 type PhotoQuery = Parameters<ImmichClient["photos"]>[0];
-type PhotoAnswer = ImmichPhotoPage | Error;
+/** A page; a test names `hiddenTakenAt` only where it matters. */
+type PhotoAnswer =
+  (Omit<ImmichPhotoPage, "hiddenTakenAt"> & { hiddenTakenAt?: readonly string[] }) | Error;
 
 /** A photo whose day and id are all a test cares about. */
 export function photo(
@@ -28,6 +32,9 @@ export class FakeImmichClient implements ImmichClient {
   readonly photoAnswers: PhotoAnswer[] = [];
   readonly photoQueries: PhotoQuery[] = [];
   albumList: readonly ImmichAlbum[] = [];
+  months: readonly TimelineMonth[] = [];
+  peopleList: readonly ImmichPerson[] = [];
+  paths: readonly string[] = [];
   /** Rejects every `albums()` while set. */
   albumsError: Error | null = null;
   albumsCalls = 0;
@@ -69,7 +76,23 @@ export class FakeImmichClient implements ImmichClient {
     this.#heldPhotos = null;
     const answer = held === null ? next(this.photoAnswers, "photos()") : await held;
     if (answer instanceof Error) throw answer;
-    return answer;
+    return { hiddenTakenAt: [], ...answer };
+  }
+
+  timelineMonths(): Promise<readonly TimelineMonth[]> {
+    return Promise.resolve(this.months);
+  }
+
+  people(): Promise<readonly ImmichPerson[]> {
+    return Promise.resolve(this.peopleList);
+  }
+
+  folderPaths(): Promise<readonly string[]> {
+    return Promise.resolve(this.paths);
+  }
+
+  personThumbnailUrl(personId: string): string {
+    return `https://glissando.example/immich/api/people/${personId}/thumbnail`;
   }
 
   thumbnailUrl(photoId: string): string {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { WHOLE_LIBRARY } from "./immich-client";
 import searchPage1 from "./fixtures/search-all-page-1.json";
 import { clientWith, FakeFetch, json } from "./testing/fake-fetch";
 
@@ -19,7 +20,7 @@ describe("HttpImmichClient reading a photo's GPS from the search", () => {
   it("reads the coordinate from the search answer, with no request per photo", async () => {
     const fake = searchWith({ city: "Vienna", ...VIENNA });
 
-    const page = await clientWith(fake).photos({ page: 1 });
+    const page = await clientWith(fake).photos({ page: 1, source: WHOLE_LIBRARY });
 
     expect(page.photos[0]?.gps).toEqual(VIENNA);
     expect(fake.requests).toHaveLength(1);
@@ -33,7 +34,7 @@ describe("HttpImmichClient reading a photo's GPS from the search", () => {
   ])("gives no GPS when %s", async (_name, exifInfo) => {
     const fake = searchWith(VIENNA, exifInfo);
 
-    const page = await clientWith(fake).photos({ page: 1 });
+    const page = await clientWith(fake).photos({ page: 1, source: WHOLE_LIBRARY });
 
     expect(page.photos.map(({ gps }) => gps)).toEqual([VIENNA, null]);
   });
@@ -47,7 +48,7 @@ describe("HttpImmichClient reading a photo's GPS from the search", () => {
   ])("drops %s, as a file's own EXIF would", async (_name, coordinate) => {
     const fake = searchWith(VIENNA, coordinate);
 
-    const page = await clientWith(fake).photos({ page: 1 });
+    const page = await clientWith(fake).photos({ page: 1, source: WHOLE_LIBRARY });
 
     expect(page.photos.map(({ gps }) => gps)).toEqual([VIENNA, null]);
   });
@@ -56,7 +57,7 @@ describe("HttpImmichClient reading a photo's GPS from the search", () => {
     const edge = { latitude: -90, longitude: 180 };
     const fake = searchWith(edge);
 
-    const page = await clientWith(fake).photos({ page: 1 });
+    const page = await clientWith(fake).photos({ page: 1, source: WHOLE_LIBRARY });
 
     expect(page.photos[0]?.gps).toEqual(edge);
   });
@@ -64,6 +65,8 @@ describe("HttpImmichClient reading a photo's GPS from the search", () => {
   it("fails loud naming the field when a coordinate is not a number", async () => {
     const fake = searchWith({ latitude: "48.2082", longitude: 16.3738 });
 
-    await expect(clientWith(fake).photos({ page: 1 })).rejects.toThrow(/latitude/);
+    await expect(clientWith(fake).photos({ page: 1, source: WHOLE_LIBRARY })).rejects.toThrow(
+      /latitude/,
+    );
   });
 });

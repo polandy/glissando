@@ -82,7 +82,7 @@ describe("ImmichBrowser", () => {
     await feed.loadMore();
 
     expect(browser.albumFeed("lake")).toBe(feed);
-    expect(client.photoQueries).toEqual([{ page: 1, albumId: "lake" }]);
+    expect(client.photoQueries).toEqual([{ page: 1, source: { kind: "album", albumId: "lake" } }]);
     expect(browser.state.membership.get("lake")).toEqual({
       photos: new Map([
         ["p1", photo("p1")],
@@ -167,7 +167,7 @@ describe("ImmichBrowser", () => {
     answer({ photos: [photo("p1"), photo("p2")], nextPage: null });
     await selecting;
 
-    expect(client.photoQueries).toEqual([{ page: 1, albumId: "lake" }]);
+    expect(client.photoQueries).toEqual([{ page: 1, source: { kind: "album", albumId: "lake" } }]);
     expect(browser.selection.photos().map(({ id }) => id)).toEqual(["p1", "p2"]);
   });
 

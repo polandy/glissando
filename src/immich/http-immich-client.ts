@@ -5,13 +5,33 @@ import {
   type ImmichAlbum,
   type ImmichClient,
   type ImmichFace,
+  type ImmichPerson,
   type ImmichPhotoPage,
   type ImmichStatus,
   type ImmichThumbnailSize,
   type ImmichUnavailableKind,
+  type OptionalImmichPermission,
+  type PhotoSource,
+  type TimelineMonth,
+  FOLDER_READ_PERMISSION,
+  PERSON_READ_PERMISSION,
+  TIMELINE_READ_PERMISSION,
 } from "./immich-client";
 import { ImmichJsonReader } from "./immich-json";
-import { IMAGE_ASSET_TYPE, readPhotoPage } from "./photo-page-reader";
+import { readFolderPaths, readPeoplePage, readTimelineMonths } from "./immich-library-readers";
+import {
+  assetPath,
+  FIRST_PEOPLE_PAGE,
+  folderPath,
+  FOLDER_PATHS_PATH,
+  PEOPLE_PAGE_SIZE,
+  peoplePath,
+  personThumbnailPath,
+  sourceFilter,
+  thumbnailPath,
+  TIMELINE_PATH,
+} from "./immich-paths";
+import { IMAGE_ASSET_TYPE, readFolderPage, readPhotoPage } from "./photo-page-reader";
 
 /** Photos per page of a library or album listing. */
 export const PAGE_SIZE = 60;
@@ -21,6 +41,7 @@ const VERSION_PATH = "api/server/version";
 const ALBUMS_PATH = "api/albums";
 const SEARCH_PATH = "api/search/metadata";
 const FACES_PATH = "api/faces";
+const HTTP_FORBIDDEN = 403;
 const NEWEST_FIRST = "desc";
 const LIST_THUMBNAIL_SIZE: ImmichThumbnailSize = "thumbnail";
 const JSON_MEDIA_TYPE = "application/json";
@@ -66,7 +87,8 @@ export class HttpImmichClient implements ImmichClient {
       const version = await this.#serverVersion();
       if (version === null) return { kind: "notSetUp" };
       const albums = await this.albums();
-      return { kind: "available", version, albumCount: albums.length };
+      const missingPermissions = await this.#missingPermissions();
+      return { kind: "available", version, albumCount: albums.length, missingPermissions };
     } catch (error) {
       if (error instanceof ImmichUnavailableError) return { kind: error.kind };
       throw error;
@@ -91,11 +113,17 @@ export class HttpImmichClient implements ImmichClient {
 
   async photos(query: {
     readonly page: number;
-    readonly albumId?: string;
+    readonly source: PhotoSource;
     readonly withVideos?: boolean;
   }): Promise<ImmichPhotoPage> {
-    const reader = new ImmichJsonReader(`POST ${SEARCH_PATH}`);
     const withVideos = query.withVideos === true;
+    const { source } = query;
+    if (source.kind === "folder") {
+      const path = folderPath(source.path);
+      const answer = await this.#json("GET", path);
+      return readFolderPage(new ImmichJsonReader(`GET ${path}`), answer, withVideos);
+    }
+    const reader = new ImmichJsonReader(`POST ${SEARCH_PATH}`);
     const answer = await this.#json("POST", SEARCH_PATH, {
       // Without a type Immich answers every kind of asset; the photos and videos are kept below.
       ...(withVideos ? {} : { type: IMAGE_ASSET_TYPE }),
@@ -104,9 +132,35 @@ export class HttpImmichClient implements ImmichClient {
       page: query.page,
       // The search leaves the EXIF block out unless asked; the place and GPS are read from it.
       withExif: true,
-      ...(query.albumId === undefined ? {} : { albumIds: [query.albumId] }),
+      ...sourceFilter(source),
     });
     return readPhotoPage(reader, answer, withVideos);
+  }
+
+  async timelineMonths(): Promise<readonly TimelineMonth[]> {
+    const answer = await this.#json("GET", TIMELINE_PATH);
+    return readTimelineMonths(new ImmichJsonReader(`GET ${TIMELINE_PATH}`), answer);
+  }
+
+  async people(): Promise<readonly ImmichPerson[]> {
+    const people: ImmichPerson[] = [];
+    for (let page = FIRST_PEOPLE_PAGE, more = true; more; page += 1) {
+      const path = peoplePath(page, PEOPLE_PAGE_SIZE);
+      const answer = await this.#json("GET", path);
+      const read = readPeoplePage(new ImmichJsonReader(`GET ${path}`), answer);
+      people.push(...read.people);
+      more = read.hasNextPage;
+    }
+    return people;
+  }
+
+  async folderPaths(): Promise<readonly string[]> {
+    const answer = await this.#json("GET", FOLDER_PATHS_PATH);
+    return readFolderPaths(new ImmichJsonReader(`GET ${FOLDER_PATHS_PATH}`), answer);
+  }
+
+  personThumbnailUrl(personId: string): string {
+    return this.#url(personThumbnailPath(personId)).href;
   }
 
   thumbnailUrl(photoId: string): string {
@@ -147,6 +201,24 @@ export class HttpImmichClient implements ImmichClient {
         y2: reader.number(face, "boundingBoxY2"),
       };
     });
+  }
+
+  /** The optional permissions whose call Immich answers with 403; any other failure is thrown. */
+  async #missingPermissions(): Promise<readonly OptionalImmichPermission[]> {
+    const probes: readonly (readonly [OptionalImmichPermission, string])[] = [
+      [TIMELINE_READ_PERMISSION, TIMELINE_PATH],
+      [PERSON_READ_PERMISSION, peoplePath(FIRST_PEOPLE_PAGE, 1)],
+      [FOLDER_READ_PERMISSION, FOLDER_PATHS_PATH],
+    ];
+    const forbidden = await Promise.all(
+      probes.map(async ([, path]) => {
+        const response = await this.#send("GET", path);
+        if (response.status === HTTP_FORBIDDEN) return true;
+        this.#check("GET", path, response);
+        return false;
+      }),
+    );
+    return probes.flatMap(([permission], index) => (forbidden[index] === true ? [permission] : []));
   }
 
   /** Immich's version, or null when the route is not Immich (no route, or a static host). */
@@ -221,14 +293,6 @@ export class HttpImmichClient implements ImmichClient {
   #url(path: string): URL {
     return new URL(path, this.#baseUrl);
   }
-}
-
-function assetPath(photoId: string): string {
-  return `api/assets/${encodeURIComponent(photoId)}`;
-}
-
-function thumbnailPath(photoId: string, size: ImmichThumbnailSize): string {
-  return `${assetPath(photoId)}/thumbnail?size=${size}`;
 }
 
 function isJson(response: Response): boolean {

@@ -4,7 +4,12 @@ import {
   type BrowseFailure,
   type ReportUnavailable,
 } from "../../immich/browse-failure";
-import type { ImmichAlbum, ImmichClient, ImmichPhoto } from "../../immich/immich-client";
+import {
+  WHOLE_LIBRARY,
+  type ImmichAlbum,
+  type ImmichClient,
+  type ImmichPhoto,
+} from "../../immich/immich-client";
 import { PhotoFeed } from "../../immich/photo-feed";
 import { allAlbumPhotos, PhotoSelection } from "../../immich/photo-selection";
 import { NOTHING_ALREADY_IN, type AlbumMembership, type AlreadyIn } from "./immich-view";
@@ -61,7 +66,7 @@ export class ImmichBrowser {
     this.#client = options.client;
     this.#reportUnavailable = options.reportUnavailable;
     this.#withVideos = options.withVideos === true;
-    this.library = new PhotoFeed(options);
+    this.library = new PhotoFeed({ ...options, source: WHOLE_LIBRARY });
   }
 
   get state(): ImmichBrowserState {
@@ -99,7 +104,7 @@ export class ImmichBrowser {
       feed = new PhotoFeed({
         client: this.#client,
         reportUnavailable: this.#reportUnavailable,
-        albumId,
+        source: { kind: "album", albumId },
         withVideos: this.#withVideos,
       });
       this.#albumFeeds.set(albumId, feed);

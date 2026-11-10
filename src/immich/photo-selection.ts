@@ -106,7 +106,11 @@ export async function allAlbumPhotos(
   const photos: ImmichPhoto[] = [];
   let page: number | null = FIRST_PAGE;
   while (page !== null) {
-    const answer = await client.photos({ page, albumId, ...(withVideos ? { withVideos } : {}) });
+    const answer = await client.photos({
+      page,
+      source: { kind: "album", albumId },
+      ...(withVideos ? { withVideos } : {}),
+    });
     photos.push(...answer.photos);
     if (answer.nextPage !== null && answer.nextPage <= page) {
       throw new Error(

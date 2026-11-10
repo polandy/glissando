@@ -32,7 +32,10 @@ describe("immichBox, the pictures step's Immich box", () => {
   it.each([
     [{ kind: "checking" }, { kind: "hidden" }],
     [{ kind: "notSetUp" }, { kind: "hidden" }],
-    [{ kind: "available", version: "3.3.1", albumCount: 4 }, { kind: "open" }],
+    [
+      { kind: "available", version: "3.3.1", albumCount: 4, missingPermissions: [] },
+      { kind: "open" },
+    ],
     [{ kind: "offline" }, { kind: "offline" }],
     [{ kind: "unreachable" }, { kind: "problem", problem: "unreachable" }],
     [{ kind: "keyRejected" }, { kind: "problem", problem: "keyRejected" }],
@@ -48,8 +51,8 @@ describe("immichSettings, the settings' Immich group", () => {
     [{ kind: "checking" }, { kind: "checking" }],
     [{ kind: "notSetUp" }, { kind: "notSetUp" }],
     [
-      { kind: "available", version: "3.3.1", albumCount: 4 },
-      { kind: "available", version: "3.3.1", albumCount: 4 },
+      { kind: "available", version: "3.3.1", albumCount: 4, missingPermissions: [] },
+      { kind: "available", version: "3.3.1", albumCount: 4, missingPermissions: [] },
     ],
     [{ kind: "offline" }, { kind: "problem", problem: "offline", remedy: "checkAgain" }],
     [{ kind: "unreachable" }, { kind: "problem", problem: "unreachable", remedy: "checkAgain" }],

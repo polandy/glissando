@@ -1,6 +1,6 @@
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
-import { ImmichUnavailableError } from "../../immich/immich-client";
+import { ImmichUnavailableError, WHOLE_LIBRARY } from "../../immich/immich-client";
 import { FakeImmichClient, photo } from "../../immich/testing/fake-immich-client";
 import { destroyRoutes, LAKE, mountRoute, until } from "./testing/immich-route-harness";
 
@@ -25,7 +25,10 @@ describe("ImmichRoute, All photos", () => {
     await until(browser.library, (state) => state.done);
     flushSync();
 
-    expect(client.photoQueries).toEqual([{ page: 1 }, { page: 2 }]);
+    expect(client.photoQueries).toEqual([
+      { page: 1, source: WHOLE_LIBRARY },
+      { page: 2, source: WHOLE_LIBRARY },
+    ]);
     expect(target.querySelectorAll(".ph")).toHaveLength(2);
     expect(target.textContent).toContain("That's all · 2 pictures");
     expect(end.watched()).toBe(0);

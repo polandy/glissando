@@ -78,7 +78,7 @@ function mountMusicStep(importSession: ImportSession) {
       notice: null,
       onDismissNotice: () => undefined,
       onReload: () => undefined,
-      immich: { kind: "available", version: "3.3.1", albumCount: 1 },
+      immich: { kind: "available", version: "3.3.1", albumCount: 1, missingPermissions: [] },
       onOpenImmich: () => undefined,
       onImmichSettings: () => undefined,
       serverOn: true,

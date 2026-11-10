@@ -34,8 +34,47 @@ export interface ImmichPhoto {
 /** One page of photos, newest first; `nextPage` is null on the last one. */
 export interface ImmichPhotoPage {
   readonly photos: readonly ImmichPhoto[];
+  /** The `takenAt` of each image of the page left out because it is not a JPEG. */
+  readonly hiddenTakenAt: readonly string[];
   readonly nextPage: number | null;
 }
+
+export interface TimelineMonth {
+  /** `YYYY-MM`. */
+  readonly month: string;
+  /** Immich's count of assets of every format, so only approximately the photos listed. */
+  readonly count: number;
+}
+
+export interface ImmichPerson {
+  readonly id: string;
+  readonly name: string;
+}
+
+/** Where a listing of photos comes from. */
+export type PhotoSource =
+  | {
+      readonly kind: "library";
+      readonly favoritesOnly: boolean;
+      /** An ISO instant: only photos taken before it; null for no limit. */
+      readonly takenBefore: string | null;
+    }
+  | { readonly kind: "album"; readonly albumId: string }
+  | { readonly kind: "person"; readonly personId: string }
+  | { readonly kind: "folder"; readonly path: string };
+
+export const WHOLE_LIBRARY: PhotoSource = {
+  kind: "library",
+  favoritesOnly: false,
+  takenBefore: null,
+};
+
+/** Key permissions beyond the required ones; a key without one answers 403 on its calls only. */
+export const TIMELINE_READ_PERMISSION = "timeline.read";
+export const PERSON_READ_PERMISSION = "person.read";
+export const FOLDER_READ_PERMISSION = "folder.read";
+export type OptionalImmichPermission =
+  typeof TIMELINE_READ_PERMISSION | typeof PERSON_READ_PERMISSION | typeof FOLDER_READ_PERMISSION;
 
 /** A face box in pixels of an `imageWidth × imageHeight` image in display orientation. */
 export interface ImmichFace {
@@ -58,7 +97,12 @@ export type ImmichThumbnailSize = "thumbnail" | "preview";
  * - `signInExpired`: the owner's proxy in front of Glissando wants a new sign-in.
  */
 export type ImmichStatus =
-  | { readonly kind: "available"; readonly version: string; readonly albumCount: number }
+  | {
+      readonly kind: "available";
+      readonly version: string;
+      readonly albumCount: number;
+      readonly missingPermissions: readonly OptionalImmichPermission[];
+    }
   | { readonly kind: "notSetUp" }
   | { readonly kind: "offline" }
   | { readonly kind: "unreachable" }
@@ -111,17 +155,21 @@ export class ImmichDownloadTooLargeError extends Error {
 export interface ImmichClient {
   status(): Promise<ImmichStatus>;
   albums(): Promise<readonly ImmichAlbum[]>;
-  /**
-   * Photos newest first, with videos only when `withVideos` is set; all of the library, or of one
-   * album.
-   */
+  /** Photos newest first, JPEG images only, and videos only when `withVideos` is set. */
   photos(query: {
     readonly page: number;
-    readonly albumId?: string;
+    readonly source: PhotoSource;
     readonly withVideos?: boolean;
   }): Promise<ImmichPhotoPage>;
+  /** The months that hold assets, newest first. */
+  timelineMonths(): Promise<readonly TimelineMonth[]>;
+  /** Named, visible people in Immich's order. */
+  people(): Promise<readonly ImmichPerson[]>;
+  folderPaths(): Promise<readonly string[]>;
   /** Same origin and keyless, so an `<img src>` can load it lazily. */
   thumbnailUrl(photoId: string): string;
+  /** Same origin and keyless, like `thumbnailUrl`. */
+  personThumbnailUrl(personId: string): string;
   /** `signal` cancels the download; it then rejects with the signal's reason. */
   thumbnail(photoId: string, size: ImmichThumbnailSize, signal?: AbortSignal): Promise<Blob>;
   /** `signal` cancels the download; it then rejects with the signal's reason. */

@@ -96,6 +96,7 @@ describe("PicturesStep, the Immich box", () => {
       kind: "available",
       version: "3.3.1",
       albumCount: 2,
+      missingPermissions: [],
     });
 
     expect(target.textContent).toContain("From Immich");
@@ -122,7 +123,7 @@ describe("PicturesStep, the Immich box", () => {
   it("offers From Immich in the Add pictures menu once pictures are in", async () => {
     const importSession = session();
     const { target, calls } = mountStep(
-      { kind: "available", version: "3.3.1", albumCount: 2 },
+      { kind: "available", version: "3.3.1", albumCount: 2, missingPermissions: [] },
       importSession,
     );
 

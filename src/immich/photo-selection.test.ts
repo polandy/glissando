@@ -158,8 +158,8 @@ describe("allAlbumPhotos", () => {
 
     expect(photos).toEqual([A, B, C]);
     expect(client.photoQueries).toEqual([
-      { page: 1, albumId: "album-1" },
-      { page: 2, albumId: "album-1" },
+      { page: 1, source: { kind: "album", albumId: "album-1" } },
+      { page: 2, source: { kind: "album", albumId: "album-1" } },
     ]);
   });
 

@@ -25,7 +25,12 @@ function mountGroup(state: ImmichAvailabilityState) {
 
 describe("ImmichSettingsGroup", () => {
   it("names the server, the Immich version and the albums when available", () => {
-    const { text } = mountGroup({ kind: "available", version: "3.3.1", albumCount: 41 });
+    const { text } = mountGroup({
+      kind: "available",
+      version: "3.3.1",
+      albumCount: 41,
+      missingPermissions: [],
+    });
 
     expect(text()).toContain("Through this Glissando server");
     expect(text()).toContain("Immich 3.3.1 · 41 albums");
