@@ -102,6 +102,9 @@ as a fallback.
 - **Everything resolves to an exact version verified by hash** — container images by `@sha256:`
   digest, GitHub Actions by full commit SHA with the tag as a comment. Never a bare tag.
 - Upgrades are deliberate and land with their lockfile change in the same commit.
+- **Accepted `npm audit` finding** (dev only, low): `deepmerge` (GHSA-gcqx-w48m-w2h4) via
+  `@sveltejs/vite-plugin-svelte`, unreachable because the plugin merges only our own
+  `svelte.config.js`. Revisit when vite-plugin-svelte drops or patches it; never `audit fix --force`.
 
 ## 6. Workflow
 
