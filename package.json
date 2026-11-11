@@ -20,21 +20,21 @@
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.63.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
-    "@vitest/browser-playwright": "5.0.5",
+    "@vitest/browser-playwright": "5.1.0",
     "ajv": "8.20.0",
     "eslint": "10.14.0",
-    "eslint-plugin-svelte": "3.23.1",
+    "eslint-plugin-svelte": "3.24.1",
     "prettier": "3.9.10",
     "prettier-plugin-svelte": "4.1.1",
     "svelte": "5.57.3",
-    "svelte-check": "4.7.7",
+    "svelte-check": "4.7.8",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.1",
-    "vite": "8.3.5",
-    "vitest": "5.0.5"
+    "vite": "8.3.6",
+    "vitest": "5.1.0"
   },
   "dependencies": {
-    "mediabunny": "1.65.0",
+    "mediabunny": "1.65.2",
     "uqr": "0.1.3"
   }
 }
