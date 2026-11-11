@@ -73,6 +73,10 @@
   $effect(() => browser.subscribe((next) => (browserState = next)));
   $effect(() => browser.selection.subscribe((next) => (selected = next)));
 
+  const libraryFeed = $derived.by(() => {
+    void browserState;
+    return browser.library;
+  });
   const selectedIds = $derived(new Set(selected.map(({ id }) => id)));
   const hidden = $derived(
     hiddenTools(missingPermissions, {
@@ -220,7 +224,7 @@
       </div>
       {#if tab === "photos"}
         <PhotosTab
-          feed={browser.library}
+          feed={libraryFeed}
           months={hidden.has("months") ? null : browserState.months.items}
           monthsFailure={hidden.has("months") ? null : browserState.months.failure}
           month={browserState.month}
