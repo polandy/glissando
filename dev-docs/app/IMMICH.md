@@ -17,7 +17,20 @@ keeping the selection. `immich/immich-browser.ts` holds the selection, the tab, 
 feeds read so far for as long as the intake it feeds lives (`immich-browsers.ts` keeps one per
 intake, the import's or the adding's):
 
-- **Tabs** "All photos" (first) and "Albums".
+- **JPEG only**: one predicate in `immich/photo-page-reader.ts` lists a picture when its
+  `originalMimeType` is `image/jpeg` (or `image/jpg`, `image/pjpeg`), else, without a MIME type,
+  when its file name ends in `.jpg`, `.jpeg`, `.jpe` or `.jfif`; HEIC, PNG, WebP, RAW and the rest
+  are left out and counted per day. A RAW+JPEG pair is two assets in Immich, so it shows once, as
+  its JPEG (the metadata search returns stacked assets too). Videos are not affected. A page that
+  yields no JPEG is followed by the next one at once, so the list never stalls; "That's all"
+  counts JPEGs, and Immich's album and month counts include every format.
+- **Tabs** "All pictures" (first), "Albums", "People" and "Folders". People, Folders and the month
+  jump each need one more permission of the server's key (`person.read`, `folder.read`,
+  `timeline.read`); a tool the status lacks, or whose list answers 403, is hidden (not reported
+  as unavailable) and the settings name it. All pictures has a month jump (a sheet on a phone, a
+  rail on a desktop; each month with "≈ count") and a Favourites chip; People opens a person to
+  their pictures like an album; Folders walks the path with a crumb and subfolder rows. A day and
+  a source view note the not-JPEG assets left out ("12 not JPEG, hidden").
 - **All photos**: the library's photos newest first, grouped by day (heading "Sat, 12 July 2025",
   mono count, "Select day" / "Deselect day"), square tiles from Immich's thumbnails loaded lazily.
   The next 60 load when the list nears its end (shimmering tiles meanwhile); after the last page
@@ -60,4 +73,8 @@ n albums" (the server's version) when available; "Not set up" with "How to set i
 otherwise the problem in one line ("The Glissando backend cannot reach the Immich server.", "Immich
 rejects the server's key.", "The server's key lacks permissions." naming the five, "Your sign-in
 has expired.") with "Check again" (or "Reload" for the sign-in). The cause in detail is in the
-container's log, never in the app.
+container's log, never in the app. The status check also probes the three optional tools
+(`GET api/timeline/buckets`, `api/people`, `api/view/folder/unique-paths`); a 403 there marks
+only that permission missing, and the available line gets "Hidden, the server's key lacks:
+People (person.read)". An install whose key predates these tools adds them to the key by hand
+(`docs/self-hosting.md`, step 1).

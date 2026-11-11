@@ -75,6 +75,11 @@ async function fakeImmich(page: Page, photo: () => Uint8Array): Promise<ImmichTr
     const path = url.pathname.replace(/^\/immich\//, "");
     if (path === "api/server/version") return route.fulfill({ json: fixture("server-version") });
     if (path === "api/albums") return route.fulfill({ json: fixture("albums") });
+    // The optional-permission probes of the status check.
+    if (path === "api/timeline/buckets" || path === "api/view/folder/unique-paths") {
+      return route.fulfill({ json: [] });
+    }
+    if (path === "api/people") return route.fulfill({ json: { people: [], hasNextPage: false } });
     if (path === "api/search/metadata") {
       const query = request.postDataJSON() as { albumIds?: string[] };
       const answer = query.albumIds?.includes(FACES_ALBUM_ID) ? albumPhotos : libraryPage();

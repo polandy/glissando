@@ -8,7 +8,12 @@ import {
 import type { ImmichStatus } from "./immich-client";
 import { FakeImmichClient } from "./testing/fake-immich-client";
 
-const AVAILABLE: ImmichStatus = { kind: "available", version: "3.3.1", albumCount: 2 };
+const AVAILABLE: ImmichStatus = {
+  kind: "available",
+  version: "3.3.1",
+  albumCount: 2,
+  missingPermissions: [],
+};
 
 class FakeNetwork implements NetworkStatus {
   online = true;

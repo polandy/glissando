@@ -10,6 +10,7 @@
 // Node's globals; the lint config does not know them for .mjs.
 /* global console, process, Buffer, URL */
 import { createServer } from "node:http";
+import { createBrowse } from "./fake-immich-browse.mjs";
 import { drawPhoto, faceRadius } from "./fake-immich-images.mjs";
 
 const PORT = 2283;
@@ -50,7 +51,6 @@ const PHOTOS_PER_DAY = 7;
 const FIRST_DAY = Date.UTC(2025, 5, 14, 9, 0);
 const DAY_MS = 86_400_000;
 const PHOTO_SPACING_MS = 77 * 60_000;
-const DEFAULT_SEARCH_SIZE = 250;
 const THUMBNAIL_LONG_SIDE = 250;
 const PREVIEW_LONG_SIDE = 1440;
 const ORIGINAL_SIZES = {
@@ -90,7 +90,7 @@ const photos = Array.from({ length: PHOTO_COUNT }, (_, index) => {
     width,
     height,
     faces,
-    fileName: `GLS_${String(number).padStart(4, "0")}.png`,
+    fileName: `GLS_${String(number).padStart(4, "0")}.jpg`,
     takenAt: iso(FIRST_DAY + day * DAY_MS + (index % PHOTOS_PER_DAY) * PHOTO_SPACING_MS),
     city: number % UNPLACED_EVERY === 0 ? null : CITIES[day],
   };
@@ -123,35 +123,6 @@ function scaled(photo, longSide) {
 
 // ---- gallery: the HTTP reads ------------------------------------------------------------------
 
-function searchMetadata(query) {
-  const size = query.size ?? DEFAULT_SEARCH_SIZE;
-  const page = query.page ?? 1;
-  const albumIds = query.albumIds ?? [];
-  const inAlbums = albums.filter((album) => albumIds.includes(album.id));
-  const matching = photos
-    .filter((photo) => albumIds.length === 0 || inAlbums.some((a) => a.members.has(photo.id)))
-    .sort((a, b) => a.takenAt.localeCompare(b.takenAt) * (query.order === "asc" ? 1 : -1));
-  const items = matching.slice((page - 1) * size, page * size).map((photo) => ({
-    id: photo.id,
-    type: "IMAGE",
-    originalFileName: photo.fileName,
-    originalMimeType: "image/png",
-    localDateTime: photo.takenAt,
-    fileCreatedAt: photo.takenAt,
-    width: photo.width,
-    height: photo.height,
-    isFavorite: false,
-    isTrashed: false,
-    ...(query.withExif === true ? { exifInfo: { city: photo.city } } : {}),
-  }));
-  const nextPage = page * size < matching.length ? String(page + 1) : null;
-  const noAlbums = { total: 0, count: 0, items: [], facets: [], nextPage: null };
-  return {
-    albums: noAlbums,
-    assets: { total: matching.length, count: items.length, items, facets: [], nextPage },
-  };
-}
-
 /** Faces as Immich reports them: boxes in the pixels of the preview it detected them on. */
 function facesOf(photo) {
   const [imageWidth, imageHeight] = scaled(photo, PREVIEW_LONG_SIDE);
@@ -170,6 +141,7 @@ function facesOf(photo) {
 }
 
 function serveGallery(images, apiKey) {
+  const browse = createBrowse({ photos, albums });
   const send = (response, status, body, headers = JSON_TYPE) => {
     response.writeHead(status, headers);
     response.end(Buffer.isBuffer(body) ? body : JSON.stringify(body));
@@ -189,7 +161,20 @@ function serveGallery(images, apiKey) {
     if (route === "POST /api/search/metadata") {
       const chunks = [];
       for await (const chunk of request) chunks.push(chunk);
-      return send(response, 200, searchMetadata(JSON.parse(Buffer.concat(chunks).toString())));
+      return send(
+        response,
+        200,
+        browse.searchMetadata(JSON.parse(Buffer.concat(chunks).toString())),
+      );
+    }
+    const browsed = browse.answer(route, url);
+    if (browsed !== undefined) return send(response, 200, browsed);
+    const face = browse.personThumbnail(url.pathname);
+    if (request.method === "GET" && face) {
+      return send(response, 200, face, {
+        "content-type": "image/png",
+        "content-length": face.length,
+      });
     }
     if (route === "GET /api/faces") {
       const photo = photos.find((candidate) => candidate.id === url.searchParams.get("id"));
@@ -248,7 +233,7 @@ function seedDocuments() {
     capturedAt: iso(FIRST_DAY + 5 * DAY_MS),
     width,
     height,
-    fileName: "GLS_GONE.png",
+    fileName: "GLS_GONE.jpg",
     immichAssetId: GONE_ID,
     colours: SEED_COLOURS,
   };

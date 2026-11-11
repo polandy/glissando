@@ -13,7 +13,7 @@ import { buttonNamed } from "../testing/by-role";
 
 const de = createTranslator("de");
 const START: Route = { screen: "start" };
-const IMMICH: Route = { screen: "immich", albumId: null, slideshowId: null };
+const IMMICH: Route = { screen: "immich", opened: null, slideshowId: null };
 
 let unmounts: (() => void)[] = [];
 afterEach(() => {

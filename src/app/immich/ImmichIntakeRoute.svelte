@@ -1,5 +1,11 @@
 <script lang="ts">
-  import type { ImmichAlbum, ImmichPhoto } from "../../immich/immich-client";
+  import type {
+    ImmichAlbum,
+    ImmichPerson,
+    ImmichPhoto,
+    OptionalImmichPermission,
+  } from "../../immich/immich-client";
+  import type { OpenedSource } from "../navigation/route";
   import type { Crumb } from "../components/crumbs";
   import type { PictureIntake } from "../import/picture-intake";
   import type { ImmichBrowser } from "./immich-browser";
@@ -15,10 +21,13 @@
     intake,
     browser,
     parentCrumbs,
-    albumId,
+    opened,
+    missingPermissions,
     thumbnailUrl,
+    faceUrl,
     onBack,
     onOpenAlbum,
+    onOpenPerson,
     addPhotos,
     onAdded,
     onError,
@@ -27,10 +36,13 @@
     intake: PictureIntake;
     browser: ImmichBrowser;
     parentCrumbs: readonly Crumb[];
-    albumId: string | null;
+    opened: OpenedSource | null;
+    missingPermissions: readonly OptionalImmichPermission[];
     thumbnailUrl: (photoId: string) => string;
+    faceUrl: (personId: string) => string;
     onBack: () => void;
     onOpenAlbum: (album: ImmichAlbum) => void;
+    onOpenPerson: (person: ImmichPerson) => void;
     addPhotos: (photos: readonly ImmichPhoto[]) => void;
     /** The picks went to the intake: back to its screen. */
     onAdded: () => void;
@@ -50,10 +62,13 @@
   {browser}
   {parentCrumbs}
   {alreadyIn}
-  {albumId}
+  {opened}
+  {missingPermissions}
   {thumbnailUrl}
+  {faceUrl}
   {onBack}
   {onOpenAlbum}
+  {onOpenPerson}
   onAdd={(photos) => {
     addPhotos(photos);
     onAdded();

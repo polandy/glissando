@@ -10,6 +10,16 @@ const SECONDS_PER_HOUR = 3600;
 /** Immich writes a video's length as "H:MM:SS.ffffff". */
 const DURATION_PATTERN = /^(\d+):(\d{2}):(\d{2}(?:\.\d+)?)$/;
 
+const JPEG_MIME_TYPES: ReadonlySet<string> = new Set(["image/jpeg", "image/jpg", "image/pjpeg"]);
+const JPEG_EXTENSIONS: ReadonlySet<string> = new Set([".jpg", ".jpeg", ".jpe", ".jfif"]);
+
+/** A JPEG by its MIME type; an asset without one is judged by its file name's extension. */
+export function isJpegAsset(mimeType: string | null, fileName: string): boolean {
+  if (mimeType !== null && mimeType !== "") return JPEG_MIME_TYPES.has(mimeType.toLowerCase());
+  const dot = fileName.lastIndexOf(".");
+  return dot >= 0 && JPEG_EXTENSIONS.has(fileName.slice(dot).toLowerCase());
+}
+
 /** The photos (and, when asked, videos) of one metadata-search answer, and the next page. */
 export function readPhotoPage(
   reader: ImmichJsonReader,
@@ -17,35 +27,65 @@ export function readPhotoPage(
   withVideos: boolean,
 ): ImmichPhotoPage {
   const assets = reader.record(reader.record(answer, "a body").assets, '"assets"');
-  const records = reader
-    .array(assets.items, '"assets.items"')
-    .map((value) => reader.record(value, "an asset"));
-  const photos = records.flatMap((asset): ImmichPhoto[] => {
-    const type = reader.optionalString(asset, "type");
-    if (type === VIDEO_ASSET_TYPE && !withVideos) return [];
-    if (type !== null && type !== IMAGE_ASSET_TYPE && type !== VIDEO_ASSET_TYPE) return [];
-    const exif = exifOf(reader, asset);
-    const photo: ImmichPhoto = {
-      id: reader.string(asset, "id"),
-      fileName: reader.string(asset, "originalFileName"),
-      takenAt: reader.wallTime(asset, "localDateTime"),
-      size: photoSize(
-        reader.optionalNumber(asset, "width"),
-        reader.optionalNumber(asset, "height"),
-      ),
-      place: placeOf(reader, exif),
-      gps: gpsOf(reader, exif),
-    };
-    return [
-      type === VIDEO_ASSET_TYPE
-        ? {
-            ...photo,
-            video: { durationMs: durationMs(reader.optionalString(asset, "duration")) },
-          }
-        : photo,
-    ];
-  });
-  return { photos, nextPage: reader.optionalCountingString(assets, "nextPage") };
+  return readAssets(
+    reader,
+    reader.array(assets.items, '"assets.items"'),
+    withVideos,
+    reader.optionalCountingString(assets, "nextPage"),
+  );
+}
+
+/** A folder listing: one plain array of assets, no further page. */
+export function readFolderPage(
+  reader: ImmichJsonReader,
+  answer: unknown,
+  withVideos: boolean,
+): ImmichPhotoPage {
+  return readAssets(reader, reader.array(answer, "a body"), withVideos, null);
+}
+
+function readAssets(
+  reader: ImmichJsonReader,
+  items: readonly unknown[],
+  withVideos: boolean,
+  nextPage: number | null,
+): ImmichPhotoPage {
+  const hiddenTakenAt: string[] = [];
+  const photos = items
+    .map((value) => reader.record(value, "an asset"))
+    .flatMap((asset): ImmichPhoto[] => {
+      const type = reader.optionalString(asset, "type");
+      if (type === VIDEO_ASSET_TYPE && !withVideos) return [];
+      if (type !== null && type !== IMAGE_ASSET_TYPE && type !== VIDEO_ASSET_TYPE) return [];
+      const fileName = reader.string(asset, "originalFileName");
+      const takenAt = reader.wallTime(asset, "localDateTime");
+      const isImage = type !== VIDEO_ASSET_TYPE;
+      if (isImage && !isJpegAsset(reader.optionalString(asset, "originalMimeType"), fileName)) {
+        hiddenTakenAt.push(takenAt);
+        return [];
+      }
+      const exif = exifOf(reader, asset);
+      const photo: ImmichPhoto = {
+        id: reader.string(asset, "id"),
+        fileName,
+        takenAt,
+        size: photoSize(
+          reader.optionalNumber(asset, "width"),
+          reader.optionalNumber(asset, "height"),
+        ),
+        place: placeOf(reader, exif),
+        gps: gpsOf(reader, exif),
+      };
+      return [
+        type === VIDEO_ASSET_TYPE
+          ? {
+              ...photo,
+              video: { durationMs: durationMs(reader.optionalString(asset, "duration")) },
+            }
+          : photo,
+      ];
+    });
+  return { photos, hiddenTakenAt, nextPage };
 }
 
 function photoSize(width: number | null, height: number | null): ImmichPhoto["size"] {

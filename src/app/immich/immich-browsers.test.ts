@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { WHOLE_LIBRARY } from "../../immich/immich-client";
 import { FakeImmichClient } from "../../immich/testing/fake-immich-client";
 import { ImmichBrowsers } from "./immich-browsers";
 
@@ -28,6 +29,6 @@ describe("ImmichBrowsers", () => {
 
     expect(withVideos).not.toBe(browsers.for(importing, false));
     expect(browsers.for(importing, true)).toBe(withVideos);
-    expect(client.photoQueries).toEqual([{ page: 1, withVideos: true }]);
+    expect(client.photoQueries).toEqual([{ page: 1, source: WHOLE_LIBRARY, withVideos: true }]);
   });
 });

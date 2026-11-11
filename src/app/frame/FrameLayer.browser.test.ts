@@ -27,7 +27,8 @@ function fakeImmichClient(
 ): Pick<ImmichClient, "albums" | "photos" | "thumbnail"> {
   return {
     albums: () => Promise.resolve(albums),
-    photos: () => Promise.resolve({ photos: [photo("a", place)], nextPage: null }),
+    photos: () =>
+      Promise.resolve({ photos: [photo("a", place)], hiddenTakenAt: [], nextPage: null }),
     thumbnail: () => Promise.resolve(new Blob([])),
   };
 }

@@ -1,4 +1,4 @@
-import type { ImmichClient, ImmichPhoto } from "./immich-client";
+import type { ImmichClient, ImmichPhoto, PhotoSource } from "./immich-client";
 
 const FIRST_PAGE = 1;
 
@@ -97,20 +97,24 @@ export class PhotoSelection {
   }
 }
 
-/** Every photo of an album, newest first, fetched page by page; videos too when asked. */
-export async function allAlbumPhotos(
+/** Every photo of a source, newest first, fetched page by page; videos too when asked. */
+export async function allSourcePhotos(
   client: ImmichClient,
-  albumId: string,
+  source: PhotoSource,
   withVideos = false,
 ): Promise<ImmichPhoto[]> {
   const photos: ImmichPhoto[] = [];
   let page: number | null = FIRST_PAGE;
   while (page !== null) {
-    const answer = await client.photos({ page, albumId, ...(withVideos ? { withVideos } : {}) });
+    const answer = await client.photos({
+      page,
+      source,
+      ...(withVideos ? { withVideos } : {}),
+    });
     photos.push(...answer.photos);
     if (answer.nextPage !== null && answer.nextPage <= page) {
       throw new Error(
-        `Immich album ${albumId}: page ${String(answer.nextPage)} after page ${String(page)} does not advance`,
+        `Immich ${JSON.stringify(source)}: page ${String(answer.nextPage)} after page ${String(page)} does not advance`,
       );
     }
     page = answer.nextPage;

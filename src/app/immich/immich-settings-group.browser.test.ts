@@ -25,7 +25,12 @@ function mountGroup(state: ImmichAvailabilityState) {
 
 describe("ImmichSettingsGroup", () => {
   it("names the server, the Immich version and the albums when available", () => {
-    const { text } = mountGroup({ kind: "available", version: "3.3.1", albumCount: 41 });
+    const { text } = mountGroup({
+      kind: "available",
+      version: "3.3.1",
+      albumCount: 41,
+      missingPermissions: [],
+    });
 
     expect(text()).toContain("Through this Glissando server");
     expect(text()).toContain("Immich 3.3.1 · 41 albums");
@@ -72,5 +77,31 @@ describe("ImmichSettingsGroup", () => {
     expect(button("Check again")).toBeUndefined();
     button("Reload")?.click();
     expect(calls).toEqual(["reload"]);
+  });
+});
+
+describe("ImmichSettingsGroup, optional tools", () => {
+  it("names each tool the server's key lacks with its permission", () => {
+    const { text } = mountGroup({
+      kind: "available",
+      version: "3.3.1",
+      albumCount: 41,
+      missingPermissions: ["person.read", "folder.read"],
+    });
+
+    expect(text()).toContain(
+      "Hidden, the server's key lacks: People (person.read), Folders (folder.read)",
+    );
+  });
+
+  it("names nothing when the key has every permission", () => {
+    const { text } = mountGroup({
+      kind: "available",
+      version: "3.3.1",
+      albumCount: 41,
+      missingPermissions: [],
+    });
+
+    expect(text()).not.toContain("Hidden");
   });
 });

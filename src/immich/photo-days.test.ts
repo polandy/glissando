@@ -13,8 +13,8 @@ describe("groupByDay", () => {
     const dayBefore = photo("day-before", "2025-07-11T12:00:00.000Z");
 
     expect(groupByDay([evening, morning, dayBefore])).toEqual([
-      { day: "2025-07-12", photos: [evening, morning] },
-      { day: "2025-07-11", photos: [dayBefore] },
+      { day: "2025-07-12", photos: [evening, morning], hidden: 0 },
+      { day: "2025-07-11", photos: [dayBefore], hidden: 0 },
     ]);
   });
 
@@ -35,6 +35,25 @@ describe("groupByDay", () => {
       ["2025-07-12", ["b", "c"]],
       ["2025-07-10", ["d"]],
     ]);
+  });
+
+  it("counts the hidden assets on the day of their wall time", () => {
+    const kept = photo("kept", "2025-07-12T21:00:00.000Z");
+    const other = photo("other", "2025-07-11T12:00:00.000Z");
+    const hiddenTakenAt = ["2025-07-12T08:00:00Z", "2025-07-12T23:59:59Z", "2025-07-11T10:00:00Z"];
+
+    const days = groupByDay([kept, other], hiddenTakenAt);
+
+    expect(days.map(({ day, hidden }) => [day, hidden])).toEqual([
+      ["2025-07-12", 2],
+      ["2025-07-11", 1],
+    ]);
+  });
+
+  it("gives no group to a day whose assets are all hidden", () => {
+    const days = groupByDay([photo("kept", "2025-07-12T21:00:00.000Z")], ["2025-07-01T08:00:00Z"]);
+
+    expect(days.map(({ day }) => day)).toEqual(["2025-07-12"]);
   });
 
   it("takes the day from the wall time, never shifting it by a time zone", () => {

@@ -1,6 +1,6 @@
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
-import { ImmichUnavailableError } from "../../immich/immich-client";
+import { ImmichUnavailableError, WHOLE_LIBRARY } from "../../immich/immich-client";
 import { FakeImmichClient, photo } from "../../immich/testing/fake-immich-client";
 import { destroyRoutes, LAKE, mountRoute, until } from "./testing/immich-route-harness";
 
@@ -25,10 +25,29 @@ describe("ImmichRoute, All photos", () => {
     await until(browser.library, (state) => state.done);
     flushSync();
 
-    expect(client.photoQueries).toEqual([{ page: 1 }, { page: 2 }]);
+    expect(client.photoQueries).toEqual([
+      { page: 1, source: WHOLE_LIBRARY },
+      { page: 2, source: WHOLE_LIBRARY },
+    ]);
     expect(target.querySelectorAll(".ph")).toHaveLength(2);
     expect(target.textContent).toContain("That's all · 2 pictures");
     expect(end.watched()).toBe(0);
+  });
+
+  it("counts the hidden pictures at the end, even when no JPEG is listed", async () => {
+    const client = new FakeImmichClient();
+    client.photoAnswers.push({
+      photos: [],
+      hiddenTakenAt: ["2025-07-12T09:00:00.000Z", "2025-07-11T09:00:00.000Z"],
+      nextPage: null,
+    });
+    const { browser, target, end } = mountRoute(client);
+
+    end.reachEnd();
+    await until(browser.library, (state) => state.done);
+    flushSync();
+
+    expect(target.textContent).toContain("That's all · 0 pictures · 2 not JPEG, hidden");
   });
 
   it("selects a day, counts it in the footer and adds exactly those photos", async () => {
@@ -141,7 +160,7 @@ describe("ImmichRoute, one album", () => {
     const client = new FakeImmichClient();
     client.albumList = [LAKE];
     client.photoAnswers.push({ photos: [], nextPage: null });
-    const { target } = mountRoute(client, "lake");
+    const { target } = mountRoute(client, { kind: "album", id: "lake" });
     flushSync();
 
     expect(target.textContent).toContain("Loading the album …");
@@ -151,7 +170,7 @@ describe("ImmichRoute, one album", () => {
     const client = new FakeImmichClient();
     client.albumsError = new ImmichUnavailableError("permissionMissing");
     client.photoAnswers.push({ photos: [photo("l1")], nextPage: null });
-    const { browser, target, button } = mountRoute(client, "lake");
+    const { browser, target, button } = mountRoute(client, { kind: "album", id: "lake" });
     await until(browser, (state) => state.albumsFailure !== null);
     flushSync();
     expect(target.textContent).toContain("The key lacks permissions");
@@ -168,13 +187,13 @@ describe("ImmichRoute, one album", () => {
   it("names a failed Select all in the album and keeps its photos", async () => {
     const client = new FakeImmichClient();
     client.albumList = [LAKE];
-    const { browser, target, button } = mountRoute(client, "lake");
+    const { browser, target, button } = mountRoute(client, { kind: "album", id: "lake" });
     await browser.loadAlbums();
     client.photoAnswers.push(new ImmichUnavailableError("keyRejected"));
     flushSync();
 
     button("Select all")?.click();
-    await until(browser, (state) => state.albumFailures.has("lake"));
+    await until(browser, (state) => state.sourceFailures.has("album:lake"));
     flushSync();
 
     expect(target.querySelector("h1")?.textContent).toBe("Lake");

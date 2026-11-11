@@ -9,7 +9,7 @@ import { buttonNamed } from "../testing/by-role";
 
 const de = createTranslator("de");
 const SLIDESHOW: Route = { screen: "slideshow", slideshowId: "s1" };
-const IMMICH: Route = { screen: "immich", albumId: null, slideshowId: "s1" };
+const IMMICH: Route = { screen: "immich", opened: null, slideshowId: "s1" };
 
 afterEach(unmountRoutes);
 

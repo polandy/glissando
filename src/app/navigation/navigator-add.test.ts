@@ -6,8 +6,8 @@ import { parentOf, parseRoute } from "./route";
 const START: Route = { screen: "start" };
 const SHOW: Route = { screen: "slideshow", slideshowId: "s1" };
 const ADD: Route = { screen: "add", slideshowId: "s1" };
-const IMMICH: Route = { screen: "immich", albumId: null, slideshowId: "s1" };
-const ALBUM: Route = { screen: "immich", albumId: "a1", slideshowId: "s1" };
+const IMMICH: Route = { screen: "immich", opened: null, slideshowId: "s1" };
+const ALBUM: Route = { screen: "immich", opened: { kind: "album", id: "a1" }, slideshowId: "s1" };
 
 describe("Navigator, adding pictures to a slideshow", () => {
   it("opens the add screen below its slideshow and its Immich browser below that", () => {
@@ -64,8 +64,10 @@ describe("Navigator, adding pictures to a slideshow", () => {
   it("reads the add routes back and rejects a slideshow id that is not one", () => {
     expect(parseRoute({ screen: "add", slideshowId: "s1" })).toEqual(ADD);
     expect(parseRoute({ screen: "add" })).toBeNull();
-    expect(parseRoute({ screen: "immich", albumId: "a1", slideshowId: "s1" })).toEqual(ALBUM);
-    expect(parseRoute({ screen: "immich", albumId: null, slideshowId: 7 })).toBeNull();
-    expect(parseRoute({ screen: "immich", albumId: null })).toBeNull();
+    expect(
+      parseRoute({ screen: "immich", opened: { kind: "album", id: "a1" }, slideshowId: "s1" }),
+    ).toEqual(ALBUM);
+    expect(parseRoute({ screen: "immich", opened: null, slideshowId: 7 })).toBeNull();
+    expect(parseRoute({ screen: "immich", opened: null })).toBeNull();
   });
 });

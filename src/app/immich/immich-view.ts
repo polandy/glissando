@@ -1,9 +1,14 @@
 import { UNEXPECTED_FAILURE, type BrowseFailure } from "../../immich/browse-failure";
 import type { ImmichAvailabilityState } from "../../immich/immich-availability";
-import type { ImmichAlbum, ImmichPhoto, ImmichUnavailableKind } from "../../immich/immich-client";
+import type {
+  ImmichPhoto,
+  ImmichUnavailableKind,
+  OptionalImmichPermission,
+} from "../../immich/immich-client";
 import { immichPhotoIdentity } from "../../import/immich-picture-source";
 import type { PictureIdentity } from "../../library/picture-identity";
 import type { MessageKey } from "../i18n/messages";
+import { isAlbumKey } from "./browse-source";
 
 /** An Immich problem the UI names in one line; "not set up" is no problem, Immich is just absent. */
 export type ImmichProblem = Exclude<ImmichUnavailableKind, "notSetUp">;
@@ -72,7 +77,12 @@ export function immichBox(state: ImmichAvailabilityState): ImmichBox {
 export type ImmichSettings =
   | { readonly kind: "checking" }
   | { readonly kind: "notSetUp" }
-  | { readonly kind: "available"; readonly version: string; readonly albumCount: number }
+  | {
+      readonly kind: "available";
+      readonly version: string;
+      readonly albumCount: number;
+      readonly missingPermissions: readonly OptionalImmichPermission[];
+    }
   | {
       readonly kind: "problem";
       readonly problem: ImmichProblem;
@@ -93,26 +103,42 @@ export function immichSettings(state: ImmichAvailabilityState): ImmichSettings {
   }
 }
 
-/** The albums whose name contains `filter`, ignoring case and surrounding spaces. */
-export function filterAlbums(
-  albums: readonly ImmichAlbum[],
+/** The items whose name contains `filter`, ignoring case and surrounding spaces. */
+export function filterByName<Item extends { readonly name: string }>(
+  items: readonly Item[],
   filter: string,
-): readonly ImmichAlbum[] {
+): readonly Item[] {
   const wanted = filter.trim().toLocaleLowerCase();
-  if (wanted === "") return albums;
-  return albums.filter(({ name }) => name.toLocaleLowerCase().includes(wanted));
+  if (wanted === "") return items;
+  return items.filter(({ name }) => name.toLocaleLowerCase().includes(wanted));
 }
 
-/** The browser footer's text: a hint while empty, else the count and the albums it spans. */
+/** How many sources the selection spans, albums apart from people and folders. */
+export interface SourceSpans {
+  readonly albums: number;
+  readonly others: number;
+}
+
+/** What the footer says the selection comes from: albums only, or sources of every kind. */
+export interface SelectionOrigin {
+  readonly kind: "albums" | "sources";
+  readonly count: number;
+}
+
+/** The browser footer's text: a hint while empty, else the count and the sources it spans. */
 export type SelectionSummary =
   | { readonly kind: "hint" }
-  | { readonly kind: "count"; readonly count: number; readonly albums: number | null };
+  | { readonly kind: "count"; readonly count: number; readonly from: SelectionOrigin | null };
 
-const ALBUMS_NAMED_FROM = 2;
+const SOURCES_NAMED_FROM = 2;
 
-export function selectionSummary(count: number, albumCount: number): SelectionSummary {
+export function selectionSummary(count: number, spans: SourceSpans): SelectionSummary {
   if (count === 0) return { kind: "hint" };
-  return { kind: "count", count, albums: albumCount >= ALBUMS_NAMED_FROM ? albumCount : null };
+  const total = spans.albums + spans.others;
+  if (total < SOURCES_NAMED_FROM) return { kind: "count", count, from: null };
+  const from: SelectionOrigin =
+    spans.others > 0 ? { kind: "sources", count: total } : { kind: "albums", count: total };
+  return { kind: "count", count, from };
 }
 
 /** Whether a photo is already in what the browser adds to; such a photo cannot be selected. */
@@ -154,13 +180,13 @@ export function dayToggle(
   return selectable.every(({ id }) => isSelected(id)) ? "deselect" : "select";
 }
 
-/** The photos known to be in an album, by id; `complete` once all of its pages have been read. */
-export interface AlbumMembership {
+/** The photos known to be in a source, by id; `complete` once all of its pages have been read. */
+export interface SourceMembership {
   readonly photos: ReadonlyMap<string, ImmichPhoto>;
   readonly complete: boolean;
 }
 
-export interface AlbumPick {
+export interface SourcePick {
   readonly selected: number;
   /** Every photo not already in is selected. */
   readonly all: boolean;
@@ -168,11 +194,11 @@ export interface AlbumPick {
   readonly alreadyIn: number;
 }
 
-export function albumPick(
-  membership: AlbumMembership | undefined,
+export function sourcePick(
+  membership: SourceMembership | undefined,
   selectedIds: ReadonlySet<string>,
   alreadyIn: AlreadyIn,
-): AlbumPick {
+): SourcePick {
   if (membership === undefined) return { selected: 0, all: false, alreadyIn: 0 };
   let selected = 0;
   let alreadyInCount = 0;
@@ -185,14 +211,17 @@ export function albumPick(
   return { selected, all, alreadyIn: alreadyInCount };
 }
 
-/** How many albums hold at least one selected photo, as far as their photos are known. */
-export function albumsWithSelection(
-  membership: ReadonlyMap<string, AlbumMembership>,
+/** How many albums and other sources hold at least one selected photo, as far as known. */
+export function sourceSpans(
+  membership: ReadonlyMap<string, SourceMembership>,
   selectedIds: ReadonlySet<string>,
-): number {
+): SourceSpans {
   let albums = 0;
-  for (const known of membership.values()) {
-    if (albumPick(known, selectedIds, NOTHING_ALREADY_IN).selected > 0) albums += 1;
+  let others = 0;
+  for (const [key, known] of membership) {
+    if (sourcePick(known, selectedIds, NOTHING_ALREADY_IN).selected === 0) continue;
+    if (isAlbumKey(key)) albums += 1;
+    else others += 1;
   }
-  return albums;
+  return { albums, others };
 }

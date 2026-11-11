@@ -131,6 +131,11 @@ function answerImmich(route: Route, server: FakeGlissandoServer, photo: () => Ui
   if (path === "api/server/version")
     return route.fulfill({ json: immichFixture("server-version") });
   if (path === "api/albums") return route.fulfill({ json: immichFixture("albums") });
+  // The optional-permission probes of the status check.
+  if (path === "api/timeline/buckets" || path === "api/view/folder/unique-paths") {
+    return route.fulfill({ json: [] });
+  }
+  if (path === "api/people") return route.fulfill({ json: { people: [], hasNextPage: false } });
   if (path === "api/search/metadata") return route.fulfill({ json: LIBRARY_PAGE });
   if (path === "api/faces") return route.fulfill({ json: [] });
   const image = path.match(ASSET_IMAGE);

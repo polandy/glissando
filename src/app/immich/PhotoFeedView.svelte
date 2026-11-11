@@ -5,6 +5,7 @@
   import { getTranslator } from "../i18n/context";
   import BrowseFailed from "./BrowseFailed.svelte";
   import type { EndObserver } from "./end-observer";
+  import HiddenNote from "./HiddenNote.svelte";
   import type { AlreadyIn } from "./immich-view";
   import PhotoDays from "./PhotoDays.svelte";
 
@@ -37,7 +38,7 @@
   // svelte-ignore state_referenced_locally
   let feedState = $state.raw(feed.state);
   $effect(() => feed.subscribe((next) => (feedState = next)));
-  const days = $derived(groupByDay(feedState.photos));
+  const days = $derived(groupByDay(feedState.photos, feedState.hiddenTakenAt));
 
   function loadMore(): void {
     feed.loadMore().catch(onError);
@@ -68,10 +69,13 @@
     {onReload}
   />
 {:else if feedState.done}
-  {#if feedState.photos.length > 0}
+  {#if feedState.photos.length > 0 || feedState.hiddenTakenAt.length > 0}
     <p class="end">
       {t("immich.thatsAll")} ·
       <span>{t("immich.photos", { count: feedState.photos.length })}</span>
+      {#if feedState.hiddenTakenAt.length > 0}
+        · <HiddenNote count={feedState.hiddenTakenAt.length} />
+      {/if}
     </p>
   {/if}
 {:else}
