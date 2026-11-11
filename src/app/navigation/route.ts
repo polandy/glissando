@@ -14,11 +14,11 @@ export type Route =
   | { readonly screen: "import"; readonly step: ImportStep }
   /**
    * The Immich browser opened from the import's pictures step (slideshow id null) or from adding
-   * pictures to that slideshow; with an album id, that album.
+   * pictures to that slideshow; with `opened`, that album or person.
    */
   | {
       readonly screen: "immich";
-      readonly albumId: string | null;
+      readonly opened: OpenedSource | null;
       readonly slideshowId: string | null;
     }
   | { readonly screen: "add"; readonly slideshowId: string }
@@ -29,6 +29,14 @@ export type Route =
   | { readonly screen: "frameSetup" }
   /** The running picture frame (`dev-docs/app/FRAME.md`); over start, not over its set-up screen. */
   | { readonly screen: "frame"; readonly albumId: string };
+
+/** What the Immich browser has open below its tabs: one album or one person. */
+export interface OpenedSource {
+  readonly kind: "album" | "person";
+  readonly id: string;
+}
+
+const OPENED_KINDS: readonly OpenedSource["kind"][] = ["album", "person"];
 
 export const START_ROUTE: Route = { screen: "start" };
 
@@ -45,8 +53,8 @@ export function parentOf(route: Route): Route | null {
     case "import":
       return route.step === "music" ? { screen: "import", step: "pictures" } : START_ROUTE;
     case "immich":
-      if (route.albumId !== null) {
-        return { screen: "immich", albumId: null, slideshowId: route.slideshowId };
+      if (route.opened !== null) {
+        return { screen: "immich", opened: null, slideshowId: route.slideshowId };
       }
       return route.slideshowId === null
         ? { screen: "import", step: "pictures" }
@@ -99,6 +107,13 @@ function isId(value: unknown): value is string {
   return typeof value === "string" && value !== "";
 }
 
+function parseOpened(value: unknown): OpenedSource | null {
+  if (!isRecord(value)) return null;
+  const kind = OPENED_KINDS.find((known) => known === value["kind"]);
+  const id = value["id"];
+  return kind !== undefined && isId(id) ? { kind, id } : null;
+}
+
 /** Reads a route back from untrusted history state; anything unknown is null. */
 export function parseRoute(state: unknown): Route | null {
   if (!isRecord(state)) {
@@ -138,11 +153,11 @@ export function parseRoute(state: unknown): Route | null {
       return step ? { screen: "import", step } : null;
     }
     case "immich": {
-      const { albumId, slideshowId } = state;
-      const isIdOrNull = (value: unknown): value is string | null => value === null || isId(value);
-      return isIdOrNull(albumId) && isIdOrNull(slideshowId)
-        ? { screen: "immich", albumId, slideshowId }
-        : null;
+      const { opened, slideshowId } = state;
+      if (slideshowId !== null && !isId(slideshowId)) return null;
+      if (opened === null) return { screen: "immich", opened: null, slideshowId };
+      const source = parseOpened(opened);
+      return source === null ? null : { screen: "immich", opened: source, slideshowId };
     }
     default:
       return null;

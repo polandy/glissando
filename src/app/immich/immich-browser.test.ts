@@ -5,6 +5,7 @@ import {
   type ImmichUnavailableKind,
 } from "../../immich/immich-client";
 import { FakeImmichClient, photo } from "../../immich/testing/fake-immich-client";
+import { sourceKey, type BrowseSource } from "./browse-source";
 import { ImmichBrowser, type ImmichBrowserState } from "./immich-browser";
 
 const LAKE: ImmichAlbum = {
@@ -15,6 +16,9 @@ const LAKE: ImmichAlbum = {
   startDate: "2025-07-12T10:00:00.000Z",
   endDate: "2025-07-13T10:00:00.000Z",
 };
+
+const LAKE_SOURCE: BrowseSource = { kind: "album", id: "lake" };
+const LAKE_KEY = sourceKey(LAKE_SOURCE);
 
 function browserWith(client: FakeImmichClient) {
   const reported: ImmichUnavailableKind[] = [];
@@ -73,17 +77,17 @@ describe("ImmichBrowser", () => {
     expect(reported).toEqual(["permissionMissing"]);
   });
 
-  it("gives one feed per album and learns the album's photos from its pages", async () => {
+  it("gives one feed per source and learns the album's photos from its pages", async () => {
     const client = new FakeImmichClient();
     client.photoAnswers.push({ photos: [photo("p1"), photo("p2")], nextPage: null });
     const { browser } = browserWith(client);
 
-    const feed = browser.albumFeed("lake");
+    const feed = browser.sourceFeed(LAKE_SOURCE);
     await feed.loadMore();
 
-    expect(browser.albumFeed("lake")).toBe(feed);
-    expect(client.photoQueries).toEqual([{ page: 1, albumId: "lake" }]);
-    expect(browser.state.membership.get("lake")).toEqual({
+    expect(browser.sourceFeed(LAKE_SOURCE)).toBe(feed);
+    expect(client.photoQueries).toEqual([{ page: 1, source: { kind: "album", albumId: "lake" } }]);
+    expect(browser.state.membership.get(LAKE_KEY)).toEqual({
       photos: new Map([
         ["p1", photo("p1")],
         ["p2", photo("p2")],
@@ -98,16 +102,16 @@ describe("ImmichBrowser", () => {
     client.photoAnswers.push({ photos: [photo("p3")], nextPage: null });
     const { browser } = browserWith(client);
 
-    const selecting = browser.toggleAlbum("lake");
-    expect(browser.state.busyAlbumIds.has("lake")).toBe(true);
+    const selecting = browser.toggleSource(LAKE_SOURCE);
+    expect(browser.state.busySources.has(LAKE_KEY)).toBe(true);
     firstPage({ photos: [photo("p1"), photo("p2")], nextPage: 2 });
     await selecting;
 
-    expect(browser.state.busyAlbumIds.has("lake")).toBe(false);
+    expect(browser.state.busySources.has(LAKE_KEY)).toBe(false);
     expect(browser.selection.photos().map(({ id }) => id)).toEqual(["p1", "p2", "p3"]);
-    expect(browser.state.membership.get("lake")?.complete).toBe(true);
+    expect(browser.state.membership.get(LAKE_KEY)?.complete).toBe(true);
 
-    await browser.toggleAlbum("lake");
+    await browser.toggleSource(LAKE_SOURCE);
 
     expect(browser.selection.count).toBe(0);
   });
@@ -118,10 +122,10 @@ describe("ImmichBrowser", () => {
     const { browser } = browserWith(client);
     const alreadyIn = (candidate: { readonly id: string }) => candidate.id === "in";
 
-    await browser.toggleAlbum("lake", alreadyIn);
+    await browser.toggleSource(LAKE_SOURCE, alreadyIn);
     expect(browser.selection.photos().map(({ id }) => id)).toEqual(["p1", "p2"]);
 
-    await browser.toggleAlbum("lake", alreadyIn);
+    await browser.toggleSource(LAKE_SOURCE, alreadyIn);
     expect(browser.selection.count).toBe(0);
   });
 
@@ -133,12 +137,12 @@ describe("ImmichBrowser", () => {
     await browser.loadAlbums();
     browser.selection.toggle(photo("kept"));
 
-    await browser.toggleAlbum("lake");
+    await browser.toggleSource(LAKE_SOURCE);
 
     expect(browser.selection.photos().map(({ id }) => id)).toEqual(["kept"]);
     expect(browser.state).toMatchObject({ albums: [LAKE], albumsFailure: null });
-    expect(browser.state.albumFailures.get("lake")).toBe("offline");
-    expect(browser.state.busyAlbumIds.size).toBe(0);
+    expect(browser.state.sourceFailures.get(LAKE_KEY)).toBe("offline");
+    expect(browser.state.busySources.size).toBe(0);
     expect(reported).toEqual(["offline"]);
   });
 
@@ -149,11 +153,11 @@ describe("ImmichBrowser", () => {
       nextPage: null,
     });
     const { browser } = browserWith(client);
-    await browser.toggleAlbum("lake");
+    await browser.toggleSource(LAKE_SOURCE);
 
-    await browser.toggleAlbum("lake");
+    await browser.toggleSource(LAKE_SOURCE);
 
-    expect(browser.state.albumFailures.has("lake")).toBe(false);
+    expect(browser.state.sourceFailures.has(LAKE_KEY)).toBe(false);
     expect(browser.selection.photos().map(({ id }) => id)).toEqual(["p1"]);
   });
 
@@ -161,13 +165,13 @@ describe("ImmichBrowser", () => {
     const client = new FakeImmichClient();
     const answer = client.holdPhotos();
     const { browser } = browserWith(client);
-    const selecting = browser.toggleAlbum("lake");
+    const selecting = browser.toggleSource(LAKE_SOURCE);
 
-    await browser.toggleAlbum("lake");
+    await browser.toggleSource(LAKE_SOURCE);
     answer({ photos: [photo("p1"), photo("p2")], nextPage: null });
     await selecting;
 
-    expect(client.photoQueries).toEqual([{ page: 1, albumId: "lake" }]);
+    expect(client.photoQueries).toEqual([{ page: 1, source: { kind: "album", albumId: "lake" } }]);
     expect(browser.selection.photos().map(({ id }) => id)).toEqual(["p1", "p2"]);
   });
 
@@ -176,7 +180,7 @@ describe("ImmichBrowser", () => {
     const answer = client.holdPhotos();
     const { browser } = browserWith(client);
     browser.selection.toggle(photo("p1"));
-    const selecting = browser.toggleAlbum("lake");
+    const selecting = browser.toggleSource(LAKE_SOURCE);
 
     browser.selection.toggle(photo("p1"));
     answer({ photos: [photo("p1"), photo("p2")], nextPage: null });

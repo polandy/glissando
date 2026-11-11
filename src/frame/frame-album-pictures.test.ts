@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { PhotoSource } from "../immich/immich-client";
 import { fetchAlbumPictures } from "./frame-album-pictures";
 
 function photo(id: string) {
@@ -8,8 +9,8 @@ function photo(id: string) {
 describe("fetchAlbumPictures", () => {
   it("reads every page of the album, in order", async () => {
     const pages = [
-      { photos: [photo("a"), photo("b")], nextPage: 2 },
-      { photos: [photo("c")], nextPage: null },
+      { photos: [photo("a"), photo("b")], hiddenTakenAt: [], nextPage: 2 },
+      { photos: [photo("c")], hiddenTakenAt: [], nextPage: null },
     ];
     const requested: number[] = [];
     const client = {
@@ -30,9 +31,13 @@ describe("fetchAlbumPictures", () => {
   it("asks every page for the given album", async () => {
     const albumIds: string[] = [];
     const client = {
-      photos: ({ albumId }: { albumId?: string }) => {
-        albumIds.push(albumId ?? "none");
-        return Promise.resolve({ photos: [], nextPage: null });
+      photos: ({ source }: { source: PhotoSource }) => {
+        albumIds.push(source.kind === "album" ? source.albumId : "none");
+        return Promise.resolve({
+          photos: [],
+          hiddenTakenAt: [],
+          nextPage: null,
+        });
       },
     };
 
@@ -42,7 +47,9 @@ describe("fetchAlbumPictures", () => {
   });
 
   it("answers an empty list for an album with no photos", async () => {
-    const client = { photos: () => Promise.resolve({ photos: [], nextPage: null }) };
+    const client = {
+      photos: () => Promise.resolve({ photos: [], hiddenTakenAt: [], nextPage: null }),
+    };
 
     expect(await fetchAlbumPictures(client, "album-1")).toEqual([]);
   });

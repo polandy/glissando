@@ -15,7 +15,7 @@ is no key to type into the app.
 ## In short
 
 1. **Protect** the address (sign-in or VPN) and serve it over HTTPS.
-2. **Create** an Immich API key with five read permissions → `glissando-immich-api-key.txt`.
+2. **Create** an Immich API key with eight read permissions → `glissando-immich-api-key.txt`.
 3. **Add** the `glissando` service to Immich's compose file, `docker compose up -d glissando`.
 4. Optional: a **data volume** for slideshows on the server, a **share link**, a **TV**.
 
@@ -42,6 +42,13 @@ exactly these permissions, nothing more:
 - `asset.view`
 - `asset.download`
 - `face.read`
+- `timeline.read` — "Jump to a month" in All pictures
+- `person.read` — the People tab
+- `folder.read` — the Folders tab
+
+The last three are optional: a key without one of them works, only that tool is hidden, and
+Settings names the missing permission. **An existing install** created its key with the first
+five: edit the key in Immich and tick the three new ones, no restart needed.
 
 Copy the key and save it in a file next to your Immich `docker-compose.yml`, for example
 `glissando-immich-api-key.txt`. The container runs as user id 10001, so the file must be readable
@@ -220,7 +227,8 @@ settings. What each one means:
 | Not set up                                                    | `IMMICH_URL` is not set, or you opened the public Glissando instead of yours.                                                                                                      |
 | The Glissando backend cannot reach the Immich server.         | Look at the container's log (`docker compose logs glissando`): it names the failed connection. Check that Immich runs, that `IMMICH_URL` is right and both share a Docker network. |
 | Immich rejects the server's key.                              | The key is wrong or was deleted in Immich. Create a new one (step 1), replace the file, restart the container.                                                                     |
-| The server's key lacks permissions: …                         | Edit the key in Immich and give it all five permissions from step 1.                                                                                                               |
+| The server's key lacks permissions: …                         | Edit the key in Immich and give it the first five permissions from step 1.                                                                                                         |
+| Hidden, the server's key lacks: People (person.read) …        | Optional: tick the named permission on the key in Immich (step 1) and press Check again in Settings.                                                                               |
 | Your sign-in has expired.                                     | Your reverse proxy's sign-in ran out. Reload the page and sign in again.                                                                                                           |
 | Offline — Immich needs a connection to your Glissando server. | The device is offline. Photos you already added, and every slideshow, keep working.                                                                                                |
 

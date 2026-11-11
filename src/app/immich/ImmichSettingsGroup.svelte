@@ -5,6 +5,7 @@
   import { getTranslator } from "../i18n/context";
   import { SELF_HOSTING_GUIDE_URL } from "../settings/project-links";
   import ImmichGlyph from "./ImmichGlyph.svelte";
+  import { missingToolMessages } from "./immich-tools";
   import { immichSettings, PROBLEM_MESSAGES } from "./immich-view";
 
   /** The settings' read-only Immich group: the key lives on the server (ADR-0013). */
@@ -16,6 +17,9 @@
 
   const { t } = getTranslator();
   const view = $derived(immichSettings(state));
+  const missingTools = $derived(
+    view.kind === "available" ? missingToolMessages(view.missingPermissions) : [],
+  );
 </script>
 
 <section class="group">
@@ -33,6 +37,13 @@
               text={t("immich.serverDetails", { version: view.version, count: view.albumCount })}
             />
           </span>
+          {#if missingTools.length > 0}
+            <span class="missing">
+              {t("immich.missingTools", {
+                tools: missingTools.map((key) => t(key)).join(", "),
+              })}
+            </span>
+          {/if}
         {:else if view.kind === "notSetUp"}
           <b>{t("immich.notSetUp")}</b>
           <span>{t("immich.notSetUpText")}</span>

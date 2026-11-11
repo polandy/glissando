@@ -15,7 +15,8 @@ other slideshow. A self-hosted Glissando has no demo.
 ## Make a slideshow
 
 1. **New slideshow** and choose pictures from the device (or from Immich, on a self-hosted
-   Glissando). They are ordered by capture date, and your pictures stay untouched.
+   Glissando: its JPEG pictures, found by day, album, person, folder, favourites or month).
+   They are ordered by capture date, and your pictures stay untouched.
 2. **Add music**: any common format (MP3, M4A, Ogg, FLAC, WAV …), up to 20 minutes long and
    200 MB each, or pick from the nine sample songs that come with Glissando if you have none of
    your own to hand. Pick the part of the song

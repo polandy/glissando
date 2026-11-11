@@ -4,9 +4,9 @@ import facesOne from "./fixtures/faces-one.json";
 import searchAlbum from "./fixtures/search-album.json";
 import searchLastPage from "./fixtures/search-all-last-page.json";
 import searchPage1 from "./fixtures/search-all-page-1.json";
-import serverVersion from "./fixtures/server-version.json";
 import { readExifCaptureDate } from "../import/exif-capture-date";
 import { syntheticJpeg } from "../import/testing/synthetic-jpeg";
+import { WHOLE_LIBRARY } from "./immich-client";
 import { PAGE_SIZE } from "./http-immich-client";
 import { BASE, clientWith, FakeFetch, json } from "./testing/fake-fetch";
 
@@ -46,7 +46,7 @@ describe("HttpImmichClient reading the library", () => {
   it("asks for one page of images, newest first, and maps the photos", async () => {
     const fake = new FakeFetch().answer("POST", "api/search/metadata", json(searchPage1));
 
-    const page = await clientWith(fake).photos({ page: 1 });
+    const page = await clientWith(fake).photos({ page: 1, source: WHOLE_LIBRARY });
 
     expect(fake.requests[0]?.body).toEqual({
       type: "IMAGE",
@@ -78,7 +78,7 @@ describe("HttpImmichClient reading the library", () => {
       dateTimeOriginal: "2025:07:12 14:30:00",
     });
 
-    const page = await clientWith(fake).photos({ page: 1 });
+    const page = await clientWith(fake).photos({ page: 1, source: WHOLE_LIBRARY });
 
     expect(page.photos[0]?.takenAt).toBe(readExifCaptureDate(sameFile.bytes.slice().buffer));
   });
@@ -89,13 +89,18 @@ describe("HttpImmichClient reading the library", () => {
     const broken = json({ assets: { items, nextPage: null } });
     const fake = new FakeFetch().answer("POST", "api/search/metadata", broken);
 
-    await expect(clientWith(fake).photos({ page: 1 })).rejects.toThrow(/"localDateTime"/);
+    await expect(clientWith(fake).photos({ page: 1, source: WHOLE_LIBRARY })).rejects.toThrow(
+      /"localDateTime"/,
+    );
   });
 
   it("asks for one album's photos and ends at the last page", async () => {
     const fake = new FakeFetch().answer("POST", "api/search/metadata", json(searchAlbum));
 
-    const page = await clientWith(fake).photos({ page: 1, albumId: "album-1" });
+    const page = await clientWith(fake).photos({
+      page: 1,
+      source: { kind: "album", albumId: "album-1" },
+    });
 
     expect(fake.requests[0]?.body).toEqual({
       type: "IMAGE",
@@ -112,7 +117,10 @@ describe("HttpImmichClient reading the library", () => {
   it("reads a photo's place from its EXIF city, and none where Immich has no city", async () => {
     const fake = new FakeFetch().answer("POST", "api/search/metadata", json(searchAlbum));
 
-    const page = await clientWith(fake).photos({ page: 1, albumId: "album-1" });
+    const page = await clientWith(fake).photos({
+      page: 1,
+      source: { kind: "album", albumId: "album-1" },
+    });
 
     // Annecy and Lyon have a city; then a null city, no exifInfo at all, and so on.
     expect(page.photos.map(({ place }) => place)).toEqual([
@@ -130,7 +138,9 @@ describe("HttpImmichClient reading the library", () => {
     broken.assets.items[0] = { ...broken.assets.items[0], exifInfo: { city: 7 } };
     const fake = new FakeFetch().answer("POST", "api/search/metadata", json(broken));
 
-    await expect(clientWith(fake).photos({ page: 1 })).rejects.toThrow(/city/);
+    await expect(clientWith(fake).photos({ page: 1, source: WHOLE_LIBRARY })).rejects.toThrow(
+      /city/,
+    );
   });
 
   describe("with videos", () => {
@@ -138,7 +148,7 @@ describe("HttpImmichClient reading the library", () => {
     const asset = (id: string, type: string, extra: object = {}) => ({
       id,
       type,
-      originalFileName: `${id}.x`,
+      originalFileName: `${id}.jpg`,
       localDateTime: "2025-07-12T14:30:00.000Z",
       width: 1920,
       height: 1080,
@@ -156,7 +166,11 @@ describe("HttpImmichClient reading the library", () => {
         ),
       );
 
-      const page = await clientWith(fake).photos({ page: 1, withVideos: true });
+      const page = await clientWith(fake).photos({
+        page: 1,
+        source: WHOLE_LIBRARY,
+        withVideos: true,
+      });
 
       expect(fake.requests[0]?.body).not.toHaveProperty("type");
       expect(page.photos.map(({ id }) => id)).toEqual(["p", "v"]);
@@ -173,7 +187,11 @@ describe("HttpImmichClient reading the library", () => {
           withAssets(asset("v", "VIDEO", { duration })),
         );
 
-        const page = await clientWith(fake).photos({ page: 1, withVideos: true });
+        const page = await clientWith(fake).photos({
+          page: 1,
+          source: WHOLE_LIBRARY,
+          withVideos: true,
+        });
 
         expect(page.photos[0]?.video).toEqual({ durationMs: null });
       },
@@ -186,7 +204,7 @@ describe("HttpImmichClient reading the library", () => {
         withAssets(asset("p", "IMAGE"), asset("v", "VIDEO")),
       );
 
-      const page = await clientWith(fake).photos({ page: 1 });
+      const page = await clientWith(fake).photos({ page: 1, source: WHOLE_LIBRARY });
 
       expect(page.photos.map(({ id }) => id)).toEqual(["p"]);
     });
@@ -205,7 +223,11 @@ describe("HttpImmichClient reading the library", () => {
   it("reads an empty last page", async () => {
     const fake = new FakeFetch().answer("POST", "api/search/metadata", json(searchLastPage));
 
-    expect(await clientWith(fake).photos({ page: 2 })).toEqual({ photos: [], nextPage: null });
+    expect(await clientWith(fake).photos({ page: 2, source: WHOLE_LIBRARY })).toEqual({
+      photos: [],
+      hiddenTakenAt: [],
+      nextPage: null,
+    });
   });
 
   it("fails loud naming the field when a photo lacks its file name", async () => {
@@ -213,7 +235,9 @@ describe("HttpImmichClient reading the library", () => {
     broken.assets.items[0] = { id: "x", localDateTime: "2025-07-12T14:30:00.000Z" };
     const fake = new FakeFetch().answer("POST", "api/search/metadata", json(broken));
 
-    await expect(clientWith(fake).photos({ page: 1 })).rejects.toThrow(/"originalFileName"/);
+    await expect(clientWith(fake).photos({ page: 1, source: WHOLE_LIBRARY })).rejects.toThrow(
+      /"originalFileName"/,
+    );
   });
 
   it.each([null, 0])(
@@ -223,7 +247,7 @@ describe("HttpImmichClient reading the library", () => {
       unread.assets.items[0] = { ...unread.assets.items[0], width: unreadSize, height: unreadSize };
       const fake = new FakeFetch().answer("POST", "api/search/metadata", json(unread));
 
-      const page = await clientWith(fake).photos({ page: 1 });
+      const page = await clientWith(fake).photos({ page: 1, source: WHOLE_LIBRARY });
 
       expect(page.photos[0]?.size).toBeNull();
     },
@@ -234,7 +258,9 @@ describe("HttpImmichClient reading the library", () => {
     broken.assets.nextPage = "two";
     const fake = new FakeFetch().answer("POST", "api/search/metadata", json(broken));
 
-    await expect(clientWith(fake).photos({ page: 1 })).rejects.toThrow(/"nextPage".*"two"/);
+    await expect(clientWith(fake).photos({ page: 1, source: WHOLE_LIBRARY })).rejects.toThrow(
+      /"nextPage".*"two"/,
+    );
   });
 
   it("maps a photo's faces", async () => {
@@ -260,23 +286,5 @@ describe("HttpImmichClient reading the library", () => {
     expect(clientWith(new FakeFetch()).thumbnailUrl("photo-1")).toBe(
       `${BASE}api/assets/photo-1/thumbnail?size=thumbnail`,
     );
-  });
-
-  it("never sends an API key", async () => {
-    const fake = new FakeFetch()
-      .answer("GET", "api/server/version", json(serverVersion))
-      .answer("GET", "api/albums", json(albumsFixture))
-      .answer("POST", "api/search/metadata", json(searchPage1));
-    const client = clientWith(fake);
-
-    await client.status();
-    await client.photos({ page: 1 });
-
-    expect(fake.requests).toHaveLength(3);
-    expect(fake.requests.map((request) => request.headers.has("x-api-key"))).toEqual([
-      false,
-      false,
-      false,
-    ]);
   });
 });

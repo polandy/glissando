@@ -203,7 +203,7 @@
     onDismissNotice={() => openFlow.dismissNotice()}
     onReload={services.reload}
     immich={immichState}
-    onOpenImmich={() => navigator.open({ screen: "immich", albumId: null, slideshowId: null })}
+    onOpenImmich={() => navigator.open({ screen: "immich", opened: null, slideshowId: null })}
     onImmichSettings={() => navigator.open({ screen: "settings" })}
     samplePreview={services.samplePreview}
     {toaster}

@@ -8,14 +8,18 @@ const PICTURES: Route = { screen: "import", step: "pictures" };
 
 describe("crumbTarget", () => {
   it("counts screen crumbs after the link, not labels", () => {
-    const immich: Route = { screen: "immich", albumId: "a1", slideshowId: null };
+    const immich: Route = {
+      screen: "immich",
+      opened: { kind: "album", id: "a1" },
+      slideshowId: null,
+    };
     const crumbs = ["Library", WIZARD, "Pictures", "Immich", "Album"];
 
     expect(crumbTarget(crumbs, 0, immich)).toEqual(START);
     expect(crumbTarget(crumbs, 2, immich)).toEqual(PICTURES);
     expect(crumbTarget(crumbs, 3, immich)).toEqual({
       screen: "immich",
-      albumId: null,
+      opened: null,
       slideshowId: null,
     });
   });
@@ -27,7 +31,7 @@ describe("crumbTarget", () => {
   });
 
   it("reaches the slideshow from the add screen's Immich browser", () => {
-    const immich: Route = { screen: "immich", albumId: null, slideshowId: "s1" };
+    const immich: Route = { screen: "immich", opened: null, slideshowId: "s1" };
     const crumbs = ["Library", "Sommer", "Add", "Immich"];
 
     expect(crumbTarget(crumbs, 1, immich)).toEqual({ screen: "slideshow", slideshowId: "s1" });

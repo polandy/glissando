@@ -22,17 +22,70 @@ import {
   type FakeAnswer,
 } from "./testing/fake-fetch";
 
-describe("HttpImmichClient.status", () => {
-  it("is available with Immich's version and the album count", async () => {
-    const fake = new FakeFetch()
-      .answer("GET", "api/server/version", json(serverVersion))
-      .answer("GET", "api/albums", json(albumsFixture));
+const TIMELINE = "api/timeline/buckets";
+const PEOPLE_PROBE = "api/people?withHidden=false&page=1&size=1";
+const FOLDER_PATHS = "api/view/folder/unique-paths";
 
-    expect(await clientWith(fake).status()).toEqual({
+/** A fake whose optional-permission probes all succeed, except those given another answer. */
+function availableFake(probes: Partial<Record<string, FakeAnswer>> = {}): FakeFetch {
+  return new FakeFetch()
+    .answer("GET", "api/server/version", json(serverVersion))
+    .answer("GET", "api/albums", json(albumsFixture))
+    .answer("GET", TIMELINE, probes[TIMELINE] ?? json([]))
+    .answer("GET", PEOPLE_PROBE, probes[PEOPLE_PROBE] ?? json({ people: [], hasNextPage: false }))
+    .answer("GET", FOLDER_PATHS, probes[FOLDER_PATHS] ?? json([]));
+}
+
+describe("HttpImmichClient.status", () => {
+  it("is available with Immich's version, the album count and no missing permission", async () => {
+    expect(await clientWith(availableFake()).status()).toEqual({
       kind: "available",
       version: "3.3.1",
       albumCount: 2,
+      missingPermissions: [],
     });
+  });
+
+  it.each<[string, string[]]>([
+    [TIMELINE, ["timeline.read"]],
+    [PEOPLE_PROBE, ["person.read"]],
+    [FOLDER_PATHS, ["folder.read"]],
+  ])("names the permission whose probe %s answers 403", async (path, missing) => {
+    const fake = availableFake({ [path]: json(error403, 403) });
+
+    expect(await clientWith(fake).status()).toEqual(
+      expect.objectContaining({ kind: "available", missingPermissions: missing }),
+    );
+  });
+
+  it("names all three optional permissions when all three probes answer 403", async () => {
+    const forbidden = json(error403, 403);
+    const fake = availableFake({
+      [TIMELINE]: forbidden,
+      [PEOPLE_PROBE]: forbidden,
+      [FOLDER_PATHS]: forbidden,
+    });
+
+    expect(await clientWith(fake).status()).toEqual(
+      expect.objectContaining({
+        missingPermissions: ["timeline.read", "person.read", "folder.read"],
+      }),
+    );
+  });
+
+  it("is unavailable, not permission-missing, when a probe fails otherwise", async () => {
+    const fake = availableFake({ [TIMELINE]: status(502) });
+
+    expect(await clientWith(fake).status()).toEqual({ kind: "unreachable" });
+  });
+
+  it("never sends an API key", async () => {
+    const fake = availableFake();
+
+    await clientWith(fake).status();
+
+    expect(fake.requests).toHaveLength(5);
+    expect(fake.requests.every((request) => !request.headers.has("x-api-key"))).toBe(true);
   });
 
   it.each([

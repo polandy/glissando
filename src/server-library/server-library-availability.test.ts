@@ -10,7 +10,12 @@ import {
   type ServerLibraryMemory,
 } from "./server-library-memory";
 
-const AVAILABLE: ImmichStatus = { kind: "available", version: "3.3.1", albumCount: 2 };
+const AVAILABLE: ImmichStatus = {
+  kind: "available",
+  version: "3.3.1",
+  albumCount: 2,
+  missingPermissions: [],
+};
 
 /** Immich's availability as a test publishes it, replayed on subscribe like the real one. */
 class FakeImmichAvailability {

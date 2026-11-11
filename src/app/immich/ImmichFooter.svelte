@@ -20,7 +20,11 @@
     {:else}
       <b class="mono">{summary.count}</b>
       {t("immich.selected")}
-      {#if summary.albums !== null}{t("immich.fromAlbums", { count: summary.albums })}{/if}
+      {#if summary.from?.kind === "albums"}
+        {t("immich.fromAlbums", { count: summary.from.count })}
+      {:else if summary.from?.kind === "sources"}
+        {t("immich.fromSources", { count: summary.from.count })}
+      {/if}
     {/if}
   </span>
   {#if summary.kind === "count"}

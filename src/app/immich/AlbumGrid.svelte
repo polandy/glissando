@@ -2,12 +2,13 @@
   import Separated from "../components/Separated.svelte";
   import type { BrowseFailure } from "../../immich/browse-failure";
   import type { ImmichAlbum } from "../../immich/immich-client";
+  import { albumSource, sourceKey } from "./browse-source";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
   import {
-    albumPick,
+    sourcePick,
     browseFailureMessages,
-    type AlbumMembership,
+    type SourceMembership,
     type AlreadyIn,
   } from "./immich-view";
 
@@ -15,8 +16,8 @@
   let {
     albums,
     membership,
-    busyAlbumIds,
-    albumFailures,
+    busySources,
+    sourceFailures,
     selectedIds,
     alreadyIn,
     thumbnailUrl,
@@ -25,10 +26,10 @@
   }: {
     /** Null while loading: shimmering cards. */
     albums: readonly ImmichAlbum[] | null;
-    membership: ReadonlyMap<string, AlbumMembership>;
-    busyAlbumIds: ReadonlySet<string>;
+    membership: ReadonlyMap<string, SourceMembership>;
+    busySources: ReadonlySet<string>;
     /** Why an album's last whole-album select failed. */
-    albumFailures: ReadonlyMap<string, BrowseFailure>;
+    sourceFailures: ReadonlyMap<string, BrowseFailure>;
     selectedIds: ReadonlySet<string>;
     alreadyIn: AlreadyIn;
     thumbnailUrl: (photoId: string) => string;
@@ -56,9 +57,13 @@
     {/each}
   {:else}
     {#each albums as album (album.id)}
-      {@const pick = albumPick(membership.get(album.id), selectedIds, alreadyIn)}
-      {@const busy = busyAlbumIds.has(album.id)}
-      {@const failure = albumFailures.get(album.id)}
+      {@const pick = sourcePick(
+        membership.get(sourceKey(albumSource(album.id))),
+        selectedIds,
+        alreadyIn,
+      )}
+      {@const busy = busySources.has(sourceKey(albumSource(album.id)))}
+      {@const failure = sourceFailures.get(sourceKey(albumSource(album.id)))}
       <li class="album" class:picked={pick.selected > 0}>
         <button class="open" type="button" onclick={() => onOpen(album)}>
           <span class="cover" class:pending={busy}>

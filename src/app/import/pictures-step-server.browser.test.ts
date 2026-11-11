@@ -19,7 +19,12 @@ afterEach(() => {
   unmounts = [];
 });
 
-const AVAILABLE: ImmichAvailabilityState = { kind: "available", version: "3.3.1", albumCount: 2 };
+const AVAILABLE: ImmichAvailabilityState = {
+  kind: "available",
+  version: "3.3.1",
+  albumCount: 2,
+  missingPermissions: [],
+};
 const PHOTO = { id: "asset-1", fileName: "a.jpg", takenAt: "2025-07-01T10:00:00Z", size: null };
 
 function session(

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { ImmichUnavailableError, type ImmichUnavailableKind } from "./immich-client";
+import {
+  ImmichUnavailableError,
+  WHOLE_LIBRARY,
+  type PhotoSource,
+  type ImmichUnavailableKind,
+} from "./immich-client";
 import { PhotoFeed, type PhotoFeedState } from "./photo-feed";
 import { FakeImmichClient, photo } from "./testing/fake-immich-client";
 
@@ -10,9 +15,8 @@ function setUp(albumId?: string) {
   const client = new FakeImmichClient();
   const reported: ImmichUnavailableKind[] = [];
   const reportUnavailable = (kind: ImmichUnavailableKind) => reported.push(kind);
-  const feed = new PhotoFeed(
-    albumId === undefined ? { client, reportUnavailable } : { client, reportUnavailable, albumId },
-  );
+  const source: PhotoSource = albumId === undefined ? WHOLE_LIBRARY : { kind: "album", albumId };
+  const feed = new PhotoFeed({ client, reportUnavailable, source });
   const seen: PhotoFeedState[] = [];
   feed.subscribe((state) => seen.push(state));
   return { client, feed, seen, reported };
@@ -26,16 +30,17 @@ describe("PhotoFeed", () => {
     await new PhotoFeed({
       client,
       reportUnavailable: () => undefined,
+      source: WHOLE_LIBRARY,
       withVideos: true,
     }).loadMore();
 
-    expect(client.photoQueries).toEqual([{ page: 1, withVideos: true }]);
+    expect(client.photoQueries).toEqual([{ page: 1, source: WHOLE_LIBRARY, withVideos: true }]);
   });
 
   it("starts empty, not loading, and tells a subscriber at once", () => {
     const { feed, seen } = setUp();
 
-    const empty = { photos: [], loading: false, done: false, failure: null };
+    const empty = { photos: [], hiddenTakenAt: [], loading: false, done: false, failure: null };
     expect(feed.state).toEqual(empty);
     expect(seen).toEqual([empty]);
   });
@@ -47,9 +52,13 @@ describe("PhotoFeed", () => {
     await feed.loadMore();
     await feed.loadMore();
 
-    expect(client.photoQueries).toEqual([{ page: 1 }, { page: 2 }]);
+    expect(client.photoQueries).toEqual([
+      { page: 1, source: WHOLE_LIBRARY },
+      { page: 2, source: WHOLE_LIBRARY },
+    ]);
     expect(feed.state).toEqual({
       photos: [...FIRST, ...SECOND],
+      hiddenTakenAt: [],
       loading: false,
       done: true,
       failure: null,
@@ -62,7 +71,53 @@ describe("PhotoFeed", () => {
 
     await feed.loadMore();
 
-    expect(client.photoQueries).toEqual([{ page: 1, albumId: "album-1" }]);
+    expect(client.photoQueries).toEqual([
+      { page: 1, source: { kind: "album", albumId: "album-1" } },
+    ]);
+  });
+
+  it("reads on past pages without a JPEG until it finds photos", async () => {
+    const { client, feed, seen } = setUp();
+    client.photoAnswers.push(
+      { photos: [], hiddenTakenAt: ["2025-07-12T10:00:00Z", "2025-07-12T09:00:00Z"], nextPage: 2 },
+      { photos: [], hiddenTakenAt: ["2025-07-11T10:00:00Z"], nextPage: 3 },
+      { photos: FIRST, hiddenTakenAt: ["2025-07-10T10:00:00Z"], nextPage: null },
+    );
+
+    await feed.loadMore();
+
+    expect(client.photoQueries.map(({ page }) => page)).toEqual([1, 2, 3]);
+    expect(feed.state).toEqual({
+      photos: FIRST,
+      hiddenTakenAt: [
+        "2025-07-12T10:00:00Z",
+        "2025-07-12T09:00:00Z",
+        "2025-07-11T10:00:00Z",
+        "2025-07-10T10:00:00Z",
+      ],
+      loading: false,
+      done: true,
+      failure: null,
+    });
+    expect(seen.map((state) => state.loading)).toEqual([false, true, true, true, false]);
+  });
+
+  it("keeps the photos and offers the failed page again when a page fails mid-way", async () => {
+    const { client, feed } = setUp();
+    client.photoAnswers.push(
+      { photos: [], hiddenTakenAt: ["2025-07-12T10:00:00Z"], nextPage: 2 },
+      new ImmichUnavailableError("offline"),
+      { photos: FIRST, nextPage: null },
+    );
+
+    await feed.loadMore();
+    expect(feed.state.failure).toBe("offline");
+    expect(feed.state.hiddenTakenAt).toEqual(["2025-07-12T10:00:00Z"]);
+    await feed.retry();
+
+    expect(client.photoQueries.map(({ page }) => page)).toEqual([1, 2, 2]);
+    expect(feed.state.photos).toEqual(FIRST);
+    expect(feed.state.done).toBe(true);
   });
 
   it("is loading while a page is under way", async () => {
@@ -87,7 +142,7 @@ describe("PhotoFeed", () => {
     await Promise.all([first, second]);
 
     expect(feed.state.photos).toEqual(FIRST);
-    expect(client.photoQueries).toEqual([{ page: 1 }]);
+    expect(client.photoQueries).toEqual([{ page: 1, source: WHOLE_LIBRARY }]);
   });
 
   it("ignores loadMore after the last page", async () => {
@@ -98,7 +153,7 @@ describe("PhotoFeed", () => {
     await feed.loadMore();
 
     expect(feed.state.done).toBe(true);
-    expect(client.photoQueries).toEqual([{ page: 1 }]);
+    expect(client.photoQueries).toEqual([{ page: 1, source: WHOLE_LIBRARY }]);
   });
 
   it("fails with the problem Immich met, reports it, keeps what it has, and ignores loadMore", async () => {
@@ -109,8 +164,17 @@ describe("PhotoFeed", () => {
     await feed.loadMore();
     await feed.loadMore();
 
-    expect(feed.state).toEqual({ photos: FIRST, loading: false, done: false, failure: "offline" });
-    expect(client.photoQueries).toEqual([{ page: 1 }, { page: 2 }]);
+    expect(feed.state).toEqual({
+      photos: FIRST,
+      hiddenTakenAt: [],
+      loading: false,
+      done: false,
+      failure: "offline",
+    });
+    expect(client.photoQueries).toEqual([
+      { page: 1, source: WHOLE_LIBRARY },
+      { page: 2, source: WHOLE_LIBRARY },
+    ]);
     expect(reported).toEqual(["offline"]);
   });
 
@@ -122,8 +186,17 @@ describe("PhotoFeed", () => {
 
     await feed.retry();
 
-    expect(client.photoQueries).toEqual([{ page: 1 }, { page: 1 }]);
-    expect(feed.state).toEqual({ photos: FIRST, loading: false, done: true, failure: null });
+    expect(client.photoQueries).toEqual([
+      { page: 1, source: WHOLE_LIBRARY },
+      { page: 1, source: WHOLE_LIBRARY },
+    ]);
+    expect(feed.state).toEqual({
+      photos: FIRST,
+      hiddenTakenAt: [],
+      loading: false,
+      done: true,
+      failure: null,
+    });
   });
 
   it("fails as unexpected and rethrows an answer that does not match Immich's API", async () => {

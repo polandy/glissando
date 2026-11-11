@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { ImmichUnavailableError, type ImmichPhoto } from "./immich-client";
-import { allAlbumPhotos, PhotoSelection } from "./photo-selection";
+import { ImmichUnavailableError, type ImmichPhoto, type PhotoSource } from "./immich-client";
+import { allSourcePhotos, PhotoSelection } from "./photo-selection";
 import { FakeImmichClient, photo } from "./testing/fake-immich-client";
 
 const A = photo("a");
@@ -149,17 +149,32 @@ describe("PhotoSelection, extending to a photo (shift-click)", () => {
   });
 });
 
-describe("allAlbumPhotos", () => {
-  it("pages through an album until the last page", async () => {
+const ALBUM: PhotoSource = { kind: "album", albumId: "album-1" };
+
+describe("allSourcePhotos", () => {
+  it("pages through a source until the last page", async () => {
     const client = new FakeImmichClient();
     client.photoAnswers.push({ photos: [A, B], nextPage: 2 }, { photos: [C], nextPage: null });
 
-    const photos = await allAlbumPhotos(client, "album-1");
+    const photos = await allSourcePhotos(client, ALBUM);
 
     expect(photos).toEqual([A, B, C]);
     expect(client.photoQueries).toEqual([
-      { page: 1, albumId: "album-1" },
-      { page: 2, albumId: "album-1" },
+      { page: 1, source: { kind: "album", albumId: "album-1" } },
+      { page: 2, source: { kind: "album", albumId: "album-1" } },
+    ]);
+  });
+
+  it("reads a person's or a folder's pages the same way", async () => {
+    const client = new FakeImmichClient();
+    client.photoAnswers.push({ photos: [A], nextPage: null }, { photos: [B], nextPage: null });
+
+    await allSourcePhotos(client, { kind: "person", personId: "p1" });
+    await allSourcePhotos(client, { kind: "folder", path: "Pictures/2025" });
+
+    expect(client.photoQueries.map(({ source }) => source)).toEqual([
+      { kind: "person", personId: "p1" },
+      { kind: "folder", path: "Pictures/2025" },
     ]);
   });
 
@@ -167,14 +182,14 @@ describe("allAlbumPhotos", () => {
     const client = new FakeImmichClient();
     client.photoAnswers.push({ photos: [A], nextPage: 2 }, new ImmichUnavailableError("offline"));
 
-    await expect(allAlbumPhotos(client, "album-1")).rejects.toBeInstanceOf(ImmichUnavailableError);
+    await expect(allSourcePhotos(client, ALBUM)).rejects.toBeInstanceOf(ImmichUnavailableError);
   });
 
   it("fails loud when the next page does not advance", async () => {
     const client = new FakeImmichClient();
     client.photoAnswers.push({ photos: [A], nextPage: 1 });
 
-    await expect(allAlbumPhotos(client, "album-1")).rejects.toThrow(/does not advance/);
+    await expect(allSourcePhotos(client, ALBUM)).rejects.toThrow(/does not advance/);
     expect(client.photoQueries).toHaveLength(1);
   });
 });

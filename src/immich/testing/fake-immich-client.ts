@@ -2,13 +2,17 @@ import type {
   ImmichAlbum,
   ImmichClient,
   ImmichFace,
+  ImmichPerson,
   ImmichPhoto,
   ImmichPhotoPage,
   ImmichStatus,
+  TimelineMonth,
 } from "../immich-client";
 
 type PhotoQuery = Parameters<ImmichClient["photos"]>[0];
-type PhotoAnswer = ImmichPhotoPage | Error;
+/** A page; a test names `hiddenTakenAt` only where it matters. */
+type PhotoAnswer =
+  (Omit<ImmichPhotoPage, "hiddenTakenAt"> & { hiddenTakenAt?: readonly string[] }) | Error;
 
 /** A photo whose day and id are all a test cares about. */
 export function photo(
@@ -28,9 +32,19 @@ export class FakeImmichClient implements ImmichClient {
   readonly photoAnswers: PhotoAnswer[] = [];
   readonly photoQueries: PhotoQuery[] = [];
   albumList: readonly ImmichAlbum[] = [];
+  months: readonly TimelineMonth[] = [];
+  peopleList: readonly ImmichPerson[] = [];
+  paths: readonly string[] = [];
   /** Rejects every `albums()` while set. */
   albumsError: Error | null = null;
+  /** Reject `timelineMonths()`, `people()` and `folderPaths()` while set. */
+  monthsError: Error | null = null;
+  peopleError: Error | null = null;
+  foldersError: Error | null = null;
   albumsCalls = 0;
+  monthsCalls = 0;
+  peopleCalls = 0;
+  folderCalls = 0;
   statusCalls = 0;
   #heldStatus: Promise<ImmichStatus> | null = null;
   #heldPhotos: Promise<PhotoAnswer> | null = null;
@@ -69,7 +83,26 @@ export class FakeImmichClient implements ImmichClient {
     this.#heldPhotos = null;
     const answer = held === null ? next(this.photoAnswers, "photos()") : await held;
     if (answer instanceof Error) throw answer;
-    return answer;
+    return { hiddenTakenAt: [], ...answer };
+  }
+
+  timelineMonths(): Promise<readonly TimelineMonth[]> {
+    this.monthsCalls += 1;
+    return answer(this.months, this.monthsError);
+  }
+
+  people(): Promise<readonly ImmichPerson[]> {
+    this.peopleCalls += 1;
+    return answer(this.peopleList, this.peopleError);
+  }
+
+  folderPaths(): Promise<readonly string[]> {
+    this.folderCalls += 1;
+    return answer(this.paths, this.foldersError);
+  }
+
+  personThumbnailUrl(personId: string): string {
+    return `https://glissando.example/immich/api/people/${personId}/thumbnail`;
   }
 
   thumbnailUrl(photoId: string): string {
@@ -91,6 +124,10 @@ export class FakeImmichClient implements ImmichClient {
   faces(): Promise<readonly ImmichFace[]> {
     return Promise.resolve([]);
   }
+}
+
+function answer<T>(value: T, error: Error | null): Promise<T> {
+  return error === null ? Promise.resolve(value) : Promise.reject(error);
 }
 
 function next<T>(answers: T[], call: string): T {
