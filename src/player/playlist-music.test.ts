@@ -80,6 +80,98 @@ describe("PlaylistMusic resync", () => {
     expect(of("first.mp3").calls).toEqual(["play@0", "pause", "play@3"]);
   });
 
+  it("accepts where its own seek lands on a loaded device instead of seeking again", async () => {
+    const { music, of } = setUp(FIRST);
+    await music.play(0);
+    of("first.mp3").playingAt = 2.5;
+    await music.follow(3000);
+    of("first.mp3").playingAt = null;
+    await music.follow(3500);
+
+    for (const timeMs of [4000, 5000, 6000]) {
+      of("first.mp3").playingAt = timeMs / 1000 - 0.4;
+      await music.follow(timeMs);
+    }
+
+    expect(of("first.mp3").calls).toEqual(["play@0", "seek@3"]);
+  });
+
+  it("seeks again once a track drifts on from where its seek landed", async () => {
+    const { music, of } = setUp(FIRST);
+    await music.play(0);
+    of("first.mp3").playingAt = 2.5;
+    await music.follow(3000);
+    of("first.mp3").playingAt = 3.6;
+    await music.follow(4000);
+    of("first.mp3").playingAt = null;
+    await music.follow(4500);
+
+    of("first.mp3").playingAt = 4.4;
+    await music.follow(5000);
+
+    expect(of("first.mp3").calls).toEqual(["play@0", "seek@3", "seek@5"]);
+  });
+
+  it("holds a track that came back on the clock to the clock again", async () => {
+    const { music, of } = setUp(FIRST);
+    await music.play(0);
+    of("first.mp3").playingAt = 2.5;
+    await music.follow(3000);
+    of("first.mp3").playingAt = 3.6;
+    await music.follow(4000);
+    of("first.mp3").playingAt = 5;
+    await music.follow(5000);
+    of("first.mp3").playingAt = null;
+    await music.follow(5500);
+
+    of("first.mp3").playingAt = 5.6;
+    await music.follow(6000);
+
+    expect(of("first.mp3").calls).toEqual(["play@0", "seek@3", "seek@6"]);
+  });
+
+  it("forgets where a seek landed once the track starts afresh", async () => {
+    const { music, of } = setUp(FIRST);
+    await music.play(0);
+    of("first.mp3").playingAt = 2.5;
+    await music.follow(3000);
+    of("first.mp3").playingAt = 3.6;
+    await music.follow(4000);
+    music.pause();
+    await music.play(5000);
+
+    of("first.mp3").playingAt = 5.6;
+    await music.follow(6000);
+
+    expect(of("first.mp3").calls).toEqual(["play@0", "seek@3", "pause", "play@5", "seek@6"]);
+  });
+
+  it("leaves a track whose clock falls behind while it plays on without a stall", async () => {
+    const { music, of } = setUp(FIRST);
+    await music.play(0);
+    of("first.mp3").playingAt = 2.9;
+    await music.follow(3000);
+
+    of("first.mp3").playingAt = 5.7;
+    await music.follow(6000);
+
+    expect(of("first.mp3").calls).toEqual(["play@0"]);
+  });
+
+  it("seeks a track that a stall left behind while it played", async () => {
+    const { music, of } = setUp(FIRST);
+    await music.play(0);
+    of("first.mp3").playingAt = 2.9;
+    await music.follow(3000);
+    of("first.mp3").playingAt = null;
+    await music.follow(4000);
+
+    of("first.mp3").playingAt = 4.5;
+    await music.follow(5000);
+
+    expect(of("first.mp3").calls).toEqual(["play@0", "seek@5"]);
+  });
+
   it("judges each track of a crossfade on its own", async () => {
     const { music, of } = setUp(FIRST, SECOND);
     await music.play(6000);

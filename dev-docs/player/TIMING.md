@@ -55,3 +55,9 @@ while the song really plays — not while it starts up, seeks, stalls or is paus
 (`playingSecondsOf`, shared with the clips) — so a seek never chases its own start-up. The seek
 is plain: no change of speed, which would warble the music, and no fade, since it follows a stall
 that was already heard.
+
+Only a start or a stall since the last reading lets a song be seeked (ADR-0056): a song that falls
+behind while it plays on has a slow audio clock, which a seek cannot outrun. The drift at the first
+reading after a seek is where that seek landed; the song counts as on its place there until it
+drifts on from it, or back onto the clock. So a device busy preparing pictures, whose seeks land
+late, gets one seek per stall instead of one per frame.
