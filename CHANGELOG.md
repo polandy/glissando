@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.3](https://github.com/polandy/glissando/compare/glissando-v0.1.2...glissando-v0.1.3) (2026-11-12)
+
+
+### Bug Fixes
+
+* **glissando-file:** export a server slideshow so its .glissando file opens again ([#339](https://github.com/polandy/glissando/issues/339)) ([d702c14](https://github.com/polandy/glissando/commit/d702c14856ba28151fced4817c874c04f02ae08a))
+* **immich:** make 4K renditions in a worker so server slideshows play without stutter ([#337](https://github.com/polandy/glissando/issues/337)) ([e30dda6](https://github.com/polandy/glissando/commit/e30dda689b697d61f49d3d3ecfebc43e46b257ab))
+
 ## [0.1.2](https://github.com/polandy/glissando/compare/glissando-v0.1.1...glissando-v0.1.2) (2026-11-12)
 
 
