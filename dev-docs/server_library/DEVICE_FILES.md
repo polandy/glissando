@@ -1,7 +1,7 @@
 # Files from this device for a server slideshow
 
 A server slideshow only links pictures from Immich, so files from this device go into a copy of
-it on this device; the server slideshow stays as it is.
+it on this device; the server slideshow stays as it is (ADR-0055).
 
 - **Entry**: on a server slideshow's add screen, below the Immich box, a drop zone "Pictures from
   this device" — "Adding these makes a copy on this device." with "Choose files". The wizard's
