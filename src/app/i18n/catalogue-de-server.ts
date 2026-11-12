@@ -20,6 +20,21 @@ export const deServer = {
   "server.devicePictures": "Bilder von diesem Gerät",
   "server.deviceDisabled":
     "Eine Server-Diashow verknüpft nur Bilder aus Immich. Lade diese zuerst in Immich hoch oder speichere die Diashow auf diesem Gerät.",
+  "server.copyToAdd": "Fügst du sie hinzu, entsteht eine Kopie auf diesem Gerät.",
+  "server.copyToAddTitle": "Kopie auf diesem Gerät anlegen?",
+  "server.copyToAddText": {
+    one: "Bilder von diesem Gerät lassen sich auf dem Server nicht verknüpfen. Glissando lädt das Bild aus Immich und die Musik herunter, fügt {files} hinzu und öffnet die Kopie unter „Auf diesem Gerät“.",
+    other:
+      "Bilder von diesem Gerät lassen sich auf dem Server nicht verknüpfen. Glissando lädt die {count} Bilder aus Immich und die Musik herunter, fügt {files} hinzu und öffnet die Kopie unter „Auf diesem Gerät“.",
+  },
+  "server.copyToAddTextNoMusic": {
+    one: "Bilder von diesem Gerät lassen sich auf dem Server nicht verknüpfen. Glissando lädt das Bild aus Immich herunter, fügt {files} hinzu und öffnet die Kopie unter „Auf diesem Gerät“.",
+    other:
+      "Bilder von diesem Gerät lassen sich auf dem Server nicht verknüpfen. Glissando lädt die {count} Bilder aus Immich herunter, fügt {files} hinzu und öffnet die Kopie unter „Auf diesem Gerät“.",
+  },
+  "server.copyToAddFiles": { one: "deine Datei", other: "deine {count} Dateien" },
+  "server.copyToAddUntouched": "Die Diashow auf dem Server bleibt, wie sie ist.",
+  "server.copyToAddConfirm": "Herunterladen und hinzufügen",
   "server.linked":
     "Aus Immich verknüpft. Jetzt wird nichts heruntergeladen; beim Abspielen kommen die Bilder aus Immich.",
   "server.creating": "Wird auf deinem Glissando-Server gespeichert …",

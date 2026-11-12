@@ -17,6 +17,8 @@ export interface ServerCopyFlowsPorts {
   readonly toaster: Pick<Toaster, "show">;
   /** Opens a slideshow's screen, the copy's from a toast's "Open". */
   open(slideshowId: string): void;
+  /** Takes files from this device into a new copy's add screen. */
+  addFiles(copy: StoredSlideshow, files: readonly File[]): void;
   reportError(error: unknown): void;
   log(error: unknown): void;
   readonly translator: Pick<Translator, "t">;
@@ -37,8 +39,8 @@ export class ServerCopyFlows {
   readonly #listeners = new Set<(copies: readonly ExportProgress[]) => void>();
   /** The running copies by server slideshow id, in the order they started. */
   readonly #copies = new Map<string, ExportProgress>();
-  /** Each running copy's flow by server slideshow id, so a second "Keep a copy" joins it. */
-  readonly #copying = new Map<string, Promise<void>>();
+  /** Each running copy by server slideshow id, so a second "Keep a copy" joins it; null: failed. */
+  readonly #copying = new Map<string, Promise<StoredSlideshow | null>>();
   #settled: Promise<void> = Promise.resolve();
 
   constructor(ports: ServerCopyFlowsPorts) {
@@ -59,14 +61,17 @@ export class ServerCopyFlows {
 
   /** Copies a server slideshow to this device, or joins its copy already running. */
   keepCopy(serverSlideshow: StoredSlideshow): Promise<void> {
-    const running = this.#copying.get(serverSlideshow.id);
-    if (running !== undefined) return running;
-    const flow = this.#keepCopy(serverSlideshow).finally(() =>
-      this.#copying.delete(serverSlideshow.id),
-    );
-    this.#copying.set(serverSlideshow.id, flow);
-    this.#settled = flow;
-    return flow;
+    this.#settled = this.#keepCopy(serverSlideshow);
+    return this.#settled;
+  }
+
+  /**
+   * Files from this device for a server slideshow: copies it to this device, or joins its copy
+   * already running, then takes the files into the copy's add screen. A failed copy drops them.
+   */
+  keepCopyAndAdd(serverSlideshow: StoredSlideshow, files: readonly File[]): Promise<void> {
+    this.#settled = this.#keepCopyAndAdd(serverSlideshow, files);
+    return this.#settled;
   }
 
   saveOnServer(deviceSlideshow: StoredSlideshow): Promise<void> {
@@ -75,6 +80,44 @@ export class ServerCopyFlows {
   }
 
   async #keepCopy(serverSlideshow: StoredSlideshow): Promise<void> {
+    const running = this.#copying.get(serverSlideshow.id);
+    if (running !== undefined) {
+      await running;
+      return;
+    }
+    const copy = await this.#startCopy(serverSlideshow, true);
+    if (copy !== null) {
+      const { t } = this.#ports.translator;
+      this.#ports.toaster.show({
+        text: t("server.copied"),
+        tone: "info",
+        action: this.#opening(copy.id),
+      });
+    }
+  }
+
+  async #keepCopyAndAdd(serverSlideshow: StoredSlideshow, files: readonly File[]): Promise<void> {
+    const copy = await (this.#copying.get(serverSlideshow.id) ??
+      this.#startCopy(serverSlideshow, false));
+    if (copy !== null) this.#ports.addFiles(copy, files);
+  }
+
+  #startCopy(
+    serverSlideshow: StoredSlideshow,
+    retryable: boolean,
+  ): Promise<StoredSlideshow | null> {
+    const copy = this.#copy(serverSlideshow, retryable).finally(() =>
+      this.#copying.delete(serverSlideshow.id),
+    );
+    this.#copying.set(serverSlideshow.id, copy);
+    return copy;
+  }
+
+  /** The copy, or null once its failure is told; `retryable` offers to try again. */
+  async #copy(
+    serverSlideshow: StoredSlideshow,
+    retryable: boolean,
+  ): Promise<StoredSlideshow | null> {
     const { serverLibrary, deviceStore, toaster, translator } = this.#ports;
     const { id: slideshowId, title } = serverSlideshow;
     const { t } = translator;
@@ -87,7 +130,7 @@ export class ServerCopyFlows {
           this.#publish(slideshowId, { slideshowId, title, fraction, copying: true }),
       });
       this.#publish(slideshowId, null);
-      toaster.show({ text: t("server.copied"), tone: "info", action: this.#opening(copy.id) });
+      return copy;
     } catch (error) {
       this.#publish(slideshowId, null);
       if (error instanceof PictureMissingFromImmichError) {
@@ -95,14 +138,19 @@ export class ServerCopyFlows {
         toaster.show({ text: t("server.copyMissing"), tone: "error" });
       } else if (isUnavailable(error)) {
         this.#ports.log(error);
+        const retry = {
+          label: t("common.retry"),
+          run: () => void this.keepCopy(serverSlideshow),
+        };
         toaster.show({
           text: t("server.copyFailed"),
           tone: "error",
-          action: { label: t("common.retry"), run: () => void this.keepCopy(serverSlideshow) },
+          ...(retryable ? { action: retry } : {}),
         });
       } else {
         this.#ports.reportError(error);
       }
+      return null;
     }
   }
 

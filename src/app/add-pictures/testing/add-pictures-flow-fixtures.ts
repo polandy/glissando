@@ -27,6 +27,8 @@ class FakeSession {
   readonly home: SlideshowHome;
   /** The records `refresh` was handed, by title. */
   readonly refreshedWith: string[] = [];
+  /** The files `addPictures` was handed, by name. */
+  readonly addedFiles: string[] = [];
   discardCalls = 0;
   readonly #discard = new Deferred<void>();
   readonly #commit = new Deferred<readonly string[]>();
@@ -38,6 +40,10 @@ class FakeSession {
 
   refresh(slideshow: StoredSlideshow): void {
     this.refreshedWith.push(slideshow.title);
+  }
+
+  addPictures(files: readonly File[]): void {
+    this.addedFiles.push(...files.map(({ name }) => name));
   }
 
   discard(): Promise<void> {

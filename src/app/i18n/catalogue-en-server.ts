@@ -20,6 +20,21 @@ export const enServer: Pick<Catalogue, keyof typeof deServer> = {
   "server.devicePictures": "Pictures from this device",
   "server.deviceDisabled":
     "A server slideshow only links pictures from Immich. Upload these to Immich first, or save this slideshow on this device.",
+  "server.copyToAdd": "Adding these makes a copy on this device.",
+  "server.copyToAddTitle": "Make a copy on this device?",
+  "server.copyToAddText": {
+    one: "Pictures from this device can't be linked on the server. Glissando downloads the picture from Immich and the music, adds {files}, and opens the copy under “On this device”.",
+    other:
+      "Pictures from this device can't be linked on the server. Glissando downloads the {count} pictures from Immich and the music, adds {files}, and opens the copy under “On this device”.",
+  },
+  "server.copyToAddTextNoMusic": {
+    one: "Pictures from this device can't be linked on the server. Glissando downloads the picture from Immich, adds {files}, and opens the copy under “On this device”.",
+    other:
+      "Pictures from this device can't be linked on the server. Glissando downloads the {count} pictures from Immich, adds {files}, and opens the copy under “On this device”.",
+  },
+  "server.copyToAddFiles": { one: "your file", other: "your {count} files" },
+  "server.copyToAddUntouched": "The slideshow on the server stays as it is.",
+  "server.copyToAddConfirm": "Download and add",
   "server.linked":
     "Linked from Immich. Nothing is downloaded now; playing loads the pictures from Immich.",
   "server.creating": "Saving on your Glissando server …",

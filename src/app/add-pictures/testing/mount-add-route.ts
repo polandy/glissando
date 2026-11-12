@@ -37,6 +37,8 @@ export function mountRoute(
     store,
   });
   const discards: boolean[] = [];
+  /** The file names of each confirmed "Download and add". */
+  const copiesToAdd: string[][] = [];
   const guards: Parameters<Navigator["guardLeave"]>[0][] = [];
   const route = mountWithTranslator(AddPicturesRoute, {
     session,
@@ -45,6 +47,7 @@ export function mountRoute(
     onError: () => undefined,
     onDiscard: (leave: boolean) => discards.push(leave),
     onCommit,
+    onCopyAndAdd: (files: readonly File[]) => copiesToAdd.push(files.map(({ name }) => name)),
     immich: { kind: "notSetUp" },
     onOpenImmich: () => undefined,
     onImmichSettings: () => undefined,
@@ -54,5 +57,5 @@ export function mountRoute(
     },
   });
   unmounts.push(route.destroy);
-  return { session, discards, guards, target: route.target };
+  return { session, discards, copiesToAdd, guards, target: route.target };
 }

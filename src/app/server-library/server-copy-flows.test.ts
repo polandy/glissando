@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { ImmichUnavailableError } from "../../immich/immich-client";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import type { KeepCopyOptions } from "../../server-library/keep-copy";
 import {
@@ -34,6 +35,7 @@ function setUp() {
   const toasts: ToastMessage[] = [];
   const opened: string[] = [];
   const errors: unknown[] = [];
+  const addedTo: [string, string[]][] = [];
   const copyAnswers: Answer[] = [];
   const saveAnswers: Answer[] = [];
   const copyOptions: KeepCopyOptions[] = [];
@@ -55,6 +57,7 @@ function setUp() {
     deviceStore: { listSlideshows: () => Promise.resolve([{ ...SHOW, id: "d", title: "Taken" }]) },
     toaster: { show: (toast) => void toasts.push(toast) },
     open: (id) => void opened.push(id),
+    addFiles: (copy, files) => void addedTo.push([copy.id, files.map(({ name }) => name)]),
     reportError: (error) => void errors.push(error),
     log: () => undefined,
     translator: createTranslator("en"),
@@ -63,7 +66,7 @@ function setUp() {
   flows.subscribe((copies) =>
     seen.push(copies.map(({ slideshowId, fraction }) => `${slideshowId} ${String(fraction)}`)),
   );
-  return { flows, toasts, opened, errors, copyAnswers, saveAnswers, copyOptions, seen };
+  return { flows, toasts, opened, errors, addedTo, copyAnswers, saveAnswers, copyOptions, seen };
 }
 
 describe("keeping a copy of a server slideshow on this device", () => {
@@ -135,6 +138,57 @@ describe("keeping a copy of a server slideshow on this device", () => {
     await flows.settled();
 
     expect(toasts.map(({ text }) => text)).toContain("Copied to this device");
+  });
+});
+
+describe("adding files from this device to a server slideshow", () => {
+  const FILES = [new File(["x"], "beach.jpg"), new File(["y"], "dune.jpg")];
+
+  it("copies it to this device with its progress, then adds the files to the copy", async () => {
+    const { flows, toasts, addedTo, copyAnswers, seen } = setUp();
+    copyAnswers.push({ ...SHOW, id: "copy-1" });
+
+    await flows.keepCopyAndAdd(SHOW, FILES);
+
+    expect(seen).toEqual([[], ["server-1 0"], ["server-1 0.34"], []]);
+    expect(addedTo).toEqual([["copy-1", ["beach.jpg", "dune.jpg"]]]);
+    expect(toasts).toEqual([]);
+  });
+
+  it.each([
+    [
+      new PictureMissingFromImmichError("asset-1"),
+      "A picture is no longer in Immich. Remove it, then the copy works.",
+    ],
+    [new ImmichUnavailableError("unreachable"), "Couldn't copy the slideshow."],
+    [new ServerLibraryUnavailableError("the music"), "Couldn't copy the slideshow."],
+  ])("drops the files when the copy fails with %s", async (failure, text) => {
+    const { flows, toasts, addedTo, copyAnswers, errors, seen } = setUp();
+    copyAnswers.push(failure);
+
+    await flows.keepCopyAndAdd(SHOW, FILES);
+
+    expect(toasts.map((toast) => [toast.text, toast.tone, toast.action])).toEqual([
+      [text, "error", undefined],
+    ]);
+    expect(seen.at(-1)).toEqual([]);
+    expect(addedTo).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+
+  it("adds the files to a copy of the same slideshow already running", async () => {
+    const { flows, toasts, addedTo, copyAnswers, copyOptions } = setUp();
+    const running = Promise.withResolvers<StoredSlideshow>();
+    copyAnswers.push(running.promise);
+
+    const kept = flows.keepCopy(SHOW);
+    const adding = flows.keepCopyAndAdd(SHOW, FILES);
+    running.resolve({ ...SHOW, id: "copy-1" });
+    await Promise.all([kept, adding]);
+
+    expect(copyOptions).toHaveLength(1);
+    expect(toasts.map(({ text }) => text)).toEqual(["Copied to this device"]);
+    expect(addedTo).toEqual([["copy-1", ["beach.jpg", "dune.jpg"]]]);
   });
 });
 

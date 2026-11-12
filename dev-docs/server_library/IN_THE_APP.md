@@ -57,6 +57,8 @@ The wizard's choice and server mode: [Where a new slideshow lives](NEW_SLIDESHOW
   is, with its toasts: 412 adds nothing and the add screen takes the current version (its
   pictures become the known ones), keeping the selection for another "Add"; a network failure
   adds nothing and keeps the selection.
+- **Files from this device** while adding: offered as a device copy with those files added
+  ([DEVICE_FILES.md](DEVICE_FILES.md)).
 - **Missing pictures**: a picture Immich answers 404 for (thumbnail or original) shows as a dashed
   tile "No longer in Immich"; below the strip the lemon notice "n pictures are no longer in Immich.
   They are skipped when playing." with "Remove them". The player skips it.

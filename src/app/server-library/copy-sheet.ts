@@ -32,6 +32,29 @@ export function keepCopySheet(
   };
 }
 
+/** "Make a copy on this device?" before files from this device go into a server slideshow's copy. */
+export function addDeviceFilesSheet(
+  { t }: Pick<Translator, "t">,
+  serverSlideshow: StoredSlideshow,
+  fileCount: number,
+): CopySheet & { readonly confirm: string } {
+  const text =
+    serverSlideshow.songs.length === 0 ? "server.copyToAddTextNoMusic" : "server.copyToAddText";
+  return {
+    title: t("server.copyToAddTitle"),
+    message: [
+      t(text, {
+        count: serverSlideshow.pictures.length,
+        files: t("server.copyToAddFiles", { count: fileCount }),
+      }),
+      t("server.copyToAddUntouched"),
+    ],
+    fileNames: [],
+    closing: null,
+    confirm: t("server.copyToAddConfirm"),
+  };
+}
+
 /**
  * "Save on the server?", or, with pictures only on this device, the sheet listing them that offers
  * to save without them; `musicBytes` is the music's size, null without music.

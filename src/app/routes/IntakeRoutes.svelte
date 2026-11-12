@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { ImmichAvailabilityState } from "../../immich/immich-availability";
   import type { ImmichPhoto } from "../../immich/immich-client";
+  import type { StoredSlideshow } from "../../library/stored-slideshow";
   import type { AddPicturesFlow } from "../add-pictures/add-pictures-flow";
   import type { AddPicturesSession } from "../add-pictures/add-pictures-session";
   import AddPicturesRoute from "../add-pictures/AddPicturesRoute.svelte";
@@ -23,6 +24,7 @@
     immichBrowsers,
     services,
     immichState,
+    onCopyAndAdd,
   }: {
     route: Extract<Route, { screen: "add" | "immich" }>;
     importSession: ImportSession | null;
@@ -34,11 +36,18 @@
       "store" | "serverLibrary" | "navigator" | "immich" | "reportError" | "reload"
     >;
     immichState: ImmichAvailabilityState;
+    /** Copies a server slideshow to this device and adds the files to the copy. */
+    onCopyAndAdd: (serverSlideshow: StoredSlideshow, files: readonly File[]) => void;
   } = $props();
 
   const { t } = getTranslator();
   // svelte-ignore state_referenced_locally
   const { store, serverLibrary, navigator, immich, reportError, reload } = services;
+
+  function copyAndAdd(serverSlideshow: StoredSlideshow, files: readonly File[]): void {
+    void addFlow.discard(true);
+    onCopyAndAdd(serverSlideshow, files);
+  }
 
   const adding = $derived(
     route.slideshowId !== null && addSession?.slideshowId === route.slideshowId ? addSession : null,
@@ -77,6 +86,7 @@
     guardLeave={(guard) => navigator.guardLeave(guard)}
     onDiscard={(leave) => void addFlow.discard(leave)}
     onCommit={() => addFlow.commit()}
+    onCopyAndAdd={(files) => copyAndAdd(adding.slideshow, files)}
     immich={immichState}
     onOpenImmich={() => navigator.open({ screen: "immich", opened: null, slideshowId })}
     onImmichSettings={() => navigator.open({ screen: "settings" })}

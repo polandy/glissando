@@ -55,6 +55,7 @@
     deviceStore: store,
     toaster,
     open: (slideshowId) => navigator.open({ screen: "slideshow", slideshowId }),
+    addFiles: (copy, files) => addFlow.open(copy, "device", files),
     reportError,
     log: services.log,
     translator,
@@ -217,6 +218,7 @@
     {immichBrowsers}
     {services}
     {immichState}
+    onCopyAndAdd={(slideshow, files) => void serverCopies.keepCopyAndAdd(slideshow, files)}
   />
 {:else if route.screen === "slideshow" || route.screen === "player" || route.screen === "picture" || route.screen === "music"}
   {@const slideshowId = route.slideshowId}

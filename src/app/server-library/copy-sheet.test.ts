@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import { createTranslator } from "../i18n/translator";
-import { keepCopySheet, saveOnServerSheet } from "./copy-sheet";
+import { addDeviceFilesSheet, keepCopySheet, saveOnServerSheet } from "./copy-sheet";
 
 const t = createTranslator("en");
 const MB = 1_000_000;
@@ -44,6 +44,27 @@ describe("the sheet confirming “Keep a copy on this device”", () => {
   it("leaves the music out of a slideshow without music", () => {
     expect(keepCopySheet(t, slideshow([picture("a", "x")], false)).message[0]).toBe(
       "Downloads 1 picture from Immich. The copy plays offline and appears under “On this device”.",
+    );
+  });
+});
+
+describe("the sheet confirming files from this device for a server slideshow", () => {
+  it("says the pictures and music are downloaded into a copy the files are added to", () => {
+    expect(addDeviceFilesSheet(t, slideshow([picture("a", "x"), picture("b", "y")]), 3)).toEqual({
+      title: "Make a copy on this device?",
+      message: [
+        "Pictures from this device can't be linked on the server. Glissando downloads the 2 pictures from Immich and the music, adds your 3 files, and opens the copy under “On this device”.",
+        "The slideshow on the server stays as it is.",
+      ],
+      fileNames: [],
+      closing: null,
+      confirm: "Download and add",
+    });
+  });
+
+  it("leaves the music out of a slideshow without music", () => {
+    expect(addDeviceFilesSheet(t, slideshow([picture("a", "x")], false), 1).message[0]).toBe(
+      "Pictures from this device can't be linked on the server. Glissando downloads the picture from Immich, adds your file, and opens the copy under “On this device”.",
     );
   });
 });
