@@ -4,11 +4,15 @@ import type { StoredSlideshow } from "../library/stored-slideshow";
 import { exportSlideshow, glissandoFileName } from "./export-slideshow";
 import { MANIFEST_SCHEMA } from "./manifest-schema";
 import { readManifest } from "./read-manifest";
-import { entryTexts } from "./testing/glissando-fixtures";
+import { entryTexts, tinyPicture } from "./testing/glissando-fixtures";
 
 const MODIFIED = new Date("2025-10-01T08:00:00Z");
 const PLAYER_PAGE = "<!doctype html><title>player</title>";
-const OPTIONS = { modifiedAt: MODIFIED, playerPage: async () => PLAYER_PAGE };
+const OPTIONS = {
+  modifiedAt: MODIFIED,
+  playerPage: async () => PLAYER_PAGE,
+  makeThumbnail: async () => tinyPicture("made thumbnail", 16, 12),
+};
 
 const slideshow: StoredSlideshow = {
   id: "show-1",
@@ -36,12 +40,16 @@ const slideshow: StoredSlideshow = {
   secondsPerPicture: 5,
 };
 
-const jpeg = (content: string): Blob => new Blob([content], { type: "image/jpeg" });
-
 async function storeWithMedia(): Promise<MemoryLibraryStore> {
   const store = new MemoryLibraryStore();
-  await store.putPicture("p1", { display: jpeg("display one"), thumbnail: jpeg("thumb one") });
-  await store.putPicture("p2", { display: jpeg("display two"), thumbnail: jpeg("thumb two") });
+  await store.putPicture("p1", {
+    display: tinyPicture("display one"),
+    thumbnail: tinyPicture("thumb one"),
+  });
+  await store.putPicture("p2", {
+    display: tinyPicture("display two"),
+    thumbnail: tinyPicture("thumb two"),
+  });
   await store.putMusic("m1", new Blob(["music bytes"], { type: "audio/mp4" }));
   return store;
 }
@@ -58,14 +66,14 @@ describe("exportSlideshow", () => {
       "glissando.schema.json",
       "README.txt",
       "index.html",
-      "pictures/0001.jpg",
-      "thumbnails/0001.jpg",
-      "pictures/0002.jpg",
-      "thumbnails/0002.jpg",
+      "pictures/0001.png",
+      "thumbnails/0001.png",
+      "pictures/0002.png",
+      "thumbnails/0002.png",
       "music/track-1.m4a",
     ]);
-    expect(read["pictures/0001.jpg"]).toBe("display two");
-    expect(read["thumbnails/0002.jpg"]).toBe("thumb one");
+    expect(read["pictures/0001.png"]).toContain("display two");
+    expect(read["thumbnails/0002.png"]).toContain("thumb one");
     expect(read["music/track-1.m4a"]).toBe("music bytes");
     const manifest = readManifest(read["glissando.json"] ?? "");
     expect(manifest.kind === "ok" && manifest.manifest.slideshow.title).toBe("Herbst in Wien");

@@ -5,7 +5,12 @@ read and write path.
 
 - **Export** (`exportSlideshow`) reads the media from the store one file at a time and builds
   the container from their blobs; the file is named after the title, characters a file system
-  refuses replaced by "-".
+  refuses replaced by "-". So that every exported file passes the check below, each picture
+  declares its display picture's own size, read from its header (a picture without a readable one
+  fails the export), not the size the store holds — a server slideshow's is Immich's. A stored
+  thumbnail beyond the thumbnail bound, over its byte limit, of another type or without a readable
+  header (Immich serves its thumbnails at the resolution and format its admin set) is replaced by
+  one made from the display picture (`MediaDecoders.thumbnail`).
 - **Check first, then write** (`checkGlissandoFile`): before anything is stored the file must
   start like a ZIP (else _foreign_), have a readable ZIP directory whose entries match their local
   headers, with no name twice (else _damaged_), and hold `glissando.json` (else _foreign_). Entries
