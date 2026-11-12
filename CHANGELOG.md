@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5](https://github.com/polandy/glissando/compare/glissando-v0.1.4...glissando-v0.1.5) (2026-11-12)
+
+
+### Bug Fixes
+
+* **player:** seek the music back only after a start or stall, never chasing its own seek ([#344](https://github.com/polandy/glissando/issues/344)) ([2d2c52e](https://github.com/polandy/glissando/commit/2d2c52ef13dd2ecad8a90f12e5a131016db399f3))
+
 ## [0.1.4](https://github.com/polandy/glissando/compare/glissando-v0.1.3...glissando-v0.1.4) (2026-11-12)
 
 
