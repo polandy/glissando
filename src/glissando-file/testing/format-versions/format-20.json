@@ -1,0 +1,134 @@
+{
+  "format": "glissando",
+  "formatVersion": 20,
+  "slideshow": {
+    "title": "Format version 20",
+    "createdAt": "2025-10-01T08:00:00.000Z",
+    "secondsPerPicture": 6,
+    "pictureLength": "seconds",
+    "ownOrder": true,
+    "transition": "alternate",
+    "portraitPictures": "fill-screen",
+    "look": "warm",
+    "mood": "calm",
+    "energyPacing": true,
+    "pictures": [
+      {
+        "file": "pictures/0001.png",
+        "thumbnail": "thumbnails/0001.png",
+        "capturedAt": "2025-09-30T10:00:00Z",
+        "width": 40,
+        "height": 30,
+        "fileName": "a.jpg",
+        "colours": {
+          "veil": "#404040",
+          "accent": "#C0C0C0"
+        },
+        "kenBurns": {
+          "from": {
+            "zoom": 2,
+            "centerX": 0.25,
+            "centerY": 0.5
+          },
+          "to": {
+            "zoom": 1.25,
+            "centerX": 0.6,
+            "centerY": 0.4
+          }
+        },
+        "caption": "Am Steg",
+        "durationMs": 8000,
+        "transition": "dissolve",
+        "immichAssetId": "asset-a1",
+        "alone": true,
+        "video": {
+          "file": "videos/clip-1.mp4",
+          "mimeType": "video/mp4",
+          "sourceMs": 20000,
+          "startMs": 1000,
+          "endMs": 6000,
+          "volume": 60,
+          "duckMusic": false
+        },
+        "place": {
+          "name": "Wien",
+          "latitude": 48.2085,
+          "longitude": 16.3721
+        }
+      },
+      {
+        "file": "pictures/0002.png",
+        "thumbnail": "thumbnails/0002.png",
+        "capturedAt": "2025-10-02T10:00:00Z",
+        "width": 40,
+        "height": 30,
+        "fileName": "b.jpg",
+        "colours": {
+          "veil": "#404040",
+          "accent": "#C0C0C0"
+        },
+        "fileBytes": 2500000
+      }
+    ],
+    "songs": [
+      {
+        "file": "music/track-1.m4a",
+        "fileName": "Walzer.m4a",
+        "durationMs": 240000,
+        "mimeType": "audio/mp4",
+        "trim": {
+          "startMs": 12000,
+          "endMs": 200000
+        },
+        "fadeInMs": 2000,
+        "fadeOutMs": 5000,
+        "pictureChanges": "even",
+        "volumeDb": -3,
+        "sampleTrack": "walzer-in-a"
+      }
+    ],
+    "betweenSongs": "sequence",
+    "openingCard": {
+      "title": "Herbst in Wien",
+      "subtitle": "2025",
+      "style": "classic",
+      "position": "bottom-left",
+      "entrance": "letters",
+      "background": {
+        "kind": "picture",
+        "pictureIndex": 1,
+        "fade": 60,
+        "tint": "dark"
+      },
+      "motion": true
+    },
+    "closingCard": {
+      "title": "Ende",
+      "subtitle": "Danke",
+      "style": "quiet",
+      "position": "centre",
+      "entrance": "slow-fade",
+      "background": {
+        "kind": "colour",
+        "colour": "#14111C"
+      },
+      "motion": false
+    },
+    "automaticChaptersOff": true,
+    "chapterEdits": [
+      {
+        "pictureIndex": 1,
+        "title": "Zweiter Tag",
+        "subtitle": "Am Fluss",
+        "hidden": true
+      }
+    ],
+    "addedChapters": [
+      {
+        "beforePictureIndex": 0,
+        "title": "Anreise",
+        "subtitle": "Mit dem Zug"
+      }
+    ]
+  }
+}

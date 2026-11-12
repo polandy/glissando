@@ -65,6 +65,9 @@ the owner's go-ahead for that PR; a UI feature starts as an approved mockup; no 
 
 - Readability over cleverness; names say _what_, comments say _why_ — and describe the current
   state only, never history ("used to", "no longer", dates, provenance).
+- **Glissando stays backward compatible** unless the owner decides otherwise: a new `.glissando`
+  format version still opens every older file (a migration step, a fixture and an open test,
+  ADR-0054); raising `OLDEST_READABLE_FORMAT_VERSION` needs an owner decision.
 - Pure domain logic, I/O at thin edges, dependencies injected (no globals, no singletons).
 - No magic strings or numbers; strict typing (no `any`); fail loud at boundaries.
 - Minimal exposure, minimal dependencies (a new one needs a one-line justification).

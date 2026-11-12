@@ -2,11 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setBetweenSongs } from "../library/slideshow-edits-songs";
 import { SEQUENCE_BETWEEN_SONGS } from "../library/own-music";
 import type { StoredSlideshow } from "../library/stored-slideshow";
-import {
-  GLISSANDO_FORMAT_VERSION,
-  manifestFor,
-  OLDEST_READABLE_FORMAT_VERSION,
-} from "./glissando-manifest";
+import { GLISSANDO_FORMAT_VERSION, manifestFor } from "./glissando-manifest";
 import { readManifest } from "./read-manifest";
 
 const JPEG = { display: "image/jpeg", thumbnail: "image/jpeg" };
@@ -70,16 +66,6 @@ describe("the playlist in the .glissando file (ADR-0023)", () => {
     expect(readManifest(asText(manifest(playlist)))).toEqual({
       kind: "ok",
       manifest: manifest(playlist),
-    });
-  });
-
-  it("refuses a file older than format version 10, which carried a single music, not songs", () => {
-    const written = manifest(playlist);
-    const text = asText({ ...written, formatVersion: 9 });
-
-    expect(readManifest(text)).toEqual({
-      kind: "damaged",
-      reason: `glissando.json formatVersion: expected a whole number from ${OLDEST_READABLE_FORMAT_VERSION} to ${GLISSANDO_FORMAT_VERSION}, got 9`,
     });
   });
 

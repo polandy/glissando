@@ -1,6 +1,6 @@
 # ADR-0038: The .glissando file is open, and every opened file is checked as foreign
 
-**Status:** accepted; supersedes ADR-0004
+**Status:** accepted; supersedes ADR-0004; its refusal of older files is superseded by ADR-0054
 
 ## Context
 
@@ -90,6 +90,7 @@ anything it could use to sign a file ships with the app and is public.
 ## Consequences
 
 - An older `.glissando` file is refused as damaged; `formatVersion` counts up with each change.
+  (Superseded by ADR-0054: every older file opens.)
 - Opening decodes every picture once and every song at the beat-detection rate (ADR-0021), one
   file at a time; a long slideshow takes noticeably longer to check than to checksum.
 - The limits bound what one file may hold; a slideshow beyond them cannot be exported either.
