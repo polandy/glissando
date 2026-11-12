@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.2](https://github.com/polandy/glissando/compare/glissando-v0.1.1...glissando-v0.1.2) (2026-11-12)
+
+
+### Features
+
+* **glissando-file:** carry each picture's focus so opening a file skips detection ([#331](https://github.com/polandy/glissando/issues/331)) ([0015539](https://github.com/polandy/glissando/commit/0015539f2576182b395c6a4c17b989d25c098c29))
+* **immich:** list JPEGs only and browse by month, favourites, people and folders ([#334](https://github.com/polandy/glissando/issues/334)) ([f404205](https://github.com/polandy/glissando/commit/f4042055a92d2de6ea373856164d31e80c4bb339))
+
+
+### Bug Fixes
+
+* **glissando-file:** open every older format version through a migration chain ([#336](https://github.com/polandy/glissando/issues/336)) ([a8409ee](https://github.com/polandy/glissando/commit/a8409eef8d8ed295a8237830befebcbb209161eb))
+* **settings:** play server slideshows in 4K automatically only on 4K screens ([#328](https://github.com/polandy/glissando/issues/328)) ([cfa6857](https://github.com/polandy/glissando/commit/cfa6857ce6ce82b2ab98e68372fe9c9c1d138cf3))
+* **start:** tell a failed demo download from a damaged file ([#330](https://github.com/polandy/glissando/issues/330)) ([0346337](https://github.com/polandy/glissando/commit/034633758f1f9abaa2efbaf2017066a5affb7d73))
+
 ## [0.1.1](https://github.com/polandy/glissando/compare/glissando-v0.1.0...glissando-v0.1.1) (2026-11-10)
 
 
