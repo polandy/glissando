@@ -8,7 +8,7 @@ import type { ImmichClient, ImmichUnavailableKind } from "./immich-client";
 
 /**
  * How Immich's pictures and clips are read: for an intake, a server slideshow and a copy of one.
- * An original's renditions are made in a worker, so a 4K slideshow's never hold a frame.
+ * An original's renditions are made in a worker, so making one never holds a 4K slideshow's frame.
  */
 export function createImmichReaders(
   client: ImmichClient,
