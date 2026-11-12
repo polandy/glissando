@@ -94,8 +94,8 @@ The wizard's choice and server mode: [Where a new slideshow lives](NEW_SLIDESHOW
 
 - `ServerSlideshowStore` (`src/server-library/`) implements the slices of `LibraryStore` the
   slideshow screen, editors, player and exports use: `pictureBlob(assetId)` fetches the original
-  through `/immich/` and makes the display rendition on the device (Immich's preview where the
-  original cannot be decoded, as on import), for the editors, exports and the copy;
+  through `/immich/` and makes the display rendition on the device, in a worker (Immich's preview
+  where the original cannot be decoded, as on import), for the editors, exports and the copy;
   `playbackPictureBlob` is Immich's preview, what the player shows in 1440 (ADR-0027; on the
   device it is the stored display rendition); both take an `AbortSignal` that cancels the
   download; `thumbnailBlob` is Immich's thumbnail; `musicBlob` the server's music; `pictureFocus`

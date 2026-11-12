@@ -1,4 +1,3 @@
-import { decodePicture } from "../../import/downscale";
 import { readPictureExif } from "../../import/picture-exif";
 import { immichPictureSource, type ImmichPictureReaders } from "../../import/immich-picture-source";
 import { openClipInVideoElement, videoCaptureDate } from "../../import/browser/video-clip";
@@ -43,7 +42,7 @@ export function browserIntakePorts(
   const placeData = createPlaceDataLoader(() => fetchPlaceText(fetch, PLACE_DATA_URL));
   const resolvePlace = createPlaceResolver(() => placeData.load(), log);
   return {
-    decode: decodePicture,
+    decode: immichReaders.decode,
     exif: readPictureExif,
     resolvePlace,
     videoClips: {
