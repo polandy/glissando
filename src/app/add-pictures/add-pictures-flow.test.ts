@@ -24,6 +24,15 @@ describe("AddPicturesFlow", () => {
     expect(sessions.map(({ home }) => home)).toEqual(["server"]);
   });
 
+  it("opens the add screen with files chosen elsewhere already being taken in", () => {
+    const { flow, sessions, opened } = setUp();
+
+    flow.open(SHOW_1, "device", [new File(["x"], "beach.jpg")]);
+
+    expect(opened).toEqual([{ screen: "add", slideshowId: "s1" }]);
+    expect(sessions[0]?.addedFiles).toEqual(["beach.jpg"]);
+  });
+
   it("reopening the same slideshow hands its session the record as stored now", () => {
     const { flow, sessions } = setUp();
     flow.open(SHOW_1, "device");

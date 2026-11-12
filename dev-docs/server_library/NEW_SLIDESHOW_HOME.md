@@ -10,7 +10,8 @@ no group, the step as before.
 
 **Glissando server** chosen: the "From Immich" box comes first with "Open Immich" as the primary
 button; the device drop zone is disabled with "A server slideshow only links photos from Immich.
-Upload these to Immich first, or save this slideshow on this device." The "Open file" box is not
+Upload these to Immich first, or save this slideshow on this device." (Adding to an existing
+server slideshow offers them as a device copy instead, [IN_THE_APP.md](IN_THE_APP.md).) The "Open file" box is not
 offered, and photos skipped as duplicates stay skipped (no "Add anyway"). Picked photos join at once
 (no downscaling; tiles are Immich thumbnails) with the mint notice "Linked from Immich. Nothing is
 downloaded now; playing loads the pictures from Immich." Duplicates are skipped as before

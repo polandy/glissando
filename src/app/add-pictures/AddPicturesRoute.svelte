@@ -3,6 +3,7 @@
   import type { AddedPlacement } from "../../library/added-placement";
   import Dialog from "../components/Dialog.svelte";
   import RadioGroup from "../components/RadioGroup.svelte";
+  import { addDeviceFilesSheet } from "../server-library/copy-sheet";
   import ImmichBox from "../immich/ImmichBox.svelte";
   import { getTranslator } from "../i18n/context";
   import type { Navigator } from "../navigation/navigator";
@@ -28,6 +29,7 @@
     onError,
     onDiscard,
     onCommit,
+    onCopyAndAdd,
     immich,
     onOpenImmich,
     onImmichSettings,
@@ -41,6 +43,8 @@
     onDiscard: (leave: boolean) => void;
     /** Stores the new pictures into the slideshow; settles once that is done or reported. */
     onCommit: () => Promise<void>;
+    /** Files from this device for a server slideshow, confirmed to go into a device copy. */
+    onCopyAndAdd: (files: readonly File[]) => void;
     immich: ImmichAvailabilityState;
     onOpenImmich: () => void;
     /** An Immich problem's details are in the settings. */
@@ -49,13 +53,15 @@
     guardLeave: Navigator["guardLeave"];
   } = $props();
 
-  const { t } = getTranslator();
+  const translator = getTranslator();
+  const { t } = translator;
 
   // The session is fixed for the screen's lifetime.
   // svelte-ignore state_referenced_locally
   let importState = $state.raw(session.intake.pictures.state);
   let confirmingDiscard = $state(false);
   let committing = $state(false);
+  let filesToCopy = $state.raw<readonly File[]>([]);
   // svelte-ignore state_referenced_locally
   let placement = $state(session.placement);
 
@@ -96,9 +102,15 @@
   }
 
   function add(files: readonly File[]): void {
-    if (files.length > 0) {
-      session.addPictures(files);
-    }
+    if (files.length === 0) return;
+    if (linking) filesToCopy = files;
+    else session.addPictures(files);
+  }
+
+  function copyAndAdd(): void {
+    const files = filesToCopy;
+    filesToCopy = [];
+    onCopyAndAdd(files);
   }
 
   function commit(): void {
@@ -128,6 +140,7 @@
     {onError}
     onFiles={add}
     {linking}
+    copyToAdd={linking}
     onDiscard={() => onDiscard(false)}
     {immich}
     {onOpenImmich}
@@ -181,6 +194,19 @@
     </button>
   {/snippet}
 </ImportFrame>
+
+{#if filesToCopy.length > 0}
+  {@const sheet = addDeviceFilesSheet(translator, session.slideshow, filesToCopy.length)}
+  <Dialog
+    title={sheet.title}
+    message={sheet.message}
+    onCancel={() => (filesToCopy = [])}
+    actions={[
+      { label: t("common.cancel"), tone: "ghost", onSelect: () => (filesToCopy = []) },
+      { label: sheet.confirm, tone: "primary", onSelect: copyAndAdd },
+    ]}
+  />
+{/if}
 
 {#if confirmingDiscard}
   <Dialog

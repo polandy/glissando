@@ -20,6 +20,7 @@ interface AddingSession {
   readonly slideshowId: string;
   /** Takes the slideshow as stored now, such as after an edit since the session began. */
   refresh(slideshow: StoredSlideshow): void;
+  addPictures(files: readonly File[]): void;
   /** Resolves once the store spares the discarded pictures' media no more. */
   discard(): Promise<void>;
   /** Resolves with the added pictures' ids. */
@@ -90,10 +91,10 @@ export class AddPicturesFlow<Session extends AddingSession> {
   }
 
   /**
-   * Opens the add screen for `slideshow`, which lives at `home`; its session is kept and takes the record as stored now,
+   * Opens the add screen for `slideshow`, which lives at `home`, taking in `files` there; its session is kept and takes the record as stored now,
    * a selection for another slideshow is discarded.
    */
-  open(slideshow: StoredSlideshow, home: SlideshowHome): void {
+  open(slideshow: StoredSlideshow, home: SlideshowHome, files: readonly File[] = []): void {
     const previous = this.#state.session;
     if (previous?.slideshowId === slideshow.id) {
       previous.refresh(slideshow);
@@ -103,6 +104,7 @@ export class AddPicturesFlow<Session extends AddingSession> {
       }
       this.#publish({ session: this.#ports.newSession(slideshow, home) });
     }
+    if (files.length > 0) this.#state.session?.addPictures(files);
     this.#ports.navigator.open({ screen: "add", slideshowId: slideshow.id });
   }
 

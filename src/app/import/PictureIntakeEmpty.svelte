@@ -7,10 +7,11 @@
   /**
    * The pictures step before anything is picked: the drop zone and its sources, or, while adding
    * to a server slideshow, the sources alone (`dev-docs/server_library/IN_THE_APP.md`: no device
-   * pictures for a server slideshow).
+   * pictures for a server slideshow, unless `copyToAdd` turns them into a device copy's).
    */
   let {
     linking,
+    copyToAdd = false,
     sources,
     onFiles,
     onError,
@@ -18,6 +19,8 @@
     onPickFolder,
   }: {
     linking: boolean;
+    /** Files from this device are taken for a device copy of the slideshow. */
+    copyToAdd?: boolean;
     /** The boxes below the drop zone. */
     sources: Snippet;
     onFiles: (files: readonly File[]) => void;
@@ -37,10 +40,20 @@
 
 {#if linking}
   <div class="sources immich-first">{@render sources()}</div>
-  <div class="device-off" aria-disabled="true">
-    <b>{t("server.devicePictures")}</b>
-    <small>{t("server.deviceDisabled")}</small>
-  </div>
+  {#if copyToAdd}
+    <DropZone icon="image" {onFiles} {onError}>
+      <b>{t("server.devicePictures")}</b>
+      <small class="hint">{t("server.copyToAdd")}</small>
+      <button bind:this={choosePictures} class="btn" type="button" onclick={onPickFiles}>
+        {t("import.chooseFiles")}
+      </button>
+    </DropZone>
+  {:else}
+    <div class="device-off" aria-disabled="true">
+      <b>{t("server.devicePictures")}</b>
+      <small>{t("server.deviceDisabled")}</small>
+    </div>
+  {/if}
 {:else}
   <DropZone icon="image" {onFiles} {onError}>
     <button bind:this={choosePictures} class="btn primary" type="button" onclick={onPickFiles}>
@@ -69,7 +82,8 @@
     text-align: center;
     opacity: 0.55;
   }
-  .device-off small {
+  .device-off small,
+  .hint {
     max-width: 44ch;
     color: var(--gl-muted);
   }

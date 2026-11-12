@@ -39,6 +39,7 @@
     onOpenImmich,
     sources,
     linking = false,
+    copyToAdd = false,
     arrangement,
   }: {
     intake: PictureIntake;
@@ -59,6 +60,8 @@
      * device (`dev-docs/server_library/IN_THE_APP.md`).
      */
     linking?: boolean;
+    /** While linking, files from this device are taken for a device copy (`PictureIntakeEmpty`). */
+    copyToAdd?: boolean;
     /** A new slideshow's own order (IMPORT_ARRANGING.md, Arranging); null while adding, which has none. */
     arrangement: SessionArrangement | null;
   } = $props();
@@ -143,6 +146,7 @@
   <PictureIntakeEmpty
     bind:this={emptyStep}
     {linking}
+    {copyToAdd}
     {sources}
     {onFiles}
     {onError}

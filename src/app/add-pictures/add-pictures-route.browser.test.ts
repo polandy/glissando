@@ -39,13 +39,38 @@ function primaryButton(target: HTMLElement): HTMLButtonElement {
 }
 
 describe("AddPicturesRoute, adding to a server slideshow", () => {
-  it("takes pictures from Immich only, the device's pictures shown as off", () => {
+  it("links pictures from Immich, offering files from this device as a copy", () => {
     const { target } = mountRoute(SHOW, undefined, "server");
 
-    expect(target.querySelector(".device-off")?.textContent).toContain(
-      de.t("server.deviceDisabled"),
-    );
-    expect(target.textContent).not.toContain(de.t("import.pickPictures"));
+    expect(target.textContent).toContain(de.t("server.copyToAdd"));
+    expect(buttonNamed(target, de.t("import.chooseFiles"))).toBeDefined();
+    expect(target.textContent).not.toContain(de.t("server.deviceDisabled"));
+  });
+
+  it.each([
+    { answer: "confirmed", label: de.t("server.copyToAddConfirm"), copies: [["a.jpg", "b.jpg"]] },
+    { answer: "cancelled", label: de.t("common.cancel"), copies: [] },
+  ])("asks before copying files chosen from this device, $answer", ({ label, copies }) => {
+    const { target, session, copiesToAdd } = mountRoute(SHOW, undefined, "server");
+    const picked = new DataTransfer();
+    picked.items.add(new File(["x"], "a.jpg"));
+    picked.items.add(new File(["y"], "b.jpg"));
+    const input = target.querySelector<HTMLInputElement>("input[type=file][multiple]");
+    if (input === null) throw new Error("no file input");
+
+    input.files = picked.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    flushSync();
+    const sheet = document.querySelector("dialog");
+    expect(sheet?.textContent).toContain(de.t("server.copyToAddTitle"));
+    expect(sheet?.textContent).toContain("deine 2 Dateien");
+    if (sheet === null) throw new Error("no sheet");
+    buttonNamed(sheet, label).click();
+    flushSync();
+
+    expect(document.querySelector("dialog")).toBeNull();
+    expect(copiesToAdd).toEqual(copies);
+    expect(session.intake.pictures.state.pictures).toEqual([]);
   });
 
   it("says the pictures are linked, not downscaled", () => {
