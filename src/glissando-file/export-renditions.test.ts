@@ -117,6 +117,13 @@ describe("the pictures a .glissando file carries", () => {
     expect((await opened(file)).kind).toBe("ok");
   });
 
+  it("carry a made thumbnail where the stored one has no readable header", async () => {
+    const file = await exported(DISPLAY, new Blob(["not a picture"], { type: "image/jpeg" }));
+
+    expect((await entryTexts(file))["thumbnails/0001.png"]).toContain("made from the display");
+    expect((await opened(file)).kind).toBe("ok");
+  });
+
   it("fail the export where a display picture has no readable header", async () => {
     const headerless = new Blob(["no picture"], { type: "image/jpeg" });
 
