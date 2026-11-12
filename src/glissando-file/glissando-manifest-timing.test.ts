@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { GLISSANDO_FORMAT_VERSION, manifestFor } from "./glissando-manifest";
+import {
+  GLISSANDO_FORMAT_VERSION,
+  OWN_TIMING_FROM_VERSION,
+  manifestFor,
+} from "./glissando-manifest";
 import { readManifest } from "./read-manifest";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 
@@ -52,6 +56,7 @@ function withFirstPicture(
 
 describe("a picture's chosen duration and transition in the .glissando file", () => {
   it("is written from format version 4, the version that carries them", () => {
+    expect(OWN_TIMING_FROM_VERSION).toBe(4);
     expect(manifest().slideshow.pictures[0]).toMatchObject({ durationMs: 8000, transition: "cut" });
     expect(manifest().slideshow.pictures[1]).toMatchObject({ transition: "dissolve" });
     expect(manifest().slideshow.pictures[1]).not.toHaveProperty("durationMs");

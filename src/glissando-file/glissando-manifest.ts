@@ -55,15 +55,33 @@ export const GLISSANDO_FORMAT_ID = "glissando";
  * pacing, `energyPacing` (ADR-0046), version 21 the slideshow's music repeat, `repeatMusic`
  * (ADR-0047), version 22 a picture's found focus, `focus` (ADR-0053).
  *
- * Versions 13 to 22 are read (a version 13 file holds no clips, versions 13 and 14 no song
- * volume, versions 13 to 15 no sample-track id, versions 13 to 16 no place or chapters, versions
- * 13 to 17 no look, versions 13 to 18 no mood, versions 13 to 19 no energy pacing, versions 13
- * to 20 no music repeat, and versions 13 to 21 no focus). Any older file is refused rather than
- * migrated, as there is no production instance yet; before version 10 a file carried `music`, not
- * `songs`, which cannot be told apart from the rest of such a document.
+ * Every version is read (ADR-0054): a field from the version that added it on, and
+ * `manifest-migrations.ts` rewrites an older slideshow where the shape changed.
  */
 export const GLISSANDO_FORMAT_VERSION = 22;
-export const OLDEST_READABLE_FORMAT_VERSION = 13;
+export const OLDEST_READABLE_FORMAT_VERSION = 1;
+/** The first version that carries a picture's chosen motion. */
+export const OWN_KEN_BURNS_FROM_VERSION = 2;
+/** The first version that carries a picture's caption. */
+export const CAPTION_FROM_VERSION = 3;
+/** The first version that carries a picture's chosen duration and transition. */
+export const OWN_TIMING_FROM_VERSION = 4;
+/** The first version that carries the music's excerpt and fades. */
+export const MUSIC_TRIM_FROM_VERSION = 5;
+/** The first version that carries the slideshow's default transition. */
+export const DEFAULT_TRANSITION_FROM_VERSION = 6;
+/** The first version that carries a picture's origin, `immichAssetId` or `fileBytes`. */
+export const ORIGIN_FROM_VERSION = 7;
+/** The first version that carries the music's picture changes. */
+export const PICTURE_CHANGES_FROM_VERSION = 8;
+/** The first version that carries the slideshow's picture length. */
+export const PICTURE_LENGTH_FROM_VERSION = 9;
+/** The first version that carries the playlist, `songs` and `betweenSongs`, not one `music`. */
+export const SONGS_FROM_VERSION = 10;
+/** The first version that carries the portrait layout and a picture's `alone`. */
+export const PORTRAIT_PICTURES_FROM_VERSION = 11;
+/** The first version that carries a picture's `colours` and a card's `entrance` and `tint`. */
+export const COLOURS_FROM_VERSION = 13;
 /** The first version that carries a song's own volume. */
 export const MUSIC_VOLUME_FROM_VERSION = 15;
 /** The first version that carries a song's sample-track id. */

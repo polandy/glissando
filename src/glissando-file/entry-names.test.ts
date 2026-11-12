@@ -10,6 +10,8 @@ describe("isAllowedEntryName", () => {
     "pictures/0001.jpg",
     "pictures/00012.png",
     "thumbnails/0001.webp",
+    "music/track",
+    "music/track.mp3",
     "music/track-1",
     "music/track-1.mp3",
     "music/track-12.m4a",

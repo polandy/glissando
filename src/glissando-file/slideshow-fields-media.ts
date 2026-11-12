@@ -13,9 +13,15 @@ import {
 import { readStoredFocus } from "../library/read-stored-focus";
 import type { Place } from "../places/nearest-place";
 import {
+  CAPTION_FROM_VERSION,
   FOCUS_FROM_VERSION,
+  MUSIC_TRIM_FROM_VERSION,
   MUSIC_VOLUME_FROM_VERSION,
+  OWN_KEN_BURNS_FROM_VERSION,
+  OWN_TIMING_FROM_VERSION,
+  PICTURE_CHANGES_FROM_VERSION,
   PLACE_FROM_VERSION,
+  PORTRAIT_PICTURES_FROM_VERSION,
   SAMPLE_TRACK_FROM_VERSION,
 } from "./glissando-manifest";
 import {
@@ -38,11 +44,10 @@ export function pictureKeys(version: number): string[] {
     "height",
     "fileName",
     "colours",
-    "kenBurns",
-    "caption",
-    "durationMs",
-    "transition",
-    "alone",
+    ...(version >= OWN_KEN_BURNS_FROM_VERSION ? ["kenBurns"] : []),
+    ...(version >= CAPTION_FROM_VERSION ? ["caption"] : []),
+    ...(version >= OWN_TIMING_FROM_VERSION ? ["durationMs", "transition"] : []),
+    ...(version >= PORTRAIT_PICTURES_FROM_VERSION ? ["alone"] : []),
     ...(version >= PLACE_FROM_VERSION ? ["place"] : []),
     ...(version >= FOCUS_FROM_VERSION ? ["focus"] : []),
   ];
@@ -78,10 +83,8 @@ export function musicKeys(version: number): string[] {
     "fileName",
     "durationMs",
     "mimeType",
-    "trim",
-    "fadeInMs",
-    "fadeOutMs",
-    "pictureChanges",
+    ...(version >= MUSIC_TRIM_FROM_VERSION ? ["trim", "fadeInMs", "fadeOutMs"] : []),
+    ...(version >= PICTURE_CHANGES_FROM_VERSION ? ["pictureChanges"] : []),
     ...(version >= MUSIC_VOLUME_FROM_VERSION ? ["volumeDb"] : []),
     ...(version >= SAMPLE_TRACK_FROM_VERSION ? ["sampleTrack"] : []),
   ];

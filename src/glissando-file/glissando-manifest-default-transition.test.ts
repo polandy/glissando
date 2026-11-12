@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { GLISSANDO_FORMAT_VERSION, manifestFor } from "./glissando-manifest";
+import {
+  DEFAULT_TRANSITION_FROM_VERSION,
+  GLISSANDO_FORMAT_VERSION,
+  manifestFor,
+} from "./glissando-manifest";
 import { readManifest } from "./read-manifest";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 
@@ -37,6 +41,7 @@ function written(
 
 describe("the slideshow's default transition in the .glissando file", () => {
   it("is written as format version 6, the version that carries it", () => {
+    expect(DEFAULT_TRANSITION_FROM_VERSION).toBe(6);
     expect(manifestFor(alternating, [JPEG]).slideshow.transition).toBe("alternate");
   });
 

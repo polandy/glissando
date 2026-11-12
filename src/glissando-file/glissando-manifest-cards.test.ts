@@ -176,13 +176,4 @@ describe("openingCard and closingCard in the .glissando file (ADR-0032)", () => 
         'glissando.json slideshow.closingCard.extra: expected one of title, subtitle, style, position, entrance, background, motion, got "extra"',
     });
   });
-
-  it("refuses a file older than the current version, which predates the cards", () => {
-    const written = manifest();
-    const text = JSON.stringify({ ...written, formatVersion: 11 });
-    expect(readManifest(text)).toEqual({
-      kind: "damaged",
-      reason: "glissando.json formatVersion: expected a whole number from 13 to 22, got 11",
-    });
-  });
 });

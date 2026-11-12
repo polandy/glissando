@@ -3,11 +3,13 @@ import {
   GLISSANDO_FORMAT_VERSION,
   MANIFEST_ENTRY_NAME,
   OLDEST_READABLE_FORMAT_VERSION,
+  ORIGIN_FROM_VERSION,
   type GlissandoManifest,
   type ManifestMusic,
   type ManifestPicture,
   type ManifestReading,
 } from "./glissando-manifest";
+import { migrateSlideshow } from "./manifest-migrations";
 import { withThumbnailPaths, type PictureAsRead } from "./made-thumbnail-paths";
 import { readManifestVideo, refuseClipsOfTwoTypes, VIDEO_FROM_VERSION } from "./manifest-video";
 import {
@@ -79,7 +81,11 @@ function readValidManifest(input: JsonObject, entryNames: ReadonlySet<string>): 
     );
   }
   const path = "slideshow";
-  const show = readObject(root["slideshow"], path, slideshowKeys(version));
+  const show = readObject(
+    migrateSlideshow(root["slideshow"], version, path),
+    path,
+    slideshowKeys(version),
+  );
   const pictures = withThumbnailPaths(
     readPictures(show, path, (picture, picturePath) => readPicture(picture, picturePath, version)),
     entryNames,
@@ -140,8 +146,7 @@ function readPicture(value: unknown, path: string, version: number): PictureAsRe
     "file",
     "thumbnail",
     ...pictureKeys(version),
-    "immichAssetId",
-    "fileBytes",
+    ...(version >= ORIGIN_FROM_VERSION ? ["immichAssetId", "fileBytes"] : []),
     ...(version >= VIDEO_FROM_VERSION ? ["video"] : []),
   ]);
   const { thumbnail, immichAssetId, fileBytes, video } = picture;

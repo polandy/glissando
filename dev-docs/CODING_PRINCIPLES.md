@@ -75,6 +75,10 @@ Stack-specific conventions are in §7; the stack itself is ADR-0001.
   just what went wrong.
 - **Unknown config keys are rejected, never ignored** — a typo or a retired key must fail the load
   rather than leave the app running with a setting the operator believes is in effect.
+- **Backward compatible, unless the owner decides otherwise.** A `.glissando` file of any older
+  format version opens: a new version adds its fields from that version on (`*_FROM_VERSION`),
+  a step in `manifest-migrations.ts` where the shape changes, and one fixture and open test
+  (ADR-0054). Raising `OLDEST_READABLE_FORMAT_VERSION` needs an owner decision.
 - **Persisted state is written atomically** (temp file + rename).
 - **Strict typing.** No `any` (use `unknown` + narrowing); make illegal states unrepresentable.
 - **Immutability and pure functions** where reasonable.

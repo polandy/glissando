@@ -118,18 +118,14 @@ describe("readManifest", () => {
     expect(readManifest(asText(manifest()))).toEqual({ kind: "ok", manifest: manifest() });
   });
 
-  it.each([1, 2, 9])(
-    "refuses a version %d file, older than this app still reads (ADR-0023)",
-    (formatVersion) => {
-      const written = manifest();
-      const text = asText({ ...written, formatVersion });
+  it("refuses a version 0 file, older than any version Glissando wrote", () => {
+    const text = asText({ ...manifest(), formatVersion: 0 });
 
-      expect(readManifest(text)).toEqual({
-        kind: "damaged",
-        reason: `glissando.json formatVersion: expected a whole number from ${OLDEST_READABLE_FORMAT_VERSION} to ${GLISSANDO_FORMAT_VERSION}, got ${formatVersion}`,
-      });
-    },
-  );
+    expect(readManifest(text)).toEqual({
+      kind: "damaged",
+      reason: `glissando.json formatVersion: expected a whole number from ${OLDEST_READABLE_FORMAT_VERSION} to ${GLISSANDO_FORMAT_VERSION}, got 0`,
+    });
+  });
 
   it.each([
     ["another format id", asText({ ...manifest(), format: "zip-of-photos" })],
