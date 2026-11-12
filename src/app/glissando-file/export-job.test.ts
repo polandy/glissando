@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
-import { entryTexts } from "../../glissando-file/testing/glissando-fixtures";
+import { fakeMediaDecoders } from "../../glissando-file/testing/fake-media-decoders";
+import { entryTexts, tinyPicture } from "../../glissando-file/testing/glissando-fixtures";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import type { ToastMessage } from "../toast/toaster";
 import { ExportJob, type ExportJobPorts, type ExportProgress } from "./export-job";
@@ -31,8 +32,8 @@ async function setUp(
 ) {
   const store = new MemoryLibraryStore();
   await store.putPicture("p1", {
-    display: new Blob(["display"], { type: "image/jpeg" }),
-    thumbnail: new Blob(["thumb"], { type: "image/jpeg" }),
+    display: tinyPicture("display"),
+    thumbnail: tinyPicture("thumb"),
   });
   await store.saveSlideshow(SHOW);
   const downloads: { file: Blob; fileName: string }[] = [];
@@ -50,6 +51,7 @@ async function setUp(
     failedText: () => "Export failed",
     tryAgainLabel: () => "Try again",
     playerPage: async (slideshow) => playerPageFor(slideshow),
+    mediaDecoders: fakeMediaDecoders(),
   });
   const states: (ExportProgress | null)[] = [];
   job.subscribe((state) => states.push(state));
@@ -82,8 +84,8 @@ describe("ExportJob", () => {
     const { job, downloads } = await setUp();
     const server = new MemoryLibraryStore();
     await server.putPicture("p1", {
-      display: new Blob(["display"], { type: "image/jpeg" }),
-      thumbnail: new Blob(["thumb"], { type: "image/jpeg" }),
+      display: tinyPicture("display"),
+      thumbnail: tinyPicture("thumb"),
     });
     await server.saveSlideshow({ ...SHOW, id: "on-server", title: "Server" });
 

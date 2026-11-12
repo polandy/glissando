@@ -3,6 +3,7 @@ import {
   glissandoFileName,
   type ExportMedia,
 } from "../../glissando-file/export-slideshow";
+import type { MediaDecoders } from "../../glissando-file/media-decoders";
 import type { LibraryStore } from "../../library/library-store";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import type { Toaster } from "../toast/toaster";
@@ -31,6 +32,7 @@ export interface ExportJobPorts {
   tryAgainLabel(): string;
   /** The file's `index.html`, which plays `slideshow` from the unpacked folder (ADR-0038). */
   playerPage(slideshow: StoredSlideshow): Promise<string>;
+  readonly mediaDecoders: Pick<MediaDecoders, "thumbnail">;
 }
 
 /** How an export ended: the file was handed to the downloads, or it failed. */
@@ -94,6 +96,7 @@ export class ExportJob {
       const file = await exportSlideshow(slideshow, store, {
         modifiedAt: ports.now(),
         playerPage: (shown) => ports.playerPage(shown),
+        makeThumbnail: (display) => ports.mediaDecoders.thumbnail(display),
         onProgress: (fraction) => this.#publish({ slideshowId, title: slideshow.title, fraction }),
       });
       const fileName = glissandoFileName(slideshow.title);

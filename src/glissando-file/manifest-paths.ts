@@ -63,6 +63,11 @@ export function typesAt(pictureTypes: readonly PictureTypes[], index: number): P
   return types;
 }
 
+/** Whether a picture or thumbnail of `type` can go into a .glissando file. */
+export function isPictureType(type: string): boolean {
+  return PICTURE_EXTENSIONS[type] !== undefined;
+}
+
 function pictureExtension(type: string): string {
   const extension = PICTURE_EXTENSIONS[type];
   if (extension === undefined) {

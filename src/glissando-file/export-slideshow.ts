@@ -1,7 +1,8 @@
 import type { LibraryStore } from "../library/library-store";
-import type { StoredSlideshow } from "../library/stored-slideshow";
+import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 import { manifestFor, MANIFEST_ENTRY_NAME } from "./glissando-manifest";
 import { PLAYER_ENTRY_NAME, README_ENTRY_NAME, SCHEMA_ENTRY_NAME } from "./entry-names";
+import { displaySize, isCarriedAsItIs } from "./export-renditions";
 import { distinctClipIds } from "./manifest-video";
 import { MANIFEST_SCHEMA } from "./manifest-schema";
 import { README_TEXT } from "./readme-text";
@@ -32,14 +33,18 @@ export interface ExportOptions {
   readonly onProgress?: (fraction: number) => void;
   /** `index.html`: the page that plays the slideshow from the unpacked folder (ADR-0038). */
   playerPage(slideshow: StoredSlideshow): Promise<string>;
+  /** A thumbnail made from a display picture, for one whose stored thumbnail opening would refuse. */
+  makeThumbnail(display: Blob): Promise<Blob>;
 }
 
 /**
  * The slideshow as a .glissando file: `glissando.json` first (it marks the file as one), then
  * its schema, a README and the player page, then each picture in play order with its thumbnail,
  * then the music, then each clip a video slide plays, once. Each picture's stored focus goes into
- * the manifest, so opening the file needs no detection for it (ADR-0053). The media is read from
- * the store one file at a time; the container is built from their blobs.
+ * the manifest, so opening the file needs no detection for it (ADR-0053). Each picture declares
+ * its display picture's own size, and a thumbnail opening would refuse is made anew from it, so
+ * every exported file opens again. The media is read from the store one file at a time; the
+ * container is built from their blobs.
  */
 export async function exportSlideshow(
   slideshow: StoredSlideshow,
@@ -54,10 +59,15 @@ export async function exportSlideshow(
   const step = (): void => options.onProgress?.(++done / steps);
 
   const pictures: { display: Blob; thumbnail: Blob }[] = [];
+  const sized: StoredPicture[] = [];
   for (const picture of slideshow.pictures) {
     const display = await media.pictureBlob(picture.id);
+    sized.push({ ...picture, ...(await displaySize(display, picture.id)) });
     step();
-    const thumbnail = await media.thumbnailBlob(picture.id);
+    const stored = await media.thumbnailBlob(picture.id);
+    const thumbnail = (await isCarriedAsItIs(stored))
+      ? stored
+      : await options.makeThumbnail(display);
     step();
     pictures.push({ display, thumbnail });
   }
@@ -73,12 +83,13 @@ export async function exportSlideshow(
     step();
   }
 
+  const exported: StoredSlideshow = { ...slideshow, pictures: sized };
   const types = pictures.map(({ display, thumbnail }) => ({
     display: display.type,
     thumbnail: thumbnail.type,
   }));
   const manifest = manifestFor(
-    slideshow,
+    exported,
     types,
     new Map([...clipBlobs].map(([mediaId, blob]) => [mediaId, blob.type])),
     await media.pictureFocus(slideshow.pictures.map((picture) => picture.id)),
@@ -93,7 +104,7 @@ export async function exportSlideshow(
     new Blob([JSON.stringify(MANIFEST_SCHEMA, null, JSON_INDENT)], { type: MANIFEST_TYPE }),
   );
   await zip.add(README_ENTRY_NAME, new Blob([README_TEXT], { type: README_TYPE }));
-  const page = await options.playerPage(slideshow);
+  const page = await options.playerPage(exported);
   await zip.add(PLAYER_ENTRY_NAME, new Blob([page], { type: PLAYER_TYPE }));
   for (const [index, picture] of manifest.slideshow.pictures.entries()) {
     const blobs = pictures[index];

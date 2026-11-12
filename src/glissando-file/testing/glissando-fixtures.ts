@@ -12,6 +12,7 @@ export const FIXTURE_PLAYER_PAGE = "<!doctype html><script>throw new Error('ran'
 export const EXPORT_OPTIONS = {
   modifiedAt: MODIFIED_AT,
   playerPage: async (): Promise<string> => FIXTURE_PLAYER_PAGE,
+  makeThumbnail: async (): Promise<Blob> => tinyPicture("made thumbnail", 16, 12),
 };
 
 /**
