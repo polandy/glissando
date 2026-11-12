@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/polandy/glissando/compare/glissando-v0.1.3...glissando-v0.1.4) (2026-11-12)
+
+
+### Features
+
+* **server-library:** add files from this device to a server slideshow as a device copy ([#342](https://github.com/polandy/glissando/issues/342)) ([da5676c](https://github.com/polandy/glissando/commit/da5676ce5b1930780ed1fe54a776d82a1b552a47))
+
 ## [0.1.3](https://github.com/polandy/glissando/compare/glissando-v0.1.2...glissando-v0.1.3) (2026-11-12)
 
 
