@@ -55,8 +55,7 @@ export const GLISSANDO_FORMAT_ID = "glissando";
  * pacing, `energyPacing` (ADR-0046), version 21 the slideshow's music repeat, `repeatMusic`
  * (ADR-0047), version 22 a picture's found focus, `focus` (ADR-0053).
  *
- * Every version is read (ADR-0054): a field from the version that added it on, and
- * `manifest-migrations.ts` rewrites an older slideshow where the shape changed.
+ * Every version is read; `manifest-migrations.ts` reshapes an older slideshow (ADR-0054).
  */
 export const GLISSANDO_FORMAT_VERSION = 22;
 export const OLDEST_READABLE_FORMAT_VERSION = 1;

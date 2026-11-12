@@ -8,13 +8,7 @@ import {
   SONGS_FROM_VERSION,
 } from "./glissando-manifest";
 
-/**
- * The chain that carries an older manifest's slideshow into the shape the reader takes
- * (ADR-0054): each step rewrites a slideshow of an earlier version into version `to`'s shape. A
- * version that only added optional fields needs no step, as the reader takes them by version.
- * Whatever is not an object is left for the reader to refuse with its own path.
- */
-
+/** A step rewriting an older slideshow into version `to`'s shape (ADR-0054). */
 interface ManifestMigration {
   readonly to: number;
   readonly migrate: (slideshow: JsonObject, path: string) => JsonObject;

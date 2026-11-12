@@ -23,10 +23,7 @@ const NON_MEDIA_ENTRY_NAMES: ReadonlySet<string> = new Set([
 
 export type MediaKind = "picture" | "thumbnail" | "music" | "video";
 
-/**
- * A positive index with no leading zero, as `music/track-<n>` and `videos/clip-<n>` number; a
- * version 9 or older file holds its one song at `music/track` (ADR-0054).
- */
+/** A positive index with no leading zero; a version 9 file's one song has none (ADR-0054). */
 const COUNTING_NUMBER = "[1-9][0-9]*";
 /** An optional file extension, kept from the original file so an unzipped copy still opens. */
 const OPTIONAL_EXTENSION = "(?:\\.[a-z0-9]{1,8})?";
