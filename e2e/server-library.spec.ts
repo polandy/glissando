@@ -112,6 +112,8 @@ test("E2E-034 a slideshow created on the Glissando server links its Immich photo
   await expect(page.getByRole("heading", { name: SERVER_TITLE })).toBeVisible();
   await expect(page.getByText(/Etwas ist schiefgegangen/)).toHaveCount(0);
   await page.getByRole("button", { name: "Zurück", exact: true }).click();
+  // Back lands asynchronously (history.go); reloading before it would reopen the slideshow.
+  await expect(serverSection(page).getByRole("button", SERVER_TITLE_CARD)).toBeVisible();
 
   const deleted = LIBRARY_PAGE.assets.items[2];
   if (deleted === undefined) throw new Error("the recorded page has three photos");
