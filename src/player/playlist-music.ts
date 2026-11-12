@@ -2,10 +2,7 @@ import { isTrackHeardAt, startFadeGainAt, trackGainAt, trackSecondsAt } from "./
 import type { MusicPlayback } from "./ports";
 import { MILLISECONDS_PER_SECOND, type MusicTrack } from "./slideshow";
 
-/**
- * A heard track further from its place than this is seeked back: clearly off the beat, yet well
- * above `currentTime` granularity and a local seek's latency on an idle device.
- */
+/** Off the beat beyond this, yet above `currentTime` granularity and an idle device's seek. */
 const MUSIC_RESYNC_MS = 150;
 
 interface PlacedTrack {
@@ -133,10 +130,7 @@ function prime({ track, playback }: PlacedTrack): Promise<void> {
   return started;
 }
 
-/**
- * Seeks a really playing track back to its place once a start or stall has left it off the clock,
- * but never chases the lag of its own seek nor a slow audio clock (TIMING.md, Music).
- */
+/** Seeks a playing track back after a start or stall, never chasing its own seek (ADR-0056). */
 function resync(placed: PlacedTrack, timeMs: number): void {
   const { track, playback } = placed;
   const playingSeconds = playback.playingSeconds();
