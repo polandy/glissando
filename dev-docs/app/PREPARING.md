@@ -2,7 +2,7 @@
 
 Before a server slideshow plays, the player prepares its pictures in the quality this device
 plays in ([SETTINGS.md](SETTINGS.md), ADR-0027): 1440 is Immich's preview, 4K the original made
-into the display rendition on the device. Device slideshows start at once, as before.
+into the display rendition on the device, in a worker. Device slideshows start at once, as before.
 
 ## Flow
 

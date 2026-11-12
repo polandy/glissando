@@ -22,11 +22,17 @@ twice the preview storage, and is outside the app.
   frames while a slideshow plays. Measured on a generated 40 MP JPEG (26 MB) in the CI image's
   browsers: Firefox's `createImageBitmap` decodes it on the main thread, from a worker too,
   blocking it for about 280 ms per picture; the whole display rendition takes about 360 ms there.
-  Chromium decodes off the main thread but blocks it about 70 ms to scale and encode. Preparing
-  runs behind the slides, so these blocks land in transitions and stutter. A laptop between the
+  Chromium decodes off the main thread; the scale and encode run in a worker (below). Preparing
+  runs behind the slides, so a block on the main thread lands in a transition and stutters. A laptop between the
   two (a MacBook Air at 1912) gains at most a third more pixels for it; a 4K screen gains half.
 - **1440 is Immich's preview; 4K is the original made into the display rendition on the device**,
   the same path as "Keep a copy on this device" — no change to Immich.
+- **The display rendition is made in a worker** (`WorkerPictureRenditions`, which every Immich
+  read goes through), falling back to the main thread only when the worker cannot be started,
+  crashed or failed a picture. On the main thread, Chromium's JPEG encode of the 4K rendition
+  (`OffscreenCanvas.convertToBlob`) held it for each picture: a CPU profile of a 4K server
+  slideshow of 24 MP originals put 2.8 s of its 2.9 s of long tasks in 30 s there, a frame of up
+  to 300 ms at a 4× slower CPU, about 60 ms at full speed.
 - **The player prepares before it plays.** It prepares the first two pictures as playing needs
   them (fetch and, for 4K, decode and re-encode), timing each with an injected clock, and keeps
   refining the time per picture t as a moving average over the last four. Pictures are prepared
