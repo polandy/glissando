@@ -4,7 +4,7 @@ import { MILLISECONDS_PER_SECOND, type MusicTrack } from "./slideshow";
 
 /**
  * A heard track further from its place than this is seeked back: clearly off the beat, yet well
- * above `currentTime` granularity and a local seek's latency, so a seek never chases itself.
+ * above `currentTime` granularity and a local seek's latency on an idle device.
  */
 const MUSIC_RESYNC_MS = 150;
 
@@ -12,6 +12,12 @@ interface PlacedTrack {
   readonly track: MusicTrack;
   readonly playback: MusicPlayback;
   sounding: boolean;
+  /** Since the last reading while it really played, it started or stalled, not just seeked. */
+  stalled: boolean;
+  /** A resync seek waits for its first reading while the track really plays again. */
+  settling: boolean;
+  /** Signed drift where the last resync seek landed, accepted until the track drifts on from it. */
+  seekLagMs: number;
 }
 
 /**
@@ -36,6 +42,9 @@ export class PlaylistMusic {
       track,
       playback: openMusic(track.src),
       sounding: false,
+      stalled: false,
+      settling: false,
+      seekLagMs: 0,
     }));
   }
 
@@ -104,6 +113,9 @@ export class PlaylistMusic {
   #start(placed: PlacedTrack, timeMs: number): Promise<void> {
     placed.playback.setVolume(this.#volumeAt(placed.track, timeMs));
     placed.sounding = true;
+    placed.stalled = true;
+    placed.settling = false;
+    placed.seekLagMs = 0;
     return placed.playback.play(trackSecondsAt(placed.track, timeMs));
   }
 
@@ -121,17 +133,30 @@ function prime({ track, playback }: PlacedTrack): Promise<void> {
   return started;
 }
 
-/** Seeks a really playing track back to its place once a stall has left it off the clock. */
-function resync({ track, playback }: PlacedTrack, timeMs: number): void {
+/**
+ * Seeks a really playing track back to its place once a start or stall has left it off the clock,
+ * but never chases the lag of its own seek nor a slow audio clock (TIMING.md, Music).
+ */
+function resync(placed: PlacedTrack, timeMs: number): void {
+  const { track, playback } = placed;
   const playingSeconds = playback.playingSeconds();
   if (playingSeconds === null) {
+    placed.stalled ||= !placed.settling;
     return;
   }
+  const stalled = placed.stalled;
+  placed.stalled = false;
   const placeSeconds = trackSecondsAt(track, timeMs);
   // Whole milliseconds, so a drift of exactly the tolerance is not tipped over by float error.
-  const driftMs = Math.round(Math.abs(playingSeconds - placeSeconds) * MILLISECONDS_PER_SECOND);
-  if (driftMs > MUSIC_RESYNC_MS) {
+  const driftMs = Math.round((playingSeconds - placeSeconds) * MILLISECONDS_PER_SECOND);
+  if (placed.settling) {
+    placed.settling = false;
+    placed.seekLagMs = driftMs;
+  } else if (Math.abs(driftMs) <= MUSIC_RESYNC_MS) {
+    placed.seekLagMs = 0;
+  } else if (stalled && Math.abs(driftMs - placed.seekLagMs) > MUSIC_RESYNC_MS) {
     playback.seek(placeSeconds);
+    placed.settling = true;
   }
 }
 
