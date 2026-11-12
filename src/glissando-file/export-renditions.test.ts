@@ -66,6 +66,21 @@ describe("the pictures a .glissando file carries", () => {
     expect((await opened(file)).kind).toBe("ok");
   });
 
+  it("reach the player page with the size the manifest declares", async () => {
+    const store = new MemoryLibraryStore();
+    await store.putPicture("asset-1", { display: DISPLAY, thumbnail: MADE_THUMBNAIL });
+    const shown: StoredSlideshow[] = [];
+    await exportSlideshow(SERVER_SLIDESHOW, store, {
+      ...OPTIONS,
+      playerPage: async (slideshow) => {
+        shown.push(slideshow);
+        return "<!doctype html>";
+      },
+    });
+
+    expect(shown[0]?.pictures[0]).toMatchObject({ width: 40, height: 30 });
+  });
+
   it("keep a thumbnail within the format's bound as it is", async () => {
     const file = await exported(DISPLAY, tinyPicture("small thumbnail", 16, 12));
 

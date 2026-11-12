@@ -1,5 +1,5 @@
 import type { LibraryStore } from "../library/library-store";
-import type { StoredSlideshow } from "../library/stored-slideshow";
+import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 import { manifestFor, MANIFEST_ENTRY_NAME } from "./glissando-manifest";
 import { PLAYER_ENTRY_NAME, README_ENTRY_NAME, SCHEMA_ENTRY_NAME } from "./entry-names";
 import { displaySize, isCarriedAsItIs } from "./export-renditions";
@@ -59,7 +59,7 @@ export async function exportSlideshow(
   const step = (): void => options.onProgress?.(++done / steps);
 
   const pictures: { display: Blob; thumbnail: Blob }[] = [];
-  const sized: StoredSlideshow["pictures"][number][] = [];
+  const sized: StoredPicture[] = [];
   for (const picture of slideshow.pictures) {
     const display = await media.pictureBlob(picture.id);
     sized.push({ ...picture, ...(await displaySize(display, picture.id)) });
@@ -83,12 +83,13 @@ export async function exportSlideshow(
     step();
   }
 
+  const exported: StoredSlideshow = { ...slideshow, pictures: sized };
   const types = pictures.map(({ display, thumbnail }) => ({
     display: display.type,
     thumbnail: thumbnail.type,
   }));
   const manifest = manifestFor(
-    { ...slideshow, pictures: sized },
+    exported,
     types,
     new Map([...clipBlobs].map(([mediaId, blob]) => [mediaId, blob.type])),
     await media.pictureFocus(slideshow.pictures.map((picture) => picture.id)),
@@ -103,7 +104,7 @@ export async function exportSlideshow(
     new Blob([JSON.stringify(MANIFEST_SCHEMA, null, JSON_INDENT)], { type: MANIFEST_TYPE }),
   );
   await zip.add(README_ENTRY_NAME, new Blob([README_TEXT], { type: README_TYPE }));
-  const page = await options.playerPage(slideshow);
+  const page = await options.playerPage(exported);
   await zip.add(PLAYER_ENTRY_NAME, new Blob([page], { type: PLAYER_TYPE }));
   for (const [index, picture] of manifest.slideshow.pictures.entries()) {
     const blobs = pictures[index];
