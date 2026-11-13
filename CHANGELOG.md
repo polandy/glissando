@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.7](https://github.com/polandy/glissando/compare/glissando-v0.1.6...glissando-v0.1.7) (2026-11-13)
+
+
+### Bug Fixes
+
+* **glissando-file:** open an exported file whose clips WebKit loads only typed and unbuffered ([#352](https://github.com/polandy/glissando/issues/352)) ([7d661af](https://github.com/polandy/glissando/commit/7d661afe572d9f980806f1212613aa16bdba4b76))
+
 ## [0.1.6](https://github.com/polandy/glissando/compare/glissando-v0.1.5...glissando-v0.1.6) (2026-11-13)
 
 
