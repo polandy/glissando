@@ -15,6 +15,8 @@ export interface PlaybackLoopHost<Picture extends Size> {
   emit(type: PlayerEvent): void;
   /** Runs `action` once the current frame's pictures are loaded, unless the state moved on. */
   whenDrawable(action: () => void): void;
+  /** A picture on screen failed to load: the player stops with that error. */
+  fail(error: Error): void;
   /** The show played to its end and its last frame is drawn: the player stands paused there. */
   onEnded(): void;
 }
@@ -25,6 +27,8 @@ export class PlaybackLoop<Picture extends Size> {
   #frameHandle: number | null = null;
   /** Bumped by every stop, so a load finishing late cannot act on stale state. */
   #generation = 0;
+  /** True from the frame that found a picture on screen missing until a frame is drawn again. */
+  #pictureIsLate = false;
 
   constructor(host: PlaybackLoopHost<Picture>) {
     this.#host = host;
@@ -62,6 +66,7 @@ export class PlaybackLoop<Picture extends Size> {
 
   stop(): void {
     this.#generation += 1;
+    this.#pictureIsLate = false;
     if (this.#host.time.stopAdvancing()) {
       this.#host.media.pause();
     }
@@ -84,15 +89,32 @@ export class PlaybackLoop<Picture extends Size> {
       return;
     }
     media.follow(timeMs);
-    if (!pictures.areOnScreenLoaded()) {
-      this.stop();
-      this.start();
-      return;
+    if (pictures.areOnScreenLoaded()) {
+      this.#host.draw();
+      pictures.prepareUpcoming();
+      if (this.#pictureIsLate) {
+        this.#pictureIsLate = false;
+        this.#host.emit("playing");
+      }
+    } else {
+      this.#awaitLatePicture();
     }
-    this.#host.draw();
-    pictures.prepareUpcoming();
     this.#host.emit("timeupdate");
     this.#scheduleFrame();
+  }
+
+  /** The show stays on the music's schedule (ADR-0057): the last frame drawn stays on screen. */
+  #awaitLatePicture(): void {
+    if (!this.#pictureIsLate) {
+      this.#pictureIsLate = true;
+      this.#host.emit("waiting");
+    }
+    const generation = this.#generation;
+    this.#host.pictures.loadAroundScreen().catch((error: unknown) => {
+      if (generation === this.#generation) {
+        this.#host.fail(error instanceof Error ? error : new Error(String(error)));
+      }
+    });
   }
 
   #finish(): void {
