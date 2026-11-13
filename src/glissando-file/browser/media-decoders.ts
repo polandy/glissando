@@ -23,7 +23,7 @@ const CLIP_PLACEHOLDER_NAME = "clip";
 export function browserMediaDecoders(log: (error: unknown) => void): MediaDecoders {
   return {
     // Each medium is read before the decode's try, so a read failure stays an error and is not
-    // taken for a damaged file; its type goes along, which a media element needs (Safari).
+    // taken for a damaged file; its type goes along, which a media element in WebKit needs.
     async picture(picture) {
       const bytes = new Blob([await picture.arrayBuffer()], { type: picture.type });
       let bitmap: ImageBitmap;

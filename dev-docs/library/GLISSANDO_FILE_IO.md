@@ -30,8 +30,8 @@ read and write path.
   together under 4 GiB (else _damaged_), each by the unpacked size the ZIP directory declares; a
   skipped entry counts in the total too. `README.txt`, `index.html` and the schema are never read.
   Last, one media file at a time, read as a blob of the type the manifest names it (the type it
-  is stored and played with; a media element loads nothing from an untyped blob, Safari's not
-  even a clip it plays): unpacked when deflated, stopping as soon as it passes its
+  is stored and played with; a media element in WebKit plays a blob by its type): unpacked when
+  deflated, stopping as soon as it passes its
   declared size (a ZIP bomb), and refused with any other method (named), encrypted, or short of
   its declared size; its CRC-32 over the unpacked bytes; for a picture or thumbnail its size from its header
   (JPEG, PNG, WebP), which must fit the display or thumbnail bound and, for a picture, equal its

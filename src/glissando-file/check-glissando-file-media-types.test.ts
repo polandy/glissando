@@ -5,8 +5,7 @@ import { exportedFile, exportedVideoFile } from "./testing/glissando-fixtures";
 
 /**
  * The decoders see each medium as the type its manifest names, the type the medium is stored and
- * played with: a browser's media element loads nothing from an untyped blob (Safari), while the
- * same bytes typed `video/quicktime` play.
+ * played with: a media element in WebKit plays a blob by its type.
  */
 describe("checkGlissandoFile media types", () => {
   it("hands each clip to the decoder as a blob of the type its manifest names", async () => {
