@@ -25,8 +25,9 @@ https://polandy.github.io/glissando-assets/mockups/video-slides/.
   like a photo's), then the file date. The poster is the frame at the
   start of the excerpt, downscaled like a picture (`PICTURE_IMPORT.md`) and cached as its picture.
 - A video the browser cannot play is refused at its tile with its reason ("This browser cannot
-  play this video format."); the rest of the batch goes on. Loading its metadata into a `<video>`
-  decides: `canPlayType` is not asked, as Chrome answers "" for a `.mov` it plays.
+  play this video format."); the rest of the batch goes on. Loading its metadata and first frame
+  into a `<video>` decides (`preload="metadata"`: buffering a whole clip fails at random in
+  WebKit-GTK): `canPlayType` is not asked, as Chrome answers "" for a `.mov` it plays.
   A source over `MAX_VIDEO_BYTES` (1 GiB) is refused the same way.
 - A clip's length is where its video track ends (read with mediabunny), not the longer sound
   track a `<video>` reports, so a slide never holds a still last frame while the sound runs on.

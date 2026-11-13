@@ -10,10 +10,10 @@ const MIN_READY_STATE_WITH_FRAME = 2;
 /**
  * Loads a video file the way the player will play it, in a `<video>` element; null when the
  * browser cannot decode its video track or it has no known end. `canPlayType` is no verdict (Chrome
- * answers "" for a playable .mov), so loading the first frame decides. Its length is where its
- * picture ends: the element reports the longer track, and a sound track running past the picture
- * would hold the last frame still for the difference. A container mediabunny cannot read keeps
- * the element's length, its error passed to `log`.
+ * answers "" for a playable .mov), so loading its metadata and first frame decides. Its length is
+ * where its picture ends: the element reports the longer track, and a sound track running past the
+ * picture would hold the last frame still for the difference. A container mediabunny cannot read
+ * keeps the element's length, its error passed to `log`.
  */
 export async function openClipInVideoElement(
   file: File,
@@ -23,7 +23,8 @@ export async function openClipInVideoElement(
   const video = document.createElement("video");
   video.muted = true;
   video.playsInline = true;
-  video.preload = "auto";
+  // Only the metadata and the first frame: buffering a whole clip fails at random in WebKit-GTK.
+  video.preload = "metadata";
   const close = () => {
     video.removeAttribute("src");
     video.load();
