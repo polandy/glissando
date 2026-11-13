@@ -13,21 +13,26 @@ plays.
 
 The flow starts at the slide of the chosen picture when the player route carries one (`startPicture` option, `setSlides(slides, startSlide)`): measuring, the plan (`planPreload(…, fromSlide)`, starts rebased to the start slide) and preparing all begin there; earlier pictures are fetched on demand if the viewer goes back.
 
+Pictures are prepared a few at a time (ADR-0058): three previews, two 4K pictures, asked for
+in play order, so a slow Immich answer delays one picture, not the ones behind it.
+
 1. **Measuring**: the first two pictures (one for a one-picture slideshow) are prepared and timed.
-2. **The plan**: from the time per picture (moving average of the last four) and the played
-   slides' start times, `planPreload` says how many must be ready before playing (formula in
-   ADR-0027). If that is no more than are ready, playing starts — for 1440 usually right after
-   measuring, without the preparing stage.
-3. **Preparing**: until that many are ready, in order. The target is worked out again after every
-   picture, so a slower Wi-Fi raises it and the bar follows.
+2. **The plan**: from the time per picture (moving average of the last four), how many are
+   prepared at once and the played slides' start times, `planPreload` says how many must be ready
+   before playing (formula in ADR-0027, in rounds since ADR-0058), at least the pre-roll of six
+   pictures (`PRE_ROLL_PICTURES`), within the slideshow's length. If that is no more than are
+   ready, playing starts.
+3. **Preparing**: until that many are ready, in order; "starts in" counts the rounds left. The
+   target is worked out again after every picture, so a slower Wi-Fi raises it and the bar
+   follows. For 1440 this is usually the two rounds of the pre-roll, a second or two.
 4. **Playing**: by itself once enough are ready, or at "Start now". Preparing goes on behind the
    slides; if it falls behind, the player shows its waiting state.
 
-Prepared pictures are encoded renditions in a cache of at most 60, released once their slide has
-passed: each slide as it comes on screen passes the picture it plays in that picture's own place
+Prepared pictures are encoded renditions in a cache of at most 60, the ones under way counted,
+released once their slide has passed: each slide as it comes on screen passes the picture it plays in that picture's own place
 (`player/prepare/slide-pictures.ts`), a portrait pair its first one; a title or closing card
-passes none. A picture asked for out of order is prepared next. ✕ and Esc close the player and
-cancel the download under way.
+passes none. A picture asked for out of order is prepared next, unless it is under way already. ✕ and Esc
+close the player and cancel every download under way.
 
 A picture Immich answers 404 for while measuring or preparing is reported as missing and left
 out of the slideshow, as on its screen; one found while playing is skipped by the player
