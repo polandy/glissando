@@ -2,6 +2,7 @@ import { fitWithin, DISPLAY_BOUND } from "../downscale";
 import { localWallTime } from "../exif-capture-date";
 import { MILLISECONDS_PER_SECOND } from "../../player/slideshow";
 import type { OpenedClip } from "../video-read";
+import { loadClipMetadata } from "./clip-metadata";
 
 const POSTER_TYPE = "image/jpeg";
 const POSTER_QUALITY = 0.92;
@@ -10,7 +11,7 @@ const MIN_READY_STATE_WITH_FRAME = 2;
 /**
  * Loads a video file the way the player will play it, in a `<video>` element; null when the
  * browser cannot decode its video track or it has no known end. `canPlayType` is no verdict (Chrome
- * answers "" for a playable .mov), so loading its metadata and first frame decides. Its length is
+ * answers "" for a playable .mov), so loading its metadata (`loadClipMetadata`) decides. Its length is
  * where its picture ends: the element reports the longer track, and a sound track running past the
  * picture would hold the last frame still for the difference. A container mediabunny cannot read
  * keeps the element's length, its error passed to `log`.
@@ -23,26 +24,19 @@ export async function openClipInVideoElement(
   const video = document.createElement("video");
   video.muted = true;
   video.playsInline = true;
-  // Only the metadata and the first frame: buffering a whole clip fails at random in WebKit-GTK.
-  video.preload = "metadata";
   const close = () => {
     video.removeAttribute("src");
     video.load();
     URL.revokeObjectURL(url);
   };
-  const loaded = await new Promise<boolean>((resolve) => {
-    video.onloadeddata = () => resolve(true);
-    video.onerror = () => resolve(false);
-    video.src = url;
-  });
-  const durationMs = video.duration * MILLISECONDS_PER_SECOND;
-  if (!loaded || video.videoWidth === 0 || !Number.isFinite(durationMs)) {
+  const metadata = await loadClipMetadata(video, url);
+  if (metadata === null || metadata.width === 0 || !Number.isFinite(metadata.durationMs)) {
     close();
     return null;
   }
   const pictureEndMs = await videoTrackEndMs(file, log);
   return {
-    durationMs: Math.round(Math.min(durationMs, pictureEndMs ?? durationMs)),
+    durationMs: Math.round(Math.min(metadata.durationMs, pictureEndMs ?? metadata.durationMs)),
     posterFrame: (atMs) => frameAt(video, file, atMs),
     close,
   };
