@@ -1,28 +1,94 @@
 import { describe, expect, it } from "vitest";
 import { nextEvent, setUp } from "./slideshow-player-fixtures";
+import type { FakePicture } from "./testing/fakes";
+import type { RenderFrame } from "./ports";
+
+/** The source of the picture a drawn slide frame shows. */
+function drawnPicture(frame: RenderFrame<FakePicture> | undefined): string | undefined {
+  return frame?.kind === "slide" && frame.slide.kind === "picture"
+    ? frame.slide.picture.src
+    : undefined;
+}
 
 describe("SlideshowPlayer, loading, errors and destroy", () => {
-  it("waits for a picture that is not loaded yet, then goes on from the same time", async () => {
+  it("plays the music and the clock on while a picture is late, then shows it for the rest of its slot", async () => {
+    const { player, events, music, pictures, renderer, advance } = setUp();
+    const shown = nextEvent(player, "canplay");
+    pictures.complete("a.jpg");
+    await shown;
+    player.play();
+    const drawn = renderer.frames.length;
+
+    // The transition into b starts at 3 s; b is not loaded, so a stays on screen.
+    advance(3200);
+    expect(player.currentTime).toBe(3.2);
+    expect(events.at(-1)).toBe("waiting");
+    expect(music.calls).toEqual(["play@0"]);
+    expect(renderer.frames).toHaveLength(drawn);
+    advance(1000);
+    expect(player.currentTime).toBe(4.2);
+    expect(music.calls).toEqual(["play@0"]);
+    expect(events.at(-1)).toBe("waiting");
+
+    pictures.complete("b.jpg");
+    await pictures.settled("b.jpg");
+    advance(300);
+
+    expect(player.currentTime).toBe(4.5);
+    expect(events.at(-1)).toBe("playing");
+    expect(music.calls).toEqual(["play@0"]);
+    expect(drawnPicture(renderer.frames.at(-1))).toBe("b.jpg");
+  });
+
+  it("skips a picture that arrives after its slot has passed and draws the slide that is on", async () => {
+    const { player, events, pictures, renderer, advance } = setUp();
+    const shown = nextEvent(player, "canplay");
+    pictures.complete("a.jpg");
+    await shown;
+    player.play();
+    const drawn = renderer.frames.length;
+
+    // b's slot is 3–9 s; c (9–12 s) is requested while b is late and arrives first.
+    advance(9500);
+    expect(events.at(-1)).toBe("waiting");
+    expect(pictures.requested).toEqual(["a.jpg", "b.jpg", "c.jpg"]);
+    pictures.complete("c.jpg");
+    await pictures.settled("c.jpg");
+    advance(100);
+
+    expect(player.currentTime).toBe(9.6);
+    expect(events.at(-1)).toBe("playing");
+    expect(renderer.frames).toHaveLength(drawn + 1);
+    expect(drawnPicture(renderer.frames.at(-1))).toBe("c.jpg");
+
+    const released = pictures.nextRelease();
+    pictures.complete("b.jpg");
+    expect(await released).toBe("b.jpg");
+    advance(100);
+    expect(renderer.frames).toHaveLength(drawn + 2);
+    expect(renderer.frames.slice(drawn).map(drawnPicture)).toEqual(["c.jpg", "c.jpg"]);
+  });
+
+  it("reports a picture that fails to load at its turn as an error, once, and pauses the music", async () => {
     const { player, events, music, pictures, advance } = setUp();
     const shown = nextEvent(player, "canplay");
     pictures.complete("a.jpg");
     await shown;
     player.play();
-
     advance(3200);
-    expect(player.currentTime).toBe(3.2);
+    advance(100);
     expect(events.at(-1)).toBe("waiting");
-    expect(music.calls.at(-1)).toBe("pause");
-    advance(1000);
-    expect(player.currentTime).toBe(3.2);
 
-    const playing = nextEvent(player, "playing");
-    pictures.complete("b.jpg");
-    await playing;
-    advance(300);
+    const failed = nextEvent(player, "error");
+    pictures.fail("b.jpg", new Error("fetch failed"));
+    await failed;
+    advance(100);
 
-    expect(player.currentTime).toBe(3.5);
-    expect(music.calls.at(-1)).toBe("play@3.2");
+    expect(player.paused).toBe(true);
+    expect(player.currentTime).toBe(3.3);
+    expect(player.error?.message).toContain("b.jpg");
+    expect(music.calls).toEqual(["play@0", "pause"]);
+    expect(events).toEqual(["canplay", "play", "playing", "waiting", "pause", "error"]);
   });
 
   it("ends on a frame that lands past the end once the last picture has loaded", async () => {

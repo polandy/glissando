@@ -44,13 +44,24 @@ picture after the ones on screen: a bounded step of the work to draw it later, s
 picture comes on screen pays nothing for it (ADR-0014). `prepare` rasterises a slide's card the
 same way, so the card's own first frame pays nothing for it either.
 
+## A late picture
+
+A picture that is not loaded when its slide comes on screen does not stop the show (ADR-0057):
+the clock and the music run on, the last frame drawn stays on screen and the player reports
+`waiting`. The picture is drawn from the frame it arrives in, for the rest of its slot, or never
+if its slot has passed by then; `playing` follows the first frame drawn again. Each frame
+meanwhile asks for the pictures on screen and the next ones, so the loading follows the clock.
+Only starting, resuming and seeking wait for their pictures before the music starts, since
+nothing is on screen to hold. A picture that fails to load at its turn stops the player with an
+error.
+
 ## Music
 
-The show clock leads the music too (`playlist-music.ts`). Playing, resuming, seeking the show or
-waiting for a picture start each heard song at `trackSecondsAt` of the show time. A song that
-already stands within `MUSIC_START_TOLERANCE_MS` (50 ms) of that place, as one resumed after a
-hold does, starts without a seek (`platform.ts`): the seek itself would be heard as a gap while
-the song buffers again. Each frame,
+The show clock leads the music too (`playlist-music.ts`). Playing, resuming or seeking the show
+starts each heard song at `trackSecondsAt` of the show time. A song that already stands within
+`MUSIC_START_TOLERANCE_MS` (50 ms) of that place, as one resumed after a pause does, starts
+without a seek (`platform.ts`): the seek itself would be heard as a gap while the song buffers
+again. Each frame,
 `follow` then compares every heard song's position with that place and seeks it there once it is
 off by more than `MUSIC_RESYNC_MS` (150 ms), so a stall in the song never leaves the beat-aligned
 picture changes (ADR-0021, ADR-0046) off the beat for the rest of it. The position is read only

@@ -68,6 +68,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       draw: () => this.#draw(),
       emit: (type) => this.#emit(type),
       whenDrawable: (action) => this.#whenDrawable(action),
+      fail: (error) => this.#fail(error),
       onEnded: () => {
         this.#paused = true;
         this.#ended = true;
