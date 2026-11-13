@@ -23,9 +23,9 @@ const CLIP_PLACEHOLDER_NAME = "clip";
 export function browserMediaDecoders(log: (error: unknown) => void): MediaDecoders {
   return {
     // Each medium is read before the decode's try, so a read failure stays an error and is not
-    // taken for a damaged file.
+    // taken for a damaged file; its type goes along, which a media element needs (Safari).
     async picture(picture) {
-      const bytes = new Blob([await picture.arrayBuffer()]);
+      const bytes = new Blob([await picture.arrayBuffer()], { type: picture.type });
       let bitmap: ImageBitmap;
       try {
         bitmap = await createImageBitmap(bytes);
@@ -43,7 +43,7 @@ export function browserMediaDecoders(log: (error: unknown) => void): MediaDecode
     async music(song) {
       const bytes = await song.arrayBuffer();
       try {
-        await assertMusicWithinLimits(new Blob([bytes]), probeMusicDurationMs);
+        await assertMusicWithinLimits(new Blob([bytes], { type: song.type }), probeMusicDurationMs);
       } catch (error) {
         if (error instanceof MusicOverLimitError) {
           return false;
@@ -63,7 +63,7 @@ export function browserMediaDecoders(log: (error: unknown) => void): MediaDecode
     },
 
     async clip(clip) {
-      const file = new File([clip], CLIP_PLACEHOLDER_NAME);
+      const file = new File([clip], CLIP_PLACEHOLDER_NAME, { type: clip.type });
       const opened = await openClipInVideoElement(file, log);
       if (opened === null) {
         return false;

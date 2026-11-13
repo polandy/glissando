@@ -29,7 +29,9 @@ read and write path.
   manifest may hold 8 MiB, a picture 64 MiB, a thumbnail 4 MiB, a clip 1 GiB and all entries
   together under 4 GiB (else _damaged_), each by the unpacked size the ZIP directory declares; a
   skipped entry counts in the total too. `README.txt`, `index.html` and the schema are never read.
-  Last, one media file at a time: unpacked when deflated, stopping as soon as it passes its
+  Last, one media file at a time, read as a blob of the type the manifest names it (the type it
+  is stored and played with; a media element loads nothing from an untyped blob, Safari's not
+  even a clip it plays): unpacked when deflated, stopping as soon as it passes its
   declared size (a ZIP bomb), and refused with any other method (named), encrypted, or short of
   its declared size; its CRC-32 over the unpacked bytes; for a picture or thumbnail its size from its header
   (JPEG, PNG, WebP), which must fit the display or thumbnail bound and, for a picture, equal its

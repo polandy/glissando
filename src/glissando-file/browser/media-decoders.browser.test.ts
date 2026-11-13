@@ -4,6 +4,7 @@ import { MAX_MUSIC_DURATION_MS } from "../../import/music-limits";
 import { turnedByExif } from "../../import/testing/turned-by-exif";
 import { silentWav } from "../../import/testing/silent-wav";
 import cbrNoXingUrl from "../../import/testing/audio/cbr-no-xing.mp3?url";
+import webmClipUrl from "../../import/testing/video/audio-outlasts-picture.webm?url";
 import { browserMediaDecoders } from "./media-decoders";
 
 /** A canvas filled with a flat colour, encoded as `type`; null where the browser cannot encode it. */
@@ -123,6 +124,16 @@ describe("browserMediaDecoders", () => {
     const tooLong = new Blob([silentWav(MAX_MUSIC_DURATION_MS + 1000, 8000)]);
 
     expect(await decoders.music(tooLong)).toBe(false);
+  });
+
+  it("accepts a WebM clip typed as its manifest names it, as the file's check hands it over", async () => {
+    const clip = new Blob([await (await fetch(webmClipUrl)).arrayBuffer()], { type: "video/webm" });
+
+    expect(await decoders.clip(clip)).toBe(true);
+  });
+
+  it("refuses a clip whose bytes are no video", async () => {
+    expect(await decoders.clip(new Blob(["not a clip"], { type: "video/mp4" }))).toBe(false);
   });
 
   it("refuses a WAV that does not decode", async () => {

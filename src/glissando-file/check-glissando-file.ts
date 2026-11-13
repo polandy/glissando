@@ -138,7 +138,8 @@ export async function checkGlissandoFile(
   let checkedBytes = 0;
   for (const [entry, descriptor] of mediaEntries) {
     options.signal?.throwIfAborted();
-    const read = await readEntry(file, entry);
+    // Typed as it is stored and played: a media element loads nothing from an untyped blob.
+    const read = await readEntry(file, entry, { type: descriptor.mimeType });
     if (read.kind !== "ok") {
       return read;
     }
