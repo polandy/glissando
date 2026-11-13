@@ -15,15 +15,15 @@ export const animationFrames: FrameScheduler = {
 const elementVolumeOnly = () => null;
 
 /**
- * Plays a music file through `output`; without one, at the element's own volume. `play` unlocks
- * the output, so a `play` within a user gesture also lets Web Audio sound on iOS.
- */
-/**
  * A song standing this close to its place when it starts is not seeked: one resumed after a hold
  * is within a frame of it, and the seek itself would be heard as a gap while it buffers again.
  */
 const MUSIC_START_TOLERANCE_MS = 50;
 
+/**
+ * Plays a music file through `output`; without one, at the element's own volume. `play` unlocks
+ * the output, so a `play` within a user gesture also lets Web Audio sound on iOS.
+ */
 export class AudioElementMusic implements MusicPlayback {
   readonly #audio: HTMLAudioElement;
   readonly #output: MusicOutput;
