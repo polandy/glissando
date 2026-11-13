@@ -15,7 +15,10 @@ export interface PreparedPicturesOptions {
   readonly prepare: PrepareRendition;
   /** Monotonic milliseconds. */
   readonly clock: () => number;
-  /** Prepared pictures held at most, the ones under way counted; preparing ahead pauses until a slide has passed. */
+  /**
+   * Prepared pictures held at most, the ones under way counted; preparing ahead pauses until a
+   * slide has passed.
+   */
   readonly capacity: number;
   /** Pictures prepared at once. */
   readonly concurrency: number;
