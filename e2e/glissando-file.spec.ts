@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { captionPicture, chooseFiles, createSlideshow, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
 import { holdPictureStore } from "./support/hold-pictures";
-import { textFile } from "./support/media";
+import { textFile, toneFixture } from "./support/media";
 import { exportedFileWithRealMedia } from "./support/real-glissando-file";
 import { chooseShareRow } from "./support/share";
 
@@ -82,6 +82,22 @@ test("E2E-016 a file that is no .glissando file is refused in the library and st
 
 test("E2E-017 the start screen opens a .glissando file from another device", async ({ page }) => {
   const glissando = await exportedFileWithRealMedia();
+  await openApp(page);
+  await chooseFiles(page, page.getByRole("button", { name: "Datei öffnen" }), [glissando]);
+
+  await expect(page.getByRole("heading", { name: "Herbst in Wien" })).toBeVisible();
+  await expect(status(page, "„Herbst in Wien“ geöffnet")).toBeVisible();
+});
+
+// A constant-bitrate MP3 without a Xing/Info header: WebKit's audio element reports no length for
+// it, while Web Audio decodes it. Glissando's bundled sample track is one.
+const MP3_WITHOUT_LENGTH_HEADER = "cbr-no-xing.mp3";
+
+test("E2E-133 a file whose song's length the audio element cannot read opens again", async ({
+  page,
+}) => {
+  const song = new Blob([toneFixture(MP3_WITHOUT_LENGTH_HEADER)], { type: "audio/mpeg" });
+  const glissando = await exportedFileWithRealMedia(song);
   await openApp(page);
   await chooseFiles(page, page.getByRole("button", { name: "Datei öffnen" }), [glissando]);
 

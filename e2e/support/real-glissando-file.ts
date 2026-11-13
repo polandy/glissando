@@ -70,15 +70,18 @@ function tinyPng(width: number, height: number): Uint8Array<ArrayBuffer> {
 
 /**
  * `exportedFile`'s slideshow ("Herbst in Wien"), exported with real, decodable media in place of
- * the unit-test fixture's header-only pictures and text standing in for music.
+ * the unit-test fixture's header-only pictures and text standing in for music; `song` replaces
+ * the silent WAV the slideshow plays by default.
  */
-export async function exportedFileWithRealMedia(): Promise<TestFile> {
+export async function exportedFileWithRealMedia(
+  song: Blob = new Blob([silentWav(SILENT_MUSIC_MS)], { type: "audio/wav" }),
+): Promise<TestFile> {
   const store = new MemoryLibraryStore();
   const picture = (width: number, height: number): Blob =>
     new Blob([tinyPng(width, height)], { type: "image/png" });
   await store.putPicture("src-p1", { display: picture(40, 30), thumbnail: picture(40, 30) });
   await store.putPicture("src-p2", { display: picture(40, 30), thumbnail: picture(40, 30) });
-  await store.putMusic("src-m1", new Blob([silentWav(SILENT_MUSIC_MS)], { type: "audio/wav" }));
+  await store.putMusic("src-m1", song);
   const file = await exportSlideshow(EXPORTED_SLIDESHOW, store, EXPORT_OPTIONS);
   return blobFile("Herbst in Wien.glissando", file);
 }

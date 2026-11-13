@@ -1,5 +1,10 @@
-import { assertMusicWithinLimits, MusicOverLimitError } from "../../import/music-limits";
+import {
+  assertMusicWithinLimits,
+  MAX_MUSIC_DURATION_MS,
+  MusicOverLimitError,
+} from "../../import/music-limits";
 import { probeMusicDurationMs, UnreadableMusicError } from "../../import/music-probe";
+import { MILLISECONDS_PER_SECOND } from "../../player/slideshow";
 import { openClipInVideoElement } from "../../import/browser/video-clip";
 import { encodeThumbnail } from "../../import/downscale";
 import type { MediaDecoders } from "../media-decoders";
@@ -32,24 +37,29 @@ export function browserMediaDecoders(log: (error: unknown) => void): MediaDecode
       return { width, height };
     },
 
-    // A song over a limit, or one the browser cannot play, is undecodable and never decoded.
+    // A song over a limit is undecodable and never decoded. The audio element reads the length
+    // from the song's headers; where it cannot (WebKit, a constant-bitrate MP3 without a
+    // Xing/Info header) the decode measures the song, bounded by `MAX_MUSIC_BYTES` alone.
     async music(song) {
       const bytes = await song.arrayBuffer();
       try {
         await assertMusicWithinLimits(new Blob([bytes]), probeMusicDurationMs);
       } catch (error) {
-        if (error instanceof MusicOverLimitError || error instanceof UnreadableMusicError) {
+        if (error instanceof MusicOverLimitError) {
           return false;
         }
-        throw error;
+        if (!(error instanceof UnreadableMusicError)) {
+          throw error;
+        }
       }
       const context = new OfflineAudioContext(1, 1, DECODE_PROBE_SAMPLE_RATE);
+      let decoded: AudioBuffer;
       try {
-        await context.decodeAudioData(bytes);
-        return true;
+        decoded = await context.decodeAudioData(bytes);
       } catch {
         return false;
       }
+      return decoded.duration * MILLISECONDS_PER_SECOND <= MAX_MUSIC_DURATION_MS;
     },
 
     async clip(clip) {

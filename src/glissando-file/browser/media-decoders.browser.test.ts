@@ -3,6 +3,7 @@ import { THUMBNAIL_BOUND } from "../../import/downscale";
 import { MAX_MUSIC_DURATION_MS } from "../../import/music-limits";
 import { turnedByExif } from "../../import/testing/turned-by-exif";
 import { silentWav } from "../../import/testing/silent-wav";
+import cbrNoXingUrl from "../../import/testing/audio/cbr-no-xing.mp3?url";
 import { browserMediaDecoders } from "./media-decoders";
 
 /** A canvas filled with a flat colour, encoded as `type`; null where the browser cannot encode it. */
@@ -110,6 +111,12 @@ describe("browserMediaDecoders", () => {
 
   it("accepts a generated PCM WAV song", async () => {
     expect(await decoders.music(tinyWav())).toBe(true);
+  });
+
+  it("accepts a constant-bitrate MP3 without a Xing header, whose length only a decode tells", async () => {
+    const song = await (await fetch(cbrNoXingUrl)).blob();
+
+    expect(await decoders.music(song)).toBe(true);
   });
 
   it("refuses a song longer than the duration cap without decoding it", async () => {

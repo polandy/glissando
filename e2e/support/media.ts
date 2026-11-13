@@ -249,8 +249,14 @@ export function clickTrackWav(name: string, seconds: number, beatsPerMinute: num
  * (scripts/make-audio-fixtures.sh), e.g. `alac.m4a`.
  */
 export function toneTrack(name: string, fixture: string): TestFile {
-  const bytes = readFileSync(new URL(`../../src/import/testing/audio/${fixture}`, import.meta.url));
-  return { name, mimeType: "audio/mp4", buffer: Buffer.from(bytes) };
+  return { name, mimeType: "audio/mp4", buffer: Buffer.from(toneFixture(fixture)) };
+}
+
+/** The bytes of a generated tone under `src/import/testing/audio/` (`scripts/make-audio-fixtures.sh`). */
+export function toneFixture(fixture: string): Uint8Array<ArrayBuffer> {
+  return new Uint8Array(
+    readFileSync(new URL(`../../src/import/testing/audio/${fixture}`, import.meta.url)),
+  );
 }
 
 /** `blob` as a file chooser takes it, under `name`. */
