@@ -34,9 +34,9 @@ read and write path.
   its declared size; its CRC-32 over the unpacked bytes; for a picture or thumbnail its size from its header
   (JPEG, PNG, WebP), which must fit the display or thumbnail bound and, for a picture, equal its
   `width` and `height`, before it is decoded; then it is decoded (a picture to its header size, a
-  song by Web Audio at the beat-detection rate, a clip's metadata loaded). A song's length comes
-  from an audio element's headers read; where the browser reports none (WebKit, a constant-bitrate
-  MP3 without a Xing/Info header) the decoded buffer's length is checked instead. Any failure is
+  song by Web Audio at the beat-detection rate, a clip's metadata loaded). An audio element reads
+  a song's length from its headers before the decode; where the browser reports none (WebKit, a
+  constant-bitrate MP3 without a Xing/Info header) the decoded buffer's length is bounded instead. Any failure is
   _damaged_ and names the entry: one damaged picture refuses the whole file. A thumbnail the
   manifest names but the file lacks is made again from its picture once that passed, as an import
   makes one (JPEG, `THUMBNAIL_BOUND`), and counts in the media bytes. An edited manifest may leave
