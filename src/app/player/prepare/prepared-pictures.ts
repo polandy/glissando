@@ -15,8 +15,13 @@ export interface PreparedPicturesOptions {
   readonly prepare: PrepareRendition;
   /** Monotonic milliseconds. */
   readonly clock: () => number;
-  /** Prepared pictures held at most; preparing ahead pauses until a slide has passed. */
+  /**
+   * Prepared pictures held at most, the ones under way counted; preparing ahead pauses until a
+   * slide has passed.
+   */
   readonly capacity: number;
+  /** Pictures prepared at once. */
+  readonly concurrency: number;
   /** Called after every picture prepared, missing or failed. */
   readonly onChange: () => void;
 }
@@ -32,9 +37,10 @@ interface Waiter {
 }
 
 /**
- * Server pictures prepared one after another in play order and kept as encoded renditions,
- * bounded and released once their slide has passed (ADR-0027). The player opens its pictures
- * here; one asked for out of order is prepared next. Every preparation is timed.
+ * Server pictures prepared a few at a time, asked for in play order, and kept as encoded
+ * renditions, bounded and released once their slide has passed (ADR-0027, ADR-0058). The player
+ * opens its pictures here; one asked for out of order is prepared next. Every preparation is
+ * timed.
  */
 export class PreparedPictures {
   readonly #options: PreparedPicturesOptions;
@@ -42,12 +48,14 @@ export class PreparedPictures {
   readonly #waiters = new Map<string, Waiter[]>();
   readonly #durationsMs: number[] = [];
   readonly #closed = new AbortController();
+  readonly #underWay = new Set<string>();
   #wanted: string[] = [];
   /** The first picture whose slide has not passed. */
   #current: number;
-  #working = false;
   /** A failure other than a missing picture: preparing ahead stops, asking still tries. */
   #failure: unknown = null;
+  /** Counts the failures, so only a picture asked for after the last one clears it. */
+  #failures = 0;
 
   constructor(options: PreparedPicturesOptions) {
     this.#options = options;
@@ -137,42 +145,48 @@ export class PreparedPictures {
     this.#waiters.clear();
   }
 
+  /** Fills the free slots with the next pictures; each one done frees its slot and fills again. */
   #work(): void {
-    if (this.#working) return;
-    this.#working = true;
-    void this.#prepareInTurn();
-  }
-
-  async #prepareInTurn(): Promise<void> {
-    for (let id = this.#next(); id !== null; id = this.#next()) {
-      await this.#prepareOne(id);
-      if (this.#closed.signal.aborted) return;
-      this.#options.onChange();
+    while (this.#underWay.size < this.#options.concurrency) {
+      const id = this.#next();
+      if (id === null) return;
+      this.#underWay.add(id);
+      void this.#prepareOne(id).then(() => {
+        this.#underWay.delete(id);
+        if (this.#closed.signal.aborted) return;
+        this.#options.onChange();
+        this.#work();
+      });
     }
-    this.#working = false;
   }
 
   #next(): string | null {
     if (this.#closed.signal.aborted) return null;
-    this.#wanted = this.#wanted.filter((id) => !this.#entries.has(id));
+    this.#wanted = this.#wanted.filter((id) => !this.#entries.has(id) && !this.#underWay.has(id));
     const wanted = this.#wanted[0];
     if (wanted !== undefined) return wanted;
     if (this.#failure !== null || this.#held() >= this.#options.capacity) return null;
-    return this.#options.ids.slice(this.#current).find((id) => !this.#entries.has(id)) ?? null;
+    return (
+      this.#options.ids
+        .slice(this.#current)
+        .find((id) => !this.#entries.has(id) && !this.#underWay.has(id)) ?? null
+    );
   }
 
   #held(): number {
-    return [...this.#entries.values()].filter((entry) => entry.kind === "ready").length;
+    const ready = [...this.#entries.values()].filter((entry) => entry.kind === "ready").length;
+    return ready + this.#underWay.size;
   }
 
   async #prepareOne(id: string): Promise<void> {
     const { prepare, clock } = this.#options;
     const started = clock();
+    const failuresBefore = this.#failures;
     try {
       const blob = await prepare(id, this.#closed.signal);
       if (this.#closed.signal.aborted) return;
       this.#durationsMs.push(clock() - started);
-      this.#failure = null;
+      if (failuresBefore === this.#failures) this.#failure = null;
       this.#settle(id, { kind: "ready", blob });
     } catch (error) {
       if (this.#closed.signal.aborted) return;
@@ -180,6 +194,7 @@ export class PreparedPictures {
         this.#settle(id, { kind: "missing", error });
       } else {
         this.#failure = error;
+        this.#failures += 1;
         this.#settle(id, { kind: "failed", error });
       }
     }

@@ -73,4 +73,32 @@ describe("planPreload", () => {
   it("preloads nothing when the start slide is past the last", () => {
     expect(planPreload(3, evenStarts(4, 5), 4).preloadCount).toBe(0);
   });
+
+  describe("pictures prepared a few at a time", () => {
+    it("plans one at a time unless told otherwise", () => {
+      expect(planPreload(6, evenStarts(30, 5), 0, 1)).toEqual(planPreload(6, evenStarts(30, 5)));
+    });
+
+    it("waits for the first round only when two at a time keep up with the slides", () => {
+      // 6 s a picture, two at a time, 5 s a slide: picture i is ready after (⌊i/2⌋ + 1) · 6 s,
+      // never after its slide starts, so the first two pictures are enough.
+      expect(planPreload(6, evenStarts(30, 5), 0, 2)).toEqual<PreloadPlan>({
+        startDelaySeconds: 6,
+        preloadCount: 2,
+      });
+    });
+
+    it("waits for whole rounds by the safety-padded shortfall of two at a time", () => {
+      // 12 s a picture, two at a time, 5 s a slide, 30 slides: the shortfall peaks at picture 28,
+      // ⌊28/2⌋ · 12 − 28 · 5 = 28 s: 12 + 28 · 1.2 = 45.6 s, four rounds of two.
+      const plan = planPreload(12, evenStarts(30, 5), 0, 2);
+
+      expect(plan.startDelaySeconds).toBeCloseTo(45.6);
+      expect(plan.preloadCount).toBe(8);
+    });
+
+    it("never preloads more pictures than the slideshow has, even in whole rounds", () => {
+      expect(planPreload(10, [0, 0.5, 1], 0, 2).preloadCount).toBe(3);
+    });
+  });
 });

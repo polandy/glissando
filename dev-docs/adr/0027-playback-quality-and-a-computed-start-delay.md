@@ -1,6 +1,6 @@
 # ADR-0027: Server slideshows play in 1440 or 4K; 4K waits for a computed share of the pictures
 
-**Status:** accepted
+**Status:** accepted; the pictures are prepared a few at a time since ADR-0058, which restates the plan in rounds
 
 ## Context
 

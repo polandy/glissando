@@ -7,6 +7,10 @@ import { PreparedPictures, type PrepareRendition } from "./prepared-pictures";
 const MEASURED_PICTURES = 2;
 /** Prepared renditions held at most: a 4K one is 1–2 MB, so this stays well within memory. */
 const PREPARED_PICTURES_LIMIT = 60;
+/** Pictures prepared at once; a 4K original is also decoded on the device (ADR-0058). */
+const PREPARE_CONCURRENCY: Readonly<Record<PlaybackQuality, number>> = { "1440": 3, "4k": 2 };
+/** Pictures ready before playing at least, so one slow Immich answer is covered (ADR-0058). */
+const PRE_ROLL_PICTURES = 6;
 
 /** Where a server slideshow is before and as it plays (`dev-docs/app/PREPARING.md`). */
 export type PrepareView =
@@ -45,9 +49,10 @@ export interface PrepareFlowOptions {
 }
 
 /**
- * Prepares a server slideshow's pictures before it plays: times the first ones, works out from
- * the slides how many must be ready to never fall behind (`planPreload`), and plays once they
- * are, or when asked. Preparing goes on behind the slides; the player opens its pictures here.
+ * Prepares a server slideshow's pictures before it plays, a few at a time: times the first ones,
+ * works out from the slides how many must be ready to never fall behind (`planPreload`, at
+ * least the pre-roll), and plays once they are, or when asked. Preparing goes on behind the
+ * slides; the player opens its pictures here.
  */
 export class PrepareFlow {
   readonly #options: PrepareFlowOptions;
@@ -129,6 +134,7 @@ export class PrepareFlow {
       prepare: this.#options.renditionFor(this.#quality),
       clock: this.#options.clock,
       capacity: PREPARED_PICTURES_LIMIT,
+      concurrency: PREPARE_CONCURRENCY[this.#quality],
       onChange: () => {
         if (pictures === this.#pictures) this.#update();
       },
@@ -168,10 +174,15 @@ export class PrepareFlow {
     if (this.#slides === null || secondsPerPicture === null || ready < measuring) {
       return { stage: "measuring", quality, measured: Math.min(ready, measuring), measuring };
     }
-    const target = Math.min(
-      planPreload(secondsPerPicture, this.#slides.starts, this.#startSlide).preloadCount,
-      PREPARED_PICTURES_LIMIT,
-    );
+    const concurrency = PREPARE_CONCURRENCY[quality];
+    const planned = planPreload(
+      secondsPerPicture,
+      this.#slides.starts,
+      this.#startSlide,
+      concurrency,
+    ).preloadCount;
+    const preRoll = Math.min(PRE_ROLL_PICTURES, pictureCount);
+    const target = Math.min(Math.max(planned, preRoll), PREPARED_PICTURES_LIMIT);
     if (ready >= target) return { stage: "playing", quality };
     return {
       stage: "preparing",
@@ -179,7 +190,7 @@ export class PrepareFlow {
       ready,
       target,
       pictureCount,
-      secondsLeft: (target - ready) * secondsPerPicture,
+      secondsLeft: Math.ceil((target - ready) / concurrency) * secondsPerPicture,
     };
   }
 }
