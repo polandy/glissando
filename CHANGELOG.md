@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.8](https://github.com/polandy/glissando/compare/glissando-v0.1.7...glissando-v0.1.8) (2026-11-13)
+
+
+### Bug Fixes
+
+* **import:** settle the clip probe at loadedmetadata, as Safari fires no loadeddata ([#354](https://github.com/polandy/glissando/issues/354)) ([6a229ec](https://github.com/polandy/glissando/commit/6a229ec673f8b61b116e81f201044e938b144f82))
+
 ## [0.1.7](https://github.com/polandy/glissando/compare/glissando-v0.1.6...glissando-v0.1.7) (2026-11-13)
 
 
