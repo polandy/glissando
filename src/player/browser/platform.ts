@@ -2,6 +2,7 @@ import type { Clock, FrameScheduler, MusicPlayback } from "../ports";
 import { MusicOutput, type MusicVolume } from "./music-output";
 import { playingSecondsOf } from "./media-position";
 import { DOM_EXCEPTION, isDomException } from "../../dom-exception/dom-exception";
+import { MILLISECONDS_PER_SECOND } from "../slideshow";
 
 export const performanceClock: Clock = { now: () => performance.now() };
 
@@ -12,6 +13,12 @@ export const animationFrames: FrameScheduler = {
 
 /** Without Web Audio: the element's own volume, which iOS ignores. */
 const elementVolumeOnly = () => null;
+
+/**
+ * A song standing this close to its place when it starts is not seeked: one resumed after a hold
+ * is within a frame of it, and the seek itself would be heard as a gap while it buffers again.
+ */
+const MUSIC_START_TOLERANCE_MS = 50;
 
 /**
  * Plays a music file through `output`; without one, at the element's own volume. `play` unlocks
@@ -31,7 +38,10 @@ export class AudioElementMusic implements MusicPlayback {
 
   play(atSeconds: number): Promise<void> {
     this.#output.unlock();
-    this.#audio.currentTime = atSeconds;
+    const offPlaceMs = Math.abs(this.#audio.currentTime - atSeconds) * MILLISECONDS_PER_SECOND;
+    if (offPlaceMs > MUSIC_START_TOLERANCE_MS) {
+      this.#audio.currentTime = atSeconds;
+    }
     // A pause before the start lands (a quick seek pauses and plays again) is not a refusal.
     return this.#audio.play().catch((error: unknown) => {
       if (!isDomException(error, DOM_EXCEPTION.aborted)) {

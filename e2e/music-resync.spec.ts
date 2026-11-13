@@ -19,7 +19,7 @@ interface MusicProbe {
   landedAt: number;
 }
 
-/** Records the music element's seeks; it starts late and every seek after its start lands late. */
+/** Records the music element's seeks; it starts late, without a seek, and every seek lands late. */
 async function slowMusicElement(page: Page): Promise<void> {
   await page.addInitScript(
     ({ lagSeconds, startDelayMs }) => {
@@ -35,7 +35,7 @@ async function slowMusicElement(page: Page): Promise<void> {
           if (this instanceof HTMLAudioElement) {
             probe.element = this;
             probe.seeks += 1;
-            probe.landedAt = probe.seeks === 1 ? seconds : Math.max(0, seconds - lagSeconds);
+            probe.landedAt = Math.max(0, seconds - lagSeconds);
             position?.set?.call(this, probe.landedAt);
           } else {
             position?.set?.call(this, seconds);
@@ -78,5 +78,5 @@ test("E2E-132 music that starts late on a loaded device is seeked back once and 
     () => (window as unknown as { musicProbe: MusicProbe }).musicProbe.seeks,
   );
   // The late start was seeked back at least once, so playing on proves no seek chased its own lag.
-  expect(seeks).toBeGreaterThanOrEqual(2);
+  expect(seeks).toBeGreaterThanOrEqual(1);
 });

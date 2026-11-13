@@ -47,7 +47,10 @@ same way, so the card's own first frame pays nothing for it either.
 ## Music
 
 The show clock leads the music too (`playlist-music.ts`). Playing, resuming, seeking the show or
-waiting for a picture start each heard song at `trackSecondsAt` of the show time. Each frame,
+waiting for a picture start each heard song at `trackSecondsAt` of the show time. A song that
+already stands within `MUSIC_START_TOLERANCE_MS` (50 ms) of that place, as one resumed after a
+hold does, starts without a seek (`platform.ts`): the seek itself would be heard as a gap while
+the song buffers again. Each frame,
 `follow` then compares every heard song's position with that place and seeks it there once it is
 off by more than `MUSIC_RESYNC_MS` (150 ms), so a stall in the song never leaves the beat-aligned
 picture changes (ADR-0021, ADR-0046) off the beat for the rest of it. The position is read only
@@ -61,3 +64,11 @@ behind while it plays on has a slow audio clock, which a seek cannot outrun. The
 reading after a seek is where that seek landed; the song counts as on its place there until it
 drifts on from it, or back onto the clock. So a device busy preparing pictures, whose seeks land
 late, gets one seek per stall instead of one per frame.
+
+## Measuring stutter
+
+`scripts/probe-playback-stutter/probe.mjs` plays a `.glissando` file or a server slideshow in a real
+browser and records what a viewer would notice: animation-frame gaps, main-thread blocks, texture
+uploads, the music element's pauses, seeks and stalls. It can starve the CPU, pin the browser to
+cores and make the pictures of a server slideshow arrive late, so a stutter is measured before and
+after a change instead of listened for. Its header lists the options.
