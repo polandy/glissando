@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.6](https://github.com/polandy/glissando/compare/glissando-v0.1.5...glissando-v0.1.6) (2026-11-13)
+
+
+### Bug Fixes
+
+* **glissando-file:** open a file again whose song's length the audio element cannot read ([#346](https://github.com/polandy/glissando/issues/346)) ([6873fe7](https://github.com/polandy/glissando/commit/6873fe7c027c394590013f5b982789e0b367e0cd))
+* **player:** play the music and the clock on while a picture is late ([#350](https://github.com/polandy/glissando/issues/350)) ([54c0b15](https://github.com/polandy/glissando/commit/54c0b156b31091ce60f3f8d2cd630daba702defe))
+* **player:** prepare server pictures a few at a time, with a pre-roll ([#351](https://github.com/polandy/glissando/issues/351)) ([c8354a9](https://github.com/polandy/glissando/commit/c8354a9325d04a6cb9ccc12c17a134c6bbd6e3a8))
+* **player:** resume the music after a held picture without seeking it ([#348](https://github.com/polandy/glissando/issues/348)) ([f7511d0](https://github.com/polandy/glissando/commit/f7511d0c164cc7296ee4dbd7e94f00b370f75201))
+
 ## [0.1.5](https://github.com/polandy/glissando/compare/glissando-v0.1.4...glissando-v0.1.5) (2026-11-12)
 
 
