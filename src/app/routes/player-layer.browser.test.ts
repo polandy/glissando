@@ -214,12 +214,21 @@ describe("the player layer of a server slideshow", () => {
   });
 });
 
-/** A store recording the pictures the player asks for; only the playback rendition answers. */
+/**
+ * A store recording the pictures the player asks for; a playback rendition is never answered, so
+ * only the pictures the player loads ahead at first are ever asked for.
+ */
 class PlaybackRecordingStore extends MemoryLibraryStore {
   readonly played: string[] = [];
+  readonly #firstStep: number;
   readonly #firstPlayed = Promise.withResolvers<undefined>();
-  /** Resolves once the player asked for its first picture, with every request of that step made. */
+  /** Resolves once the player asked for as many pictures as its first step holds. */
   readonly firstPlayed = this.#firstPlayed.promise;
+
+  constructor(firstStep: number) {
+    super();
+    this.#firstStep = firstStep;
+  }
 
   override pictureBlob(id: string): Promise<Blob> {
     return Promise.reject(new Error(`playing read the stored rendition of "${id}"`));
@@ -227,8 +236,8 @@ class PlaybackRecordingStore extends MemoryLibraryStore {
 
   override playbackPictureBlob(id: string): Promise<Blob> {
     this.played.push(id);
-    this.#firstPlayed.resolve(undefined);
-    return super.playbackPictureBlob(id);
+    if (this.played.length === this.#firstStep) this.#firstPlayed.resolve(undefined);
+    return new Promise<Blob>(() => {});
   }
 }
 
@@ -239,10 +248,10 @@ const FIVE_PICTURES: StoredSlideshow = {
 
 describe("the pictures the player layer loads ahead", () => {
   it.each([
-    ["server", ["p1"]],
+    ["server", ["p1", "p2", "p3"]],
     ["device", ["p1", "p2"]],
   ] as const)("plays a %s slideshow's playback renditions, %j first", async (home, first) => {
-    const store = new PlaybackRecordingStore();
+    const store = new PlaybackRecordingStore(first.length);
     for (const { id } of FIVE_PICTURES.pictures) {
       await store.putPicture(id, { display: new Blob([]), thumbnail: new Blob([]) });
     }
