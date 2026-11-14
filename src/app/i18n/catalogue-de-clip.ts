@@ -4,6 +4,7 @@ import type { Message } from "./messages.ts";
 export const deClip = {
   "clip.badge": "Video",
   "clip.badgeLength": "Video, {length}",
+  "clip.tileLabelLength": ", Clip von {length}",
   "clip.cutFlag": "Ausschnitt",
   "clip.longNotice": {
     one: "{count} Clip ist länger als {max}. In der Diashow läuft ein Ausschnitt bis {max}; du wählst ihn später im Clip-Editor.",

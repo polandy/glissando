@@ -2,6 +2,7 @@
   import { getTranslator } from "../../i18n/context";
   import { MILLISECONDS_PER_SECOND } from "../../../player";
   import type { PictureTile } from "../view-models";
+  import Icon from "../../components/Icon.svelte";
   import StripTileBadges from "./StripTileBadges.svelte";
   import StripTileCheck from "./StripTileCheck.svelte";
   import StripTileMarks from "./StripTileMarks.svelte";
@@ -43,18 +44,25 @@
     onKeydown: (event: KeyboardEvent) => void;
   } = $props();
 
-  const { t, formatDate, formatSeconds } = getTranslator();
+  const { t, formatDate, formatDuration, formatSeconds } = getTranslator();
   const date = $derived(formatDate(picture.capturedAt));
   const ownSeconds = $derived(
     picture.ownDurationMs === null
       ? null
       : formatSeconds(picture.ownDurationMs / MILLISECONDS_PER_SECOND),
   );
+  /** A clip's excerpt length, shown beside the number so clips stand out at a glance; null for a still. */
+  const clipLength = $derived(
+    picture.clipMs === undefined
+      ? null
+      : formatDuration(Math.round(picture.clipMs / MILLISECONDS_PER_SECOND)),
+  );
   const ownLabel = $derived(
     [
       picture.ownMotion
         ? t("slideshow.pictureLabelOwnMotion", { number, date })
         : t("slideshow.pictureLabel", { number, date }),
+      clipLength === null ? "" : t("clip.tileLabelLength", { length: clipLength }),
       ownSeconds === null ? "" : t("slideshow.pictureLabelOwnDuration", { duration: ownSeconds }),
       picture.ownTransition === null
         ? ""
@@ -102,8 +110,12 @@
     {:else}
       <img src={picture.thumbnailUrl} alt={label} draggable="false" style:filter={lookFilter} />
     {/if}
-    <span class="number mono" aria-hidden="true">{number}</span>
-    {#if isNew || picture.clipMs !== undefined || picture.ownMotion || ownSeconds !== null || picture.ownTransition !== null || picture.alone || picture.blurredFill}
+    <span class="number mono" aria-hidden="true"
+      >{number}{#if clipLength !== null}<span class="clip-divider"></span><Icon
+          name="play"
+        />{clipLength}{/if}</span
+    >
+    {#if isNew || picture.ownMotion || ownSeconds !== null || picture.ownTransition !== null || picture.alone || picture.blurredFill}
       <StripTileBadges {picture} {isNew} {ownSeconds} />
     {/if}
     <span class="date mono" aria-hidden="true">{date}</span>
@@ -214,9 +226,20 @@
   .number {
     left: 6px;
     top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
     padding: 1px 6px;
+    --gl-icon-size: var(--gl-size-caption);
     border-radius: var(--gl-radius-small);
     background: var(--gl-photo-badge);
+  }
+  .clip-divider {
+    align-self: stretch;
+    width: 1px;
+    margin: 3px 1px;
+    background: currentColor;
+    opacity: 0.5;
   }
   /* The selected tile's order number, in the accent (dev-docs/app/slideshow-editing/REMOVE_SELECT_REORDER.md, Select and reorder). */
   .tile.selected .number {

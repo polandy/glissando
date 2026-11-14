@@ -5,6 +5,7 @@ import type { deClip } from "./catalogue-de-clip.ts";
 export const enClip: Pick<Catalogue, keyof typeof deClip> = {
   "clip.badge": "Video",
   "clip.badgeLength": "Video, {length}",
+  "clip.tileLabelLength": ", clip of {length}",
   "clip.cutFlag": "Excerpt",
   "clip.longNotice": {
     one: "{count} clip is longer than {max}. The slideshow plays an excerpt of up to {max}; you choose it later in the clip editor.",

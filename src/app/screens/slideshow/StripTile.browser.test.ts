@@ -110,6 +110,39 @@ describe("StripTile, the alone and blurred fill badges (ADR-0028)", () => {
   });
 });
 
+describe("StripTile, a clip marked in its number", () => {
+  const numberOf = (target: HTMLElement) => target.querySelector(".number");
+
+  it("shows the play glyph and the excerpt's length beside a clip's number", () => {
+    const number = numberOf(mountTile({ clipMs: 12_000 }, 2));
+
+    expect(number?.textContent?.replace(/\s+/g, "")).toBe("20:12");
+    expect(number?.querySelector("svg")).not.toBeNull();
+  });
+
+  it("leaves no video badge among the badges at the bottom", () => {
+    const target = mountTile({ clipMs: 12_000 }, 2);
+
+    expect(numberOf(target)?.textContent).toContain("0:12");
+    expect(target.querySelector(".badges")).toBeNull();
+  });
+
+  it("names the clip's length in the picture's accessible label", () => {
+    const target = mountTile({ clipMs: 12_000 }, 2);
+
+    expect(target.querySelector("img")?.getAttribute("alt")).toMatch(
+      /^Bild 2, aufgenommen am .*, Clip von 0:12$/,
+    );
+  });
+
+  it("shows only the number for a still picture", () => {
+    const number = numberOf(mountTile({}, 1));
+
+    expect(number?.textContent?.trim()).toBe("1");
+    expect(number?.querySelector("svg")).toBeNull();
+  });
+});
+
 describe("StripTile, the slideshow's look (LOOKS.md)", () => {
   it("carries a graded look's filter on the picture", () => {
     const id = lookFilterId("strip-test", "warm");
