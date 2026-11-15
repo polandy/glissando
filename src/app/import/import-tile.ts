@@ -16,6 +16,7 @@ export function importPictureTile(picture: StoredPicture, thumbnailUrl: string):
     ownDurationMs: null,
     ownTransition: null,
     pairedWithNumber: null,
+    rejoinsWithNumber: null,
     blurredFill: false,
     alone: picture.alone === true,
     colours: picture.colours,

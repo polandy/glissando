@@ -1,12 +1,8 @@
-import { fitWithin, DISPLAY_BOUND } from "../downscale";
 import { localWallTime } from "../exif-capture-date";
 import { MILLISECONDS_PER_SECOND } from "../../player/slideshow";
 import type { OpenedClip } from "../video-read";
 import { loadClipMetadata } from "./clip-metadata";
-
-const POSTER_TYPE = "image/jpeg";
-const POSTER_QUALITY = 0.92;
-const MIN_READY_STATE_WITH_FRAME = 2;
+import { decodedFrameAt, posterFile, seekedFrameAt } from "./clip-poster";
 
 /**
  * Loads a video file the way the player will play it, in a `<video>` element; null when the
@@ -37,7 +33,7 @@ export async function openClipInVideoElement(
   const pictureEndMs = await videoTrackEndMs(file, log);
   return {
     durationMs: Math.round(Math.min(metadata.durationMs, pictureEndMs ?? metadata.durationMs)),
-    posterFrame: (atMs) => frameAt(video, file, atMs),
+    posterFrame: (atMs) => frameAt(video, file, atMs, log),
     close,
   };
 }
@@ -59,30 +55,15 @@ async function videoTrackEndMs(file: File, log: (error: unknown) => void): Promi
   }
 }
 
-async function frameAt(video: HTMLVideoElement, file: File, atMs: number): Promise<File> {
-  const seconds = atMs / MILLISECONDS_PER_SECOND;
-  if (video.currentTime !== seconds || video.readyState < MIN_READY_STATE_WITH_FRAME) {
-    await new Promise<void>((resolve) => {
-      video.onseeked = () => resolve();
-      video.currentTime = seconds;
-    });
-  }
-  const size = fitWithin({ width: video.videoWidth, height: video.videoHeight }, DISPLAY_BOUND);
-  const canvas = document.createElement("canvas");
-  canvas.width = size.width;
-  canvas.height = size.height;
-  const context = canvas.getContext("2d");
-  if (context === null) {
-    throw new Error("this browser offers no 2D canvas to draw a video's poster with");
-  }
-  context.drawImage(video, 0, 0, size.width, size.height);
-  const blob = await new Promise<Blob | null>((resolve) =>
-    canvas.toBlob(resolve, POSTER_TYPE, POSTER_QUALITY),
-  );
-  if (blob === null) {
-    throw new Error(`the canvas could not encode the poster of "${file.name}"`);
-  }
-  return new File([blob], `${file.name}.jpg`, { type: POSTER_TYPE });
+/** The poster at `atMs`: decoded where mediabunny can, else drawn from the seeked element. */
+async function frameAt(
+  video: HTMLVideoElement,
+  file: File,
+  atMs: number,
+  log: (error: unknown) => void,
+): Promise<File> {
+  const frame = (await decodedFrameAt(file, atMs, log)) ?? (await seekedFrameAt(video, atMs));
+  return posterFile(frame, file.name);
 }
 
 /**

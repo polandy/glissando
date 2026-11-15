@@ -5,7 +5,7 @@ import type { Size } from "./ken-burns";
 import type { Card } from "./slideshow";
 
 /**
- * An entrance's items as slices of `layoutCard`'s lines (ADR-0032, `dev-docs/player/TITLE_CARDS.md`
+ * An entrance's items as slices of `layoutCard`'s lines (ADR-0032, `docs/dev/player/TITLE_CARDS.md`
  * § Entrances), split out of `card-layout.ts` to stay under the line limit. Pure; both renderers
  * draw each item at its own slice.
  */

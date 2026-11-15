@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { actionLines } from "./action-lines";
   import { keepToastsClear } from "../../components/toast-clearance";
   import { getTranslator } from "../../i18n/context";
   import AddingBarActions from "./AddingBarActions.svelte";
@@ -6,12 +7,13 @@
   import MoveToSheet from "./MoveToSheet.svelte";
   import SelectionCount from "./SelectionCount.svelte";
   import SoleActions from "./SoleActions.svelte";
-  import { barItem, chapterItem, moveToItem, type BarItem } from "./SelectionBarItem";
+  import type { PairAction } from "./pair-action";
+  import { barItem, chapterItem, moveToItem, pairItem, type BarItem } from "./SelectionBarItem";
   import { selectionBarView } from "./selection-bar-view";
   import type { StripSelection } from "./strip-selection";
 
   /**
-   * What the selection offers, fixed to the bottom of the viewport (dev-docs/app/slideshow-editing/:
+   * What the selection offers, fixed to the bottom of the viewport (docs/dev/app/slideshow-editing/:
    * REMOVE_SELECT_REORDER.md, Select and reorder; SELECTING_SEVERAL.md, Selecting several). Its height
    * and inset come from the screen, which keeps that much room below its content.
    */
@@ -28,6 +30,7 @@
     viewMode = false,
     onInsertChapter,
     onMoveGroup,
+    pairAction,
   }: {
     selection: StripSelection;
     /** The slideshow's current play order, for the group moves and the contiguous range. */
@@ -54,6 +57,8 @@
     onInsertChapter?: (pictureId: string) => void;
     /** Moves the pictures to an insertion in the current order ("Move to…"); omitted hides it. */
     onMoveGroup?: (pictureIds: readonly string[], insertion: number) => void;
+    /** Split or Pair again, for the one selected picture (ADR-0028); none when omitted. */
+    pairAction?: PairAction | undefined;
   } = $props();
 
   const { t } = getTranslator();
@@ -109,6 +114,11 @@
   const extras = $derived<BarItem[]>([
     ...(bar.showChapter ? [chapterItem(t, insertChapter)] : []),
     ...(bar.showMoveTo ? [moveToItem(t, () => (moving = true))] : []),
+    ...(single && pairAction !== undefined ? [pairItem(t, pairAction)] : []),
+  ]);
+  const actionKeys = $derived<string[]>([
+    ...[...shifts, ...extras].map((item) => item.key),
+    ...(single ? ["sole"] : []),
   ]);
 </script>
 
@@ -142,7 +152,7 @@
       />
     {:else}
       <!-- One row of actions: inline on a wide screen, the bar's second row on a narrow one. -->
-      <div class="actions">
+      <div class="actions" {@attach actionLines(actionKeys)}>
         {@render inline(shifts)}
         {#if single}
           <SoleActions
@@ -233,8 +243,9 @@
       gap: 2px;
       padding: 2px;
     }
-    /* Row 1: the count and Done; row 2: every action, equally wide, scrolling within the bar
-       where a language's labels do not all fit. The adding bar keeps its one row of words. */
+    /* Row 1: the count and Done; below: every action on one line where all fit, otherwise on two
+       even lines (`action-lines.ts`), so none hides off-screen. The adding bar keeps its one row
+       of words. */
     .labelled {
       display: grid;
       grid-template-columns: 1fr auto;
@@ -255,8 +266,10 @@
       display: flex;
       grid-row: 2;
       grid-column: 1 / -1;
-      overflow-x: auto;
-      overscroll-behavior-x: contain;
+    }
+    .actions:global([data-lines="2"]) {
+      display: grid;
+      grid-template-columns: repeat(var(--action-columns), minmax(0, 1fr));
     }
     .actions :global(.action) {
       flex: 1 1 0;

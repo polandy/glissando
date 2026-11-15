@@ -1,10 +1,7 @@
 import type { OwnKenBurns } from "../../library/own-ken-burns";
 import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
 import type { PortraitPictures } from "../../library/portrait-pictures";
-import {
-  setPictureAlone as setPictureAloneEdit,
-  setSlideshowEnergyPacing,
-} from "../../library/slideshow-edits";
+import { setSlideshowEnergyPacing } from "../../library/slideshow-edits";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import type { CardSettingsEditor } from "./card-settings-editor";
 import type { ChapterSettingsEditor } from "./chapter-settings-editor";
@@ -14,6 +11,7 @@ import { MusicAndCardEdits } from "./music-and-card-edits";
 import type { LookSettingsEditor } from "./look-settings-editor";
 import type { MoodSettingsEditor } from "./mood-settings-editor";
 import type { MusicSettingsEditor } from "./music-settings-editor";
+import type { PairEditor } from "./pair-editor";
 import type { PictureListEditor } from "./picture-list-editor";
 import type { PictureSettingsEditor } from "./picture-settings-editor";
 import type { SlideshowEditorPorts } from "./slideshow-editor-ports";
@@ -33,6 +31,7 @@ export class SlideshowEditor extends MusicAndCardEdits {
   readonly #saver: EditSaver;
   readonly #pictureSettings: PictureSettingsEditor;
   readonly #pictureList: PictureListEditor;
+  readonly #pairs: PairEditor;
   protected readonly musicSettings: MusicSettingsEditor;
   protected readonly cardSettings: CardSettingsEditor;
   /** The clip settings of the video slides. */
@@ -73,6 +72,7 @@ export class SlideshowEditor extends MusicAndCardEdits {
     );
     this.#pictureSettings = subEditors.pictureSettings;
     this.#pictureList = subEditors.pictureList;
+    this.#pairs = subEditors.pairs;
     this.musicSettings = subEditors.musicSettings;
     this.cardSettings = subEditors.cardSettings;
     this.video = subEditors.video;
@@ -176,7 +176,17 @@ export class SlideshowEditor extends MusicAndCardEdits {
 
   /** Marks the picture never to be composed into a portrait pair, or lets it be again. */
   setPictureAlone(pictureId: string, alone: boolean): void {
-    this.#apply(setPictureAloneEdit(this.#slideshow, pictureId, alone));
+    this.#pairs.setAlone(pictureId, alone);
+  }
+
+  /** Splits the portrait pair the picture belongs to; the toast's undo pairs them again. */
+  splitPair(pictureId: string): void {
+    this.#pairs.split(pictureId);
+  }
+
+  /** Pairs an alone picture with its neighbour again; the toast's undo marks it alone again. */
+  rejoinPair(pictureId: string): void {
+    this.#pairs.rejoin(pictureId);
   }
 
   /** The Mood sheet's "Follow the music's energy" switch (ADR-0046): stores at once. */

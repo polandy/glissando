@@ -1,4 +1,4 @@
-// The nine tracks Glissando ships with (dev-docs/library/SAMPLE_MUSIC.md), published in
+// The nine tracks Glissando ships with (docs/dev/library/SAMPLE_MUSIC.md), published in
 // polandy/glissando-assets music/ (ADR-0042). Mood text is message-catalogue data, kept with the
 // UI that shows it, not here.
 

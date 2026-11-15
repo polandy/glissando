@@ -117,6 +117,8 @@ export function mountScreen(
     removed: [] as string[],
     shuffles: 0,
     sortsByDate: 0,
+    splitPairs: [] as string[],
+    rejoinedPairs: [] as string[],
     removedGroup: [] as string[][],
     shifted: [] as [readonly string[], number][],
     moved: [] as [readonly string[], number][],
@@ -159,6 +161,8 @@ export function mountScreen(
     onRemove: (pictureId: string) => calls.removed.push(pictureId),
     onShuffle: () => (calls.shuffles += 1),
     onSortByDate: () => (calls.sortsByDate += 1),
+    onSplitPair: (pictureId: string) => calls.splitPairs.push(pictureId),
+    onRejoinPair: (pictureId: string) => calls.rejoinedPairs.push(pictureId),
     onShiftGroup: (pictureIds: readonly string[], offset: number) =>
       calls.shifted.push([pictureIds, offset]),
     onRemoveGroup: (pictureIds: readonly string[]) => calls.removedGroup.push([...pictureIds]),

@@ -1,5 +1,5 @@
 /**
- * `MusicLoudness` as JSON (dev-docs/library/MUSIC.md "Loudness levelling and song volume"): the
+ * `MusicLoudness` as JSON (docs/dev/library/MUSIC.md "Loudness levelling and song volume"): the
  * server and a device both read it from storage they do not fully trust, so both go through this
  * one check. Block loudness is dB (10·log10 of the mean square) and hop peaks are dBFS
  * (20·log10 of the peak), each rounded to 0.01 so the wire format stays compact; JSON has no

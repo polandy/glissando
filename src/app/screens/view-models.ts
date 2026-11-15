@@ -20,7 +20,7 @@ export interface SlideshowSummary {
   readonly createdAt?: string;
 }
 
-/** The library's section of server slideshows (`dev-docs/server_library/IN_THE_APP.md`). */
+/** The library's section of server slideshows (`docs/dev/server_library/IN_THE_APP.md`). */
 export interface ServerShelf {
   /** The device cannot reach the server: the cards show what it remembers, greyed out. */
   readonly offline: boolean;
@@ -29,7 +29,7 @@ export interface ServerShelf {
 
 /**
  * Where a slideshow lives, as its screen tells it while the server library is on
- * (`dev-docs/server_library/IN_THE_APP.md`).
+ * (`docs/dev/server_library/IN_THE_APP.md`).
  */
 export type SlideshowStorage =
   | { readonly kind: "server"; readonly saving: boolean; readonly missingCount: number }
@@ -57,6 +57,8 @@ export interface PictureTile {
   readonly ownTransition: TransitionChoice | null;
   /** The pair partner's number (1-based), when the picture shares a slide with it (ADR-0028). */
   readonly pairedWithNumber: number | null;
+  /** Marked alone, it pairs with this number (1-based) again once the mark is cleared. */
+  readonly rejoinsWithNumber: number | null;
   /** Shown whole over a blurred copy of itself because a wide screen would crop too much of it. */
   readonly blurredFill: boolean;
   /** Marked never to be composed into a pair. */

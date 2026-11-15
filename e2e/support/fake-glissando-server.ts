@@ -153,7 +153,7 @@ function answerLibrary(route: Route, server: FakeGlissandoServer) {
   const request = route.request();
   const method = request.method();
   const path = new URL(request.url()).pathname.match(LIBRARY_ROUTE)?.[1] ?? "";
-  // The TV remote's private routes (dev-docs/tv_remote/HTTP_API.md); fakeTvApi answers them.
+  // The TV remote's private routes (docs/dev/tv_remote/HTTP_API.md); fakeTvApi answers them.
   if (path.startsWith("/tv/")) return route.fallback();
   if (path === "" && method === "GET") {
     return route.fulfill({ json: { service: "glissando-library", version: 1 } });

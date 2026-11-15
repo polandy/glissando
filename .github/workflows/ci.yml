@@ -30,7 +30,7 @@ jobs:
           EVENT: ${{ github.event_name }}
           PR: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
-          DOCS_ONLY: ^(dev-docs/|docs/|\.claude/|[^/]+\.md$)
+          DOCS_ONLY: ^(docs/|\.claude/|[^/]+\.md$)
         run: |
           if [ "$EVENT" != pull_request ] || ! files="$(gh pr diff "$PR" --repo "$REPO" --name-only)"; then
             echo code=true >>"$GITHUB_OUTPUT"

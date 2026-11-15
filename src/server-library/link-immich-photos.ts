@@ -24,7 +24,7 @@ export interface LinkImmichPhotosPorts {
 
 /**
  * Picked Immich photos as pictures of a server slideshow, linked, not downloaded
- * (`dev-docs/server_library/SERVER_DOCUMENT.md`): each picture's id is its asset id and its
+ * (`docs/dev/server_library/SERVER_DOCUMENT.md`): each picture's id is its asset id and its
  * size Immich's fitted into the display bound. Each kept photo's colours are read from a
  * thumbnail, the only part of it fetched. A photo whose thumbnail cannot be read is still
  * linked, with `GREY_PICTURE_COLOURS`; the error goes to `ports.log`, the other photos are

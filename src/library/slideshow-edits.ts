@@ -19,7 +19,7 @@ import {
 import type { StoredPicture, StoredSlideshow } from "./stored-slideshow";
 
 /**
- * The editing of a slideshow (dev-docs/SCOPE.md): add, remove, reorder, rename, a picture's own Ken
+ * The editing of a slideshow (docs/dev/SCOPE.md): add, remove, reorder, rename, a picture's own Ken
  * Burns motion, duration and transition, and its caption; the music's in
  * `slideshow-edits-music.ts`. Pure functions over the stored record; the caller stores the result.
  */

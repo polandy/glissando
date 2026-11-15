@@ -8,7 +8,7 @@ import type { CardInk } from "../slideshow";
 
 /**
  * A `words`/`letters` entrance's items as absolutely positioned spans, one per
- * `cardItemSlices` slice (ADR-0032, `dev-docs/player/TITLE_CARDS.md` § Entrances): each carries
+ * `cardItemSlices` slice (ADR-0032, `docs/dev/player/TITLE_CARDS.md` § Entrances): each carries
  * its own opacity and drift from `cardItemTimingAt`, never the whole card's. Split out of
  * `dom-card.ts` to stay under the line limit.
  */

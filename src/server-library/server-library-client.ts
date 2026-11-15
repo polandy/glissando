@@ -4,7 +4,7 @@ import type { StoredFocus } from "../library/picture-focus";
 import type { ServerDocument } from "./server-document";
 
 /**
- * The Glissando server's library API as the app uses it (`dev-docs/server_library/HTTP_API.md`).
+ * The Glissando server's library API as the app uses it (`docs/dev/server_library/HTTP_API.md`).
  * Every method rejects with `ServerLibraryUnavailableError` when the server cannot be
  * reached or fails, `ServerLibraryNotFoundError` for an unknown id, and
  * `ServerLibraryRefusedError` for a request it refuses.

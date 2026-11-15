@@ -2,7 +2,7 @@ import type { CardInk } from "./slideshow";
 
 /**
  * The card's colour swatches: a ground or veil tint by id, to hex (ADR-0032,
- * `dev-docs/player/TITLE_CARDS.md` § Look). The composer picks a swatch; the player only draws
+ * `docs/dev/player/TITLE_CARDS.md` § Look). The composer picks a swatch; the player only draws
  * the hex it is given.
  */
 export const CARD_SWATCHES = {

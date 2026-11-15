@@ -1,4 +1,4 @@
-// The exported page's script (dev-docs/HTML_EXPORT.md): reads the page's data blocks and plays
+// The exported page's script (docs/dev/HTML_EXPORT.md): reads the page's data blocks and plays
 // the slideshow with Glissando's own engine (`createPagePlayer`). Built into one self-contained
 // script by build/export-player-plugin.ts; never imports Svelte.
 import { canFullscreen } from "../ui-kit/fullscreen";

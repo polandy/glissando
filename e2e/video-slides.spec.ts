@@ -47,6 +47,9 @@ test("E2E-059 a clip imported as a slide shows its length, opens in the clip edi
 
   const tile = page.getByRole("button", { name: /^Bild 1, aufgenommen am .*, Clip von 0:03$/ });
   await expect(tile).toBeVisible();
+  // The strip tile shows the excerpt's length beside its order number (PICTURE_EDITOR.md).
+  const tileItem = page.getByRole("listitem").filter({ has: tile });
+  await expect(tileItem.getByText("0:03", { exact: true })).toBeVisible();
   await tile.click();
   await expect(tile).toHaveAttribute("aria-pressed", "true");
   await page

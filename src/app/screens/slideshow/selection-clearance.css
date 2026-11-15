@@ -14,6 +14,10 @@
   .slideshow-screen > * {
     --selection-bar-height: var(--gl-selection-bar-labelled-height);
   }
+  /* Taller again where the actions take two lines (`action-lines.ts`). */
+  .slideshow-screen:has(.actions[data-lines="2"]) > * {
+    --selection-bar-height: var(--gl-selection-bar-two-lines-height);
+  }
 }
 @container (max-width: 720px) {
   .slideshow-screen > * {

@@ -25,7 +25,7 @@ function toFontSpec(spec: CardTextSpec): FontSpec {
  * One texture per `Card`, holding its title and subtitle (see `rasterizeCard`), premultiplied for
  * the shaders. Drawn once that style's fonts have loaded; again when the viewport or the card
  * changes. Transparent before the fonts load, as captions are (ADR-0032). A slideshow carries at
- * most an opening and a closing card (`dev-docs/player/TITLE_CARDS.md`), so entries are kept for
+ * most an opening and a closing card (`docs/dev/player/TITLE_CARDS.md`), so entries are kept for
  * the renderer's lifetime rather than released per slide.
  */
 export class CardTextures {
@@ -82,7 +82,7 @@ export class CardTextures {
   }
 
   /**
-   * `card`'s cross-fade copy for `focus` (ADR-0032, `dev-docs/player/TITLE_CARDS.md` §
+   * `card`'s cross-fade copy for `focus` (ADR-0032, `docs/dev/player/TITLE_CARDS.md` §
    * Entrances): rasterised once with a static blur of `CARD_FOCUS_BLUR_SHARE` of the viewport's
    * height, never re-blurred per frame. Transparent before its style's fonts have loaded.
    */

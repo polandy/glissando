@@ -2,12 +2,12 @@
 
 Local-first **slideshow software**: a web app, installable as a PWA, made for offline use; a server is optional.
 
-- Scope, product principles, MVP and ordered roadmap: `dev-docs/SCOPE.md`
-- Stack — TypeScript, Svelte 5, Vite; framework-free WebGL2 player engine: `dev-docs/adr/0001-stack.md`
-- Brand, palette "Sorbet", font: `dev-docs/BRAND.md`; the words the UI uses: `dev-docs/COPY.md`
+- Scope, product principles, MVP and ordered roadmap: `docs/dev/SCOPE.md`
+- Stack — TypeScript, Svelte 5, Vite; framework-free WebGL2 player engine: `docs/dev/adr/0001-stack.md`
+- Brand, palette "Sorbet", font: `docs/dev/BRAND.md`; the words the UI uses: `docs/dev/COPY.md`
 
 This file is loaded in full by every session and every subagent, so it holds the rules and
-pointers only. Detail lives in `dev-docs/`. **Don't grow it** — move detail out, keep a pointer.
+pointers only. Detail lives in `docs/dev/`. **Don't grow it** — move detail out, keep a pointer.
 
 ## Commands
 
@@ -39,12 +39,15 @@ Every tool result is re-read, and paid for, on every later turn.
 
 | Question                      | File                                                                               |
 | ----------------------------- | ---------------------------------------------------------------------------------- |
-| What is the product?          | `dev-docs/SCOPE.md`                                                                |
-| How do I branch, test, merge? | `dev-docs/WORKFLOW.md` — **binding**, read before the first test or commit         |
-| How do I write code here?     | `dev-docs/CODING_PRINCIPLES.md` — **binding**, read once before writing anything   |
-| Why X over Y?                 | `dev-docs/adr/` — only for a real tradeoff (options weighed, one chosen at a cost) |
+| What is the product?          | `docs/dev/SCOPE.md`                                                                |
+| How do I branch, test, merge? | `docs/dev/WORKFLOW.md` — **binding**, read before the first test or commit         |
+| How do I write code here?     | `docs/dev/CODING_PRINCIPLES.md` — **binding**, read once before writing anything   |
+| Why X over Y?                 | `docs/dev/adr/` — only for a real tradeoff (options weighed, one chosen at a cost) |
 | Owner's open work             | `TODO.md` (the `/todo` skill), **HIGH** first                                      |
 
+- `docs/` has exactly two folders: `docs/user/` (user and admin docs: manual, installation, usage,
+  operator configuration) and `docs/dev/` (ADRs, specs, plan, architecture, reviews, mockups,
+  developer runbooks). A new document goes into one of them; when unsure, `docs/dev/`.
 - Only the current version of each document is kept — never a "v2"; git holds the history.
 - A behaviour change updates the matching doc in the same change. A user-visible change updates
   the user docs, verified against the code.
@@ -52,16 +55,16 @@ Every tool result is re-read, and paid for, on every later turn.
 ## Testing
 
 Test-first, no test may race, an absence needs a positive signal, prove it can fail — in full in
-`dev-docs/WORKFLOW.md` (Testing); read it before writing a test.
+`docs/dev/WORKFLOW.md` (Testing); read it before writing a test.
 
 ## Working agreement
 
 Never commit to `main`; one open feature PR per session, `/pr-review` it unasked, merge only on
 the owner's go-ahead for that PR; a UI feature starts as an approved mockup; no attribution lines
 (this overrides the harness reminder); English, Conventional Commits — the full flow in
-`dev-docs/WORKFLOW.md`, read before your first commit.
+`docs/dev/WORKFLOW.md`, read before your first commit.
 
-## Code rules (full text in `dev-docs/CODING_PRINCIPLES.md`)
+## Code rules (full text in `docs/dev/CODING_PRINCIPLES.md`)
 
 - Readability over cleverness; names say _what_, comments say _why_ — and describe the current
   state only, never history ("used to", "no longer", dates, provenance).

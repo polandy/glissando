@@ -1,6 +1,6 @@
 import type { Message } from "./messages.ts";
 
-/** German copy of the picture frame (`dev-docs/app/FRAME.md`); part of the German catalogue. */
+/** German copy of the picture frame (`docs/dev/app/FRAME.md`); part of the German catalogue. */
 export const deFrame = {
   "frame.cardTitle": "Bilderrahmen",
   "frame.cardText": "Zeigt ein Immich-Album endlos auf diesem Bildschirm",

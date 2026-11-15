@@ -3,7 +3,7 @@ import type { ImmichClient, ImmichPhoto } from "../immich/immich-client";
 const FIRST_PAGE = 1;
 
 /**
- * Reads a whole Immich album, page by page (`dev-docs/app/FRAME.md`): a picture frame deals from
+ * Reads a whole Immich album, page by page (`docs/dev/app/FRAME.md`): a picture frame deals from
  * the complete album, not a loaded-so-far slice, so there is no incremental loading state here.
  */
 export async function fetchAlbumPictures(

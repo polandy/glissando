@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Fails when two e2e cases share an id: docs and reviews cite cases by id, so a duplicate makes a
-# citation ambiguous.
+# Fails when two e2e cases share an id (docs and reviews cite cases by id, so a duplicate makes a
+# citation ambiguous) or when a doc cites an id no case carries.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -14,5 +14,17 @@ if [[ -n "$duplicates" ]]; then
     echo "FAIL $id names more than one e2e case:"
     grep -rnE "[\"'\`]$id\b" e2e
   done <<<"$duplicates"
+  exit 1
+fi
+
+# A doc citing an id no case carries points nowhere.
+defined="$(grep -rhoE "[\"'\`]E2E-[0-9]+" e2e | grep -oE 'E2E-[0-9]+$' | sort -u)"
+cited="$(grep -rhoE 'E2E-[0-9]+' docs README.md 2>/dev/null | sort -u || true)"
+missing="$(comm -13 <(echo "$defined") <(echo "$cited"))"
+if [[ -n "$missing" ]]; then
+  while IFS= read -r id; do
+    echo "FAIL $id is cited in the docs but no e2e case carries it:"
+    grep -rnE "$id\b" docs README.md
+  done <<<"$missing"
   exit 1
 fi

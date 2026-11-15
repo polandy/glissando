@@ -1,5 +1,5 @@
 /**
- * Showing a server slideshow on a TV (dev-docs/tv_remote/HTTP_API.md). Every method rejects
+ * Showing a server slideshow on a TV (docs/dev/tv_remote/HTTP_API.md). Every method rejects
  * with `ServerLibraryUnavailableError` when the server cannot be reached or fails, and with
  * `TvRefusedError` for a refusal the app acts on.
  */

@@ -3,7 +3,7 @@ import { readPlaybackState, type Command } from "../tv-remote/tv-protocol";
 import type { CommandFailure, RemoteStreamEvent } from "./remote-model";
 
 /**
- * The remote page's edge to the server (dev-docs/tv_remote/HTTP_API.md): the remote stream
+ * The remote page's edge to the server (docs/dev/tv_remote/HTTP_API.md): the remote stream
  * behind an `EventSource` port, and the command POSTs.
  */
 

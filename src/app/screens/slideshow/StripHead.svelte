@@ -19,7 +19,7 @@
   }: {
     count: number;
     ownOrder: boolean;
-    /** Selecting several is on (dev-docs/app/slideshow-editing/SELECTING_SEVERAL.md, Selecting several). */
+    /** Selecting several is on (docs/dev/app/slideshow-editing/SELECTING_SEVERAL.md, Selecting several). */
     selecting: boolean;
     onToggleSelect: () => void;
     /** Puts the pictures in a new random order. */

@@ -1,5 +1,5 @@
 /**
- * The endless order a picture frame plays an album in (`dev-docs/app/FRAME.md`, ADR-0030): the
+ * The endless order a picture frame plays an album in (`docs/dev/app/FRAME.md`, ADR-0030): the
  * player itself is a finite timeline, so the frame hands it one bounded round at a time.
  */
 

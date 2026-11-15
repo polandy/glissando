@@ -3,7 +3,7 @@ import { ease } from "./easing";
 import type { Card, CardEntrance, Easing } from "./slideshow";
 
 /**
- * How a title card moves over time (ADR-0032, `dev-docs/player/TITLE_CARDS.md` § Timing,
+ * How a title card moves over time (ADR-0032, `docs/dev/player/TITLE_CARDS.md` § Timing,
  * § Entrances). Pure: the renderers and the editor's preview all read the same numbers through
  * this module.
  */
@@ -186,7 +186,7 @@ export function cardEnterMs(card: Pick<Card, "title" | "subtitle" | "entrance">)
 
 /**
  * The card's text opacity, drift and veil amount at slide time `slideTimeMs`: the "presence"
- * (`dev-docs/player/TITLE_CARDS.md` § Timing) over the entrance's whole enter phase and the
+ * (`docs/dev/player/TITLE_CARDS.md` § Timing) over the entrance's whole enter phase and the
  * fixed `CARD_REVEAL_MS` reveal phase, for the caption's opacity and the veil. `revealAtMs` and
  * `veil` are absent on a card that only enters and holds, as on most title and closing slides.
  */

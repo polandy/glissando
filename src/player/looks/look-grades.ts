@@ -30,7 +30,7 @@ function saturationMatrix(s: number): readonly [Rgb, Rgb, Rgb] {
 /** Every row is the luma weights: any colour of the same luma grades to the same grey. */
 const BLACK_AND_WHITE_MATRIX: readonly [Rgb, Rgb, Rgb] = [REC_709_LUMA, REC_709_LUMA, REC_709_LUMA];
 
-/** Every look's grade, transcribed from `dev-docs/player/LOOKS.md`'s table ("none" excepted —
+/** Every look's grade, transcribed from `docs/dev/player/LOOKS.md`'s table ("none" excepted —
  * it is the identity and carries no entry). */
 export const LOOK_GRADES: Readonly<Record<GradedSlideshowLook, LookGrade>> = {
   warm: {

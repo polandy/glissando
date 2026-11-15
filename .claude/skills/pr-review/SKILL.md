@@ -1,6 +1,6 @@
 ---
 name: pr-review
-description: Quality review of a pull request — docs/ADR sync, conformance to CLAUDE.md and dev-docs/CODING_PRINCIPLES.md, implementation quality, test coverage against the diff, the UI delivery loop, CI status (fix failures) and branch freshness. Posts the verdict as a PR comment. Use when asked to review a PR by number or branch, and unasked right after opening your own PR.
+description: Quality review of a pull request — docs/ADR sync, conformance to CLAUDE.md and docs/dev/CODING_PRINCIPLES.md, implementation quality, test coverage against the diff, the UI delivery loop, CI status (fix failures) and branch freshness. Posts the verdict as a PR comment. Use when asked to review a PR by number or branch, and unasked right after opening your own PR.
 argument-hint: <PR number or branch>
 ---
 
@@ -18,17 +18,17 @@ for real findings rather than rubber-stamping, and finish with a verdict.
 - Read the PR description and any linked ADR first — the review checks the code _against its
   stated intent_.
 - **The standard is the files, not this skill**: `CLAUDE.md` (Testing, Working agreement, Code
-  rules) and `dev-docs/CODING_PRINCIPLES.md`. If they changed in this PR, the files win. Read
+  rules) and `docs/dev/CODING_PRINCIPLES.md`. If they changed in this PR, the files win. Read
   only the sections the diff touches.
 
 ## 1. Docs ↔ implementation
 
-- Every behaviour change updates the matching `dev-docs/` spec section and, when visible to a
+- Every behaviour change updates the matching `docs/dev/` spec section and, when visible to a
   user, the user docs — in this PR. Check the reverse too: no doc describes behaviour the PR
   removed or changed.
 - Comments on touched code describe the current state only; no history narration.
 
-## 2. ADRs (`dev-docs/adr/`)
+## 2. ADRs (`docs/dev/adr/`)
 
 - A real tradeoff decided without an ADR → finding. An ADR for a mechanical change → finding.
 - A contradicted existing ADR needs a status update, or the PR changes.
@@ -46,6 +46,20 @@ Apply `CODING_PRINCIPLES.md` to the diff. The judgement calls beyond a flat rule
 
 ## 4. Tests
 
+- **Spec ↔ e2e, both ways.** Every spec section or criterion the diff adds or changes names its
+  e2e case (`E2E-NNN`) in the review table, or says in one line why unit/browser is the right
+  layer. A flow across client and server, or a file/system change (import, export, `.glissando`
+  open, service worker), needs e2e. Reverse: grep `e2e/` for cases still asserting behaviour the
+  PR changed or removed and `docs/` for citations of a case it renamed or deleted — update them
+  in this PR. A new e2e case or file without a spec reference (a comment naming the section) is
+  a finding.
+- **Spec sentence vs assertions**: read the sentence next to the case's assertions; the headline
+  case is mutation-proven (break the behaviour, watch exactly that case go red). The two halves
+  of a behaviour (write and read), and one rule in N places, are N cases; a helper that tolerates
+  both states is no assertion.
+- **e2e still owed** (UI change awaiting the owner's OK, a flow not yet driven) makes the PR **not
+  ready**. If it is merged anyway, list every debt as `e2e owed: <spec section> — <flow>` in the
+  verdict and add each to `TODO.md`.
 - Every new behaviour has a driving test with a behaviour-revealing name; every bug fix a test
   that fails without it; safety rules have their failure paths covered.
 - No timing-dependent test; every absence assertion has a positive signal. For a new key case,
@@ -57,7 +71,8 @@ Apply `CODING_PRINCIPLES.md` to the diff. The judgement calls beyond a flat rule
 
 - Mockup approved by the owner before the code? Owner's OK on the built change before the e2e
   case was written? A missing OK is a **blocker**, not something to skip.
-- The UI change has a running e2e case asserting what is rendered; case ids unique on the base.
+- The UI change has a running e2e case asserting what is rendered; case ids unique on the base
+  and every id a doc cites exists (`scripts/e2e-ids.sh`).
 - The PR shows the change as small cropped screenshots.
 
 ## 6. CI — fix failures
@@ -76,7 +91,9 @@ baselines — regenerate those once with both changes present).
 ## 8. Verdict
 
 1. **Summary** — what the PR does, one paragraph.
-2. **Findings** — per section: ✅ ok / ⚠️ issue (`file:line`) / 🔧 fixed (commit).
+2. **Findings** — per section: ✅ ok / ⚠️ issue (`file:line`) / 🔧 fixed (commit); §4 carries the
+   spec ↔ e2e table (spec section → case id or test level, one-line reason), posted, not just
+   claimed.
 3. **Blockers** — what must change before merge that you could not fix (missing owner OK,
    design questions).
 4. **Merge readiness** — ready / not ready. **Never merge** — that waits for the owner's go-ahead.

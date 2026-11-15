@@ -9,7 +9,7 @@ import type { FakeGlissandoServer } from "./fake-glissando-server";
 import { TV_STREAM_PUSH_PATH, TV_STREAM_QUERY } from "./tv-stream-plugin";
 
 /**
- * The TV remote's public and private HTTP API (dev-docs/tv_remote/HTTP_API.md), answered by the
+ * The TV remote's public and private HTTP API (docs/dev/tv_remote/HTTP_API.md), answered by the
  * real hub and routes on the fake library's slideshows, plus `/tv` and `/r/<secret>`: what
  * `vite preview` serves at `/share.html` and `/remote.html`, with the headers Caddy adds.
  *

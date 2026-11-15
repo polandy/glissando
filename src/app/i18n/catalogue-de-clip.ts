@@ -1,6 +1,6 @@
 import type { Message } from "./messages.ts";
 
-/** German copy of video slides (dev-docs/player/VIDEO_SLIDES.md); part of the German catalogue. */
+/** German copy of video slides (docs/dev/player/VIDEO_SLIDES.md); part of the German catalogue. */
 export const deClip = {
   "clip.badge": "Video",
   "clip.badgeLength": "Video, {length}",

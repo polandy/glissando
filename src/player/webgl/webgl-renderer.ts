@@ -45,7 +45,7 @@ export class WebGlRenderer implements SlideRenderer<PixelPicture> {
   readonly #pixelRatio: () => number;
   readonly #captions: CaptionTextures;
   /** Kept for the renderer's lifetime: a slideshow carries at most an opening and a closing card
-   * (`dev-docs/player/TITLE_CARDS.md`), so never released per slide (ADR-0032). */
+   * (`docs/dev/player/TITLE_CARDS.md`), so never released per slide (ADR-0032). */
   readonly #cards: CardTextures;
   /** Draws a card's per-item quads (ADR-0032 § Entrances) into a `CardRenderTarget`. */
   #cardItems!: CardItemProgram;

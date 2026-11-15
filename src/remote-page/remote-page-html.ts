@@ -23,7 +23,7 @@ export interface RemotePageParts {
 
 /**
  * The page a remote opens, `remote.html` in the build: the same for every secret, with its
- * style, fonts, words and script inline (dev-docs/tv_remote/REMOTE_PAGE.md). Throws on a script
+ * style, fonts, words and script inline (docs/dev/tv_remote/REMOTE_PAGE.md). Throws on a script
  * that cannot be inlined unchanged (`assertInlineableScript`).
  */
 export function remotePageHtml(parts: RemotePageParts): string {

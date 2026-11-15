@@ -2,7 +2,7 @@ import { graphemes } from "./caption";
 import type { Card, CardEntrance } from "./slideshow";
 
 /**
- * An entrance's items (`dev-docs/player/TITLE_CARDS.md` § Entrances): `rise`, `focus` and
+ * An entrance's items (`docs/dev/player/TITLE_CARDS.md` § Entrances): `rise`, `focus` and
  * `slow-fade` move the whole text as one item; `words` moves each word, `letters` each
  * grapheme. Spaces are never items. Shared by `card-timing.ts` (counts, for the stagger and
  * `cardEnterMs`) and `card-layout.ts` (the items' slices of the laid-out lines).

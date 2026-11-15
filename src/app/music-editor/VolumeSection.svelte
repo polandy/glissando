@@ -9,7 +9,7 @@
 
   /**
    * The selected song's own volume, atop the level that brings its excerpt to the target loudness
-   * (ADR-0040, dev-docs/library/MUSIC.md "Loudness levelling and song volume"): a slider from
+   * (ADR-0040, docs/dev/library/MUSIC.md "Loudness levelling and song volume"): a slider from
    * {@link MUSIC_VOLUME_MIN_DB} to {@link MUSIC_VOLUME_MAX_DB} with a tick where it is levelled,
    * the zone past the peak ceiling hatched and out of reach, and a button to listen to it.
    */

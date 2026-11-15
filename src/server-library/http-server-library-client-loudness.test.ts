@@ -21,7 +21,7 @@ async function uploaded() {
 
 /**
  * Compares through the compact dB/dBFS wire form, since the HTTP round trip rounds to 0.01 dB for
- * compactness (dev-docs/library/MUSIC.md); the exact linear values the client sent are not the point.
+ * compactness (docs/dev/library/MUSIC.md); the exact linear values the client sent are not the point.
  */
 function expectSameLoudness(actual: MusicLoudness | undefined, expected: MusicLoudness): void {
   expect(actual).toBeDefined();

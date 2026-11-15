@@ -6,7 +6,7 @@ import { enHtml } from "./catalogue-en-html";
 import { enSharePage } from "./catalogue-en-share-page";
 import { enVideo } from "./catalogue-en-video";
 
-/** Banned variants from the "Not" column of dev-docs/COPY.md, with the glossary word to use. */
+/** Banned variants from the "Not" column of docs/dev/COPY.md, with the glossary word to use. */
 const BANNED: ReadonlyArray<readonly [RegExp, string]> = [
   [/\bmedia\b/i, "pictures"],
   [/\bphotos?\b/i, "pictures"],
@@ -21,6 +21,7 @@ const BANNED: ReadonlyArray<readonly [RegExp, string]> = [
   [/\bbackend\b/i, "Glissando server"],
   [/\bdownsiz/i, "downscaled"],
   [/\bFullscreen\b/, "Full screen"],
+  [/\b(Unpair|Separate|Detach)\b/i, "Split"],
   [/\bTrimmed\b/, "Excerpt"],
   [/\bFine settings\b/, "More settings"],
   [/\bKen Burns\b/i, "motion"],

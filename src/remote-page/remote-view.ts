@@ -21,7 +21,7 @@ export interface RemoteView {
 }
 
 /**
- * The remote's page (dev-docs/tv_remote/REMOTE_PAGE.md and its mockup), built once and
+ * The remote's page (docs/dev/tv_remote/REMOTE_PAGE.md and its mockup), built once and
  * updated from each `RemoteScreen`. A slider the finger holds keeps its value until released.
  */
 export function createRemoteView(

@@ -19,6 +19,7 @@ function picture(overrides: Partial<PictureTile> = {}): PictureTile {
     ownDurationMs: null,
     ownTransition: null,
     pairedWithNumber: null,
+    rejoinsWithNumber: null,
     blurredFill: false,
     alone: false,
     colours: { veil: "#404040", accent: "#C0C0C0" },
@@ -48,7 +49,7 @@ function mountTile(pictureOverrides: Partial<PictureTile> = {}, number = 1, look
 }
 
 describe("StripTile, a portrait pair (ADR-0028)", () => {
-  it("joins the pair with a bar, each tile drawing its own half", () => {
+  it("sets the pair on one plate, each tile drawing its own half", () => {
     const first = mountTile({ pairedWithNumber: 2 }, 1);
     const second = mountTile({ pairedWithNumber: 1 }, 2);
 
@@ -64,7 +65,7 @@ describe("StripTile, a portrait pair (ADR-0028)", () => {
     expect(label.endsWith(", gezeigt als Paar mit Bild 2")).toBe(true);
   });
 
-  it("stays unpaired without a bar or a mention in the label", () => {
+  it("stays unpaired without a plate or a mention in the label", () => {
     const target = mountTile();
 
     const tile = target.querySelector(".tile");

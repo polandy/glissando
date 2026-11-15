@@ -15,7 +15,7 @@ export interface CopySheet {
   readonly confirm: string | null;
 }
 
-/** "Keep a copy on this device?" (`dev-docs/server_library/IN_THE_APP.md`). */
+/** "Keep a copy on this device?" (`docs/dev/server_library/IN_THE_APP.md`). */
 export function keepCopySheet(
   { t }: Pick<Translator, "t">,
   serverSlideshow: StoredSlideshow,

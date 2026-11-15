@@ -22,7 +22,7 @@ const IMMICH_ROUTE = "immich/";
 /**
  * The self-hosted install's server routes, relative to the app: the library service (ADR-0018)
  * and the public share API under `api/`, the shared slideshows' page under `s/` (ADR-0025), and
- * the TV's page `tv` and its phone remote's page under `r/` (dev-docs/tv_remote/).
+ * the TV's page `tv` and its phone remote's page under `r/` (docs/dev/tv_remote/).
  */
 const SERVER_ROUTES = ["api", "s", "r", "tv"] as const;
 

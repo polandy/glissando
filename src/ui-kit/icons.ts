@@ -1,5 +1,5 @@
 /**
- * The app's line icons on a 24-unit grid; this table is their one source (see dev-docs/BRAND.md).
+ * The app's line icons on a 24-unit grid; this table is their one source (see docs/dev/BRAND.md).
  * Icon.svelte draws them with a shared stroke, so a shape here carries geometry only.
  */
 export type IconShape =
@@ -123,6 +123,9 @@ export const ICONS = {
       path("M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1"),
       path("M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"),
     ],
+  },
+  scissors: {
+    shapes: [circle(6, 6.75, 3), circle(6, 17.25, 3), path("M8.4 8.6L19.5 18M8.4 15.4L19.5 6")],
   },
   unlink: {
     shapes: [

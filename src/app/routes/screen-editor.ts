@@ -13,7 +13,7 @@ export type ScreenEditorPorts = Pick<
 
 /**
  * The slideshow screen's editor with its copy; a server slideshow's refused edit is told in a
- * toast (`dev-docs/server_library/IN_THE_APP.md`).
+ * toast (`docs/dev/server_library/IN_THE_APP.md`).
  */
 export function createScreenEditor(
   initial: StoredSlideshow,
@@ -38,6 +38,8 @@ export function createScreenEditor(
     captionClearedText: () => t("editor.captionCleared"),
     slideshowTransitionResetText: () => t("transitions.resetDone"),
     portraitPicturesResetText: () => t("portrait.resetDone"),
+    pairSplitText: (first, second) => t("slideshow.pairSplit", { first, second }),
+    pairRejoinedText: (first, second) => t("slideshow.pairRejoined", { first, second }),
     lookResetText: () => t("look.resetDone"),
     moodResetText: () => t("mood.resetDone"),
     openingCardRemovedText: () => t("cards.openingRemoved"),

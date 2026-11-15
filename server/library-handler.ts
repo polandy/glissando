@@ -38,7 +38,7 @@ type MethodRoutes = Readonly<Partial<Record<string, LibraryHandler>>>;
 
 const DISCOVERY = { service: "glissando-library", version: 1 } as const;
 
-/** The library service: a request in, its response out (`dev-docs/SERVER_LIBRARY.md`). */
+/** The library service: a request in, its response out (`docs/dev/SERVER_LIBRARY.md`). */
 export function createLibraryHandler(dependencies: LibraryHandlerDependencies): LibraryHandler {
   const slideshows = slideshowRoutes(dependencies);
   const music = musicRoutes(dependencies);

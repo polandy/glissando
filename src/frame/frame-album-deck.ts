@@ -15,7 +15,7 @@ export interface FrameAlbumRound {
 }
 
 /**
- * Deals a picture frame's rounds from a whole Immich album (`dev-docs/app/FRAME.md`), re-reading
+ * Deals a picture frame's rounds from a whole Immich album (`docs/dev/app/FRAME.md`), re-reading
  * the album once each full pass is dealt so a picture added or removed on Immich shows up on the
  * next pass; the re-read runs in the background, never blocking `nextRound()`.
  */

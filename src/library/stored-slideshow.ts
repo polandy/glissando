@@ -181,12 +181,12 @@ export interface StoredSlideshow {
   /**
    * The live rule over the picture times, default transition and Ken Burns strength, resolved
    * from the music's tempo when composing; absent: Custom, the single settings as stored
-   * (ADR-0045, `dev-docs/app/slideshow-editing/MOOD.md`).
+   * (ADR-0045, `docs/dev/app/slideshow-editing/MOOD.md`).
    */
   readonly mood?: SlideshowMood;
   /**
    * The automatic picture times follow the music's energy, with a cut at each lift; absent: off
-   * (ADR-0046, `dev-docs/app/slideshow-editing/ENERGY_PACING.md`).
+   * (ADR-0046, `docs/dev/app/slideshow-editing/ENERGY_PACING.md`).
    */
   readonly energyPacing?: true;
   /**

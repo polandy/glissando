@@ -15,7 +15,7 @@ const MEASURED: MusicLoudness = {
 
 /**
  * Compares through the compact dB/dBFS wire form, since the server round trip rounds to 0.01 dB
- * for compactness (dev-docs/library/MUSIC.md); the exact linear values put are not the point.
+ * for compactness (docs/dev/library/MUSIC.md); the exact linear values put are not the point.
  */
 function expectSameLoudness(actual: MusicLoudness | undefined, expected: MusicLoudness): void {
   expect(actual).toBeDefined();

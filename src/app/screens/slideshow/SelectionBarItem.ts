@@ -1,11 +1,12 @@
 import type { IconName } from "../../../ui-kit/icons";
 import type { getTranslator } from "../../i18n/context";
+import type { PairAction } from "./pair-action";
 
 type Translate = ReturnType<typeof getTranslator>["t"];
 
 /** One of the selection bar's moves or extras. */
 export interface BarItem {
-  readonly key: "earlier" | "later" | "chapter" | "moveTo";
+  readonly key: "earlier" | "later" | "chapter" | "moveTo" | PairAction["kind"];
   readonly icon: IconName;
   readonly label: string;
   /** The label on a narrow screen, where the icon sits over it; the long one when omitted. */
@@ -20,6 +21,8 @@ const ICONS: Readonly<Record<BarItem["key"], IconName>> = {
   later: "chevronRight",
   chapter: "chapter",
   moveTo: "swap",
+  split: "scissors",
+  rejoin: "link",
 };
 
 export function barItem(
@@ -45,3 +48,15 @@ export const chapterItem = (t: Translate, run: () => void): BarItem =>
 /** Move to…: "Move" under the icon on a narrow screen. */
 export const moveToItem = (t: Translate, run: () => void): BarItem =>
   barItem("moveTo", t("slideshow.moveTo"), run, false, t("slideshow.moveToShort"));
+
+/** Split, or Pair again: "Pair" under the icon on a narrow screen (ADR-0028). */
+export const pairItem = (t: Translate, action: PairAction): BarItem =>
+  action.kind === "split"
+    ? barItem("split", t("slideshow.splitPair"), action.run)
+    : barItem(
+        "rejoin",
+        t("slideshow.rejoinPair"),
+        action.run,
+        false,
+        t("slideshow.rejoinPairShort"),
+      );

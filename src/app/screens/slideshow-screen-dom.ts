@@ -64,21 +64,22 @@ export function firePointer(
 }
 
 /**
- * The phone bar's action row scrolls inside the bar when its actions are wider than the screen,
- * and scrolled to the end it still reaches Remove.
+ * The phone bar's actions, wider than the screen in one line, take a second line instead of
+ * scrolling: the row never scrolls sideways and every action, Remove last, is inside the bar.
  */
-export function expectActionRowScrollsToRemove(bar: HTMLElement): void {
+export function expectActionsWrapInsideBar(bar: HTMLElement): void {
   const row = bar.querySelector<HTMLElement>(".actions");
   if (row === null) throw new Error("the bar has no action row");
-  if (getComputedStyle(row).overflowX !== "auto") throw new Error("the action row does not scroll");
-  if (row.scrollWidth <= row.clientWidth) throw new Error("the action row does not overflow");
-  row.scrollLeft = row.scrollWidth;
-  const remove = [...bar.querySelectorAll("button")]
-    .find((button) => button.innerText.trim() === "Entfernen")
-    ?.getBoundingClientRect();
-  const rowBox = row.getBoundingClientRect();
-  if (remove === undefined) throw new Error("the row has no Remove button");
-  if (remove.left < rowBox.left || remove.right > rowBox.right) {
-    throw new Error("Remove is not inside the row when scrolled to the end");
+  if (row.scrollWidth > row.clientWidth) throw new Error("the action row scrolls sideways");
+  const actions = [...row.querySelectorAll<HTMLButtonElement>("button")];
+  const lines = new Set(actions.map((action) => Math.round(action.getBoundingClientRect().top)));
+  if (lines.size < 2) throw new Error("the actions do not wrap onto a second line");
+  const barBox = bar.getBoundingClientRect();
+  for (const action of actions) {
+    const box = action.getBoundingClientRect();
+    if (box.left < barBox.left || box.right > barBox.right || box.bottom > barBox.bottom) {
+      throw new Error(`${action.innerText.trim()} is outside the bar`);
+    }
   }
+  if (actions.at(-1)?.innerText.trim() !== "Entfernen") throw new Error("Remove is not last");
 }

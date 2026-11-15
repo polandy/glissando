@@ -5,7 +5,7 @@ import type { Card, CardInk } from "./slideshow";
 
 /**
  * A card's title and subtitle as CSS declarations, one per broken line (ADR-0032,
- * `dev-docs/player/TITLE_CARDS.md` § Look): pure, built on `layoutCard`'s numbers. The DOM
+ * `docs/dev/player/TITLE_CARDS.md` § Look): pure, built on `layoutCard`'s numbers. The DOM
  * renderer and the app's editor preview both call this so a card looks the same place drawn,
  * like `captionStyles` for captions.
  */

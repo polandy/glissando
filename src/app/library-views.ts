@@ -72,6 +72,7 @@ export function slideshowDetails(
     // The last picture plays no transition; one stored there waits for a picture to follow.
     ownTransition: index === lastIndex ? null : (picture.transition ?? null),
     pairedWithNumber: layoutAt(index).pairedWithNumber,
+    rejoinsWithNumber: layoutAt(index).rejoinsWithNumber,
     blurredFill: layoutAt(index).blurredFill,
     alone: picture.alone === true,
     colours: picture.colours,

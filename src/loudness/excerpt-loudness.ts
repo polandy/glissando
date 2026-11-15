@@ -1,6 +1,6 @@
 /**
  * BS.1770-4 gated integrated loudness over the blocks that lie fully inside an excerpt
- * (dev-docs/library/MUSIC.md "Loudness levelling and song volume"): a quiet passage is excluded
+ * (docs/dev/library/MUSIC.md "Loudness levelling and song volume"): a quiet passage is excluded
  * outright (absolute gate), then anything far quieter than what is left is excluded too
  * (relative gate), so a few seconds of silence or a quiet bridge do not pull the number down.
  */

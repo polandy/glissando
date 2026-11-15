@@ -19,6 +19,7 @@ const PICTURES: PictureTile[] = ["a", "b"].map((id) => ({
   ownDurationMs: null,
   ownTransition: null,
   pairedWithNumber: null,
+  rejoinsWithNumber: null,
   blurredFill: false,
   alone: false,
   colours: PICTURE_COLOURS[id] ?? { veil: "#000000", accent: "#FFFFFF" },

@@ -1,0 +1,160 @@
+# Scope
+
+Glissando is local-first slideshow software for images, videos and other content with
+high-quality animation. It is a web app, installable as a PWA, aimed at end users, and made
+primarily for offline use: once installed it needs neither the internet nor a server.
+
+## Inspiration
+
+[gre/diaporama](https://github.com/gre/diaporama) (archived 2020). Its core ideas carry over:
+
+- Ken Burns effect on images — configurable zoom/pan _from → to_ with easing.
+- GLSL transitions between slides (WebGL, hardware-accelerated) with a DOM/opacity fallback.
+- A slideshow is described as JSON.
+- A player API modelled on HTML5 video: `play`, `pause`, `currentTime`, events.
+- Responsive, any aspect ratio, crop-to-fit, retina-ready.
+
+## Product principles
+
+- **Simple and uncluttered.** Few controls on screen at a time; every screen has one obvious next
+  step. A feature that needs a manual is redesigned, not documented.
+- **Good by default.** Picking the pictures is enough for a good slideshow: focus-aware Ken Burns,
+  varied transitions and sensible timing are chosen automatically. Every automatic choice can be
+  overridden in the editor, none has to be. Pictures are ordered by capture date (EXIF
+  `DateTimeOriginal`, Immich's date for Immich photos, the file date as a last resort).
+- **Offline is the primary use.** With local pictures and music, Glissando works with no
+  network and no server at all: every asset (code, fonts, shaders, detection models) ships with
+  the app and is cached by the service worker; nothing is fetched from a third party. Features
+  that need a network — Immich, the Glissando server, TV control — are optional extras on top,
+  never required.
+- **Any common audio format.** MP3, AAC/M4A, Ogg/Opus, FLAC, WAV and the like are accepted. The
+  browser decodes what it can natively; anything else is converted client-side (WASM decoder) to
+  a format every target browser plays, before it enters the slideshow.
+
+## Local first
+
+Everything runs in the browser: playback, Ken Burns, transitions, thumbnails, audio conversion,
+editing and video export (WebCodecs). Slideshows and media live on the device in IndexedDB (ADR-0003):
+
+- **Persistent storage** is requested (`navigator.storage.persist()`) so the browser does not
+  evict slideshows on its own.
+- **Pictures are downscaled on import** to display resolution (about 4K); a slideshow needs no
+  more, and the device's originals stay untouched.
+- **Moving between devices** is a file: a slideshow exports to and imports from one
+  `.glissando` file holding its pictures, music and settings. With the self-hosted Glissando
+  and Immich, a slideshow can also live on the server, its pictures linked from Immich; every
+  device at home plays it online (ADR-0018, `docs/dev/SERVER_LIBRARY.md`). Such a slideshow can also
+  be shared by a link that anyone can watch in a browser (ADR-0025, `docs/dev/SHARE_LINK.md`).
+
+**The server is optional.** Installing needs one load from any static HTTPS host; after that the
+app runs without it. Every release is public at https://polandy.github.io/glissando/. A Glissando server only adds the network extras (Immich proxy, slideshows
+stored on the server, TV control) and does no rendering or processing. A feature moves to the server only when the
+browser cannot do it, and that move is an ADR.
+
+## PWA
+
+Installable on phone, tablet and desktop, fullscreen, fully offline. Service workers need a
+secure context, so the app is installed from an HTTPS host (a static host, or a LAN install
+behind a reverse proxy such as Caddy, Traefik or Tailscale) or from `localhost`; plain
+`http://<lan-ip>` works as a web app without PWA features.
+
+## Browsers and devices
+
+The last two versions of Chrome/Edge, Firefox and Safari, including Safari on iPhone and iPad —
+each one is a supported target, tested in CI on the matching Playwright engine (Chromium,
+Firefox, WebKit). TV browsers are best effort. Where a browser lacks a
+capability (e.g. WebCodecs for video export), the feature says so plainly instead of failing.
+
+## Languages
+
+German and English. The UI follows the browser language (English otherwise) and can be pinned to
+either in the settings;
+all UI copy lives in a message catalogue, never inline.
+
+## MVP — pictures and music in, a good slideshow out
+
+Usable end to end by a non-technical user, fully offline:
+
+- **Import** pictures (files or a folder) and one music file from the device; pictures are
+  downscaled to display resolution and stored on the device in persistent storage, so the
+  slideshow survives a reload.
+- **Order** by capture date (see _Good by default_).
+- **Automatic Ken Burns** from a simple framing rule (no detection yet).
+- **About six GLSL transitions**, one default per slideshow (Crossfade unless chosen), with the
+  DOM/opacity fallback.
+- **Music**: one track in any format the browser decodes natively; slide timing fits the track's
+  length. Without music every picture stays 5 s; the value is set per slideshow in half-second
+  steps.
+- **Title** from the capture-date range of the pictures ("July 2025"), editable in place.
+- **Player**: fullscreen, play/pause/seek, the HTML5-video-style API over the slideshow JSON
+  (which already carries the music track).
+- **Minimal editing**: add, remove and reorder pictures. Adding reuses the import's pictures
+  step and skips pictures already in; adding and removing are undone from a toast, not
+  confirmed up front; only deleting a slideshow asks first.
+- **Export/import** a slideshow as one `.glissando` file (the approved mockup:
+  https://polandy.github.io/glissando-assets/mockups/glissando-file/, tab "Konzept"): export in
+  the background, open as a new slideshow, checked whole before anything is stored.
+- **PWA**: installable, works fully offline, no server needed. The install hint sits quietly in
+  the start screen's footer and is offered again when the browser refuses persistent storage.
+
+Interaction rules (the approved mockup:
+https://polandy.github.io/glissando-assets/mockups/mvp-flow/, tab "Konzept"; the visual
+reference is the approved studio-look mockup:
+https://polandy.github.io/glissando-assets/mockups/studio-look/):
+
+- **Light and dark**: the theme follows the device by default and can be set in the settings.
+
+- **Three levels, never more**: start → slideshow → (import steps | player). The player is a
+  modal fullscreen layer, not a place in the navigation; back arrow and browser back do the same.
+- **Import is a two-step wizard** (pictures, then optional music); "Next" is enabled only once
+  every picture is downscaled and checked for similar shots and blur.
+- **Waiting has three forms**: inline progress with a count where the work belongs to the screen;
+  a global indicator in the header for non-blocking background work; a blocking overlay only when
+  the next screen cannot exist without the result. Never a spinner without a label.
+- **Errors sit at their cause**, in user language, with a way out: inline notice (lemon for
+  warnings, coral for errors), toast with an action for transient ones, a dialog only when the
+  user must decide.
+
+Not in the MVP: per-slide settings, detection, Immich, video export, audio conversion.
+
+## Roadmap — in this order after the MVP
+
+1. **Editor** — per slide: duration, transition, Ken Burns from/to; music trim and fade.
+   Mockup: https://polandy.github.io/glissando-assets/mockups/editor/. One PR each, in this
+   order: 1. Ken Burns per picture (the picture editor), 2. picture captions (edited in the same
+   editor, below the motion; drawn into the slide, ADR-0007), 3. duration and transition per
+   picture, 4. music trim and fade (the music editor, ADR-0009).
+2. **Automatic focus** — Ken Burns aims at people, the main object or sweeps scenery; Immich photos use
+   Immich's faces, others get on-device detection.
+3. **Immich** — browse and pick albums and photos via the Immich API, through the self-hosted
+   Glissando (ADR-0013). Beside it, slideshows stored on the self-hosted Glissando with their pictures linked from
+   Immich — `docs/dev/SERVER_LIBRARY.md`, ADR-0018.
+4. **Video export** — the slideshow with its music rendered to a video file in the browser
+   (WebCodecs encoding, client-side muxing; muxer choice is an ADR) — `docs/dev/VIDEO_EXPORT.md`,
+   ADR-0015. Beside it, the web page export: one self-contained `.html` file that plays offline
+   in any browser — `docs/dev/HTML_EXPORT.md`, ADR-0017.
+5. **Audio formats** — formats the browser cannot decode are converted client-side to FLAC by
+   an own libav.js build (ADR-0020). Mockup:
+   https://polandy.github.io/glissando-assets/mockups/audio-formats/.
+6. **Beat sync** — transitions land on the music's beats, detected in the browser.
+7. **Culling** — similar shots (e.g. bursts) and blurry pictures are set aside at import, below
+   the pictures step's strip, and one tap takes one in again — ADR-0024. Mockup:
+   https://polandy.github.io/glissando-assets/mockups/culling/.
+8. **Portrait layouts** — two portrait pictures side by side, or one over a blurred fill,
+   instead of a hard crop — ADR-0028. Mockup:
+   https://polandy.github.io/glissando-assets/mockups/portrait-layouts/.
+9. **Picture frame mode** — an endless, varied slideshow from an Immich album on an old tablet or
+   a TV browser, offered while the server library is on. Mockup:
+   https://polandy.github.io/glissando-assets/mockups/picture-frame/; behaviour spec
+   `docs/dev/app/FRAME.md`, ADR-0030.
+10. **On the TV, controlled from the phone** — open a slideshow on the TV via link or QR code and
+    control it from the phone; the channel is the Glissando server, ADR-0031. Mockup:
+    https://polandy.github.io/glissando-assets/mockups/tv-remote/; `docs/dev/TV_REMOTE.md`.
+11. **Title and closing slides** — drawn by the player, ADR-0032;
+    `docs/dev/player/TITLE_CARDS.md`.
+12. **Videos as slides** — a clip's excerpt plays as a slide; `docs/dev/player/VIDEO_SLIDES.md`,
+    ADR-0034, ADR-0035.
+13. **Sample music** — `docs/dev/library/SAMPLE_MUSIC.md`, ADR-0042.
+14. **Trip chapters** — `docs/dev/player/TRIP_CHAPTERS.md`.
+
+Each step goes through the UI flow in `CLAUDE.md` (mockup first, owner OK, then specs and code).

@@ -5,7 +5,7 @@ import { WebGlSetupError } from "./webgl-setup-error";
 
 /**
  * Draws a card's title/subtitle texture one slice at a time, each its own quad with its own
- * opacity and drift (ADR-0032, `dev-docs/player/TITLE_CARDS.md` § Entrances): the WebGL
+ * opacity and drift (ADR-0032, `docs/dev/player/TITLE_CARDS.md` § Entrances): the WebGL
  * counterpart of the DOM renderer's per-item spans, sampling the same texture `card-raster.ts`
  * rasterised once instead of drawing its own text.
  */
