@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { openClipInVideoElement } from "./video-clip";
+import { isBlack } from "../testing/black-frame";
 // 1 s of ffmpeg's test pattern with 2.5 s of a 440 Hz tone (VP8 + Opus):
 // ffmpeg -f lavfi -i testsrc=size=64x48:rate=10:duration=1 -f lavfi -i sine=frequency=440:duration=2.5
 //   -c:v libvpx -b:v 50k -c:a libopus -b:a 16k -map_metadata -1 -bitexact audio-outlasts-picture.webm
@@ -26,5 +27,18 @@ describe("openClipInVideoElement", () => {
     expect(clip?.durationMs).toBeLessThanOrEqual(PICTURE_END_MS);
     expect(logged).toEqual([]);
     clip?.close();
+  });
+
+  it("makes the poster at 0 ms the clip's first picture, not a black canvas", async () => {
+    const file = await fixture(audioOutlastsPictureUrl, "audio-outlasts-picture.webm");
+    const clip = await openClipInVideoElement(file, () => undefined);
+    if (clip === null) throw new Error("the fixture did not open");
+
+    const poster = await clip.posterFrame(0);
+
+    expect(poster.size).toBeGreaterThan(0);
+    const picture = await createImageBitmap(poster);
+    expect(isBlack(picture, picture.width, picture.height)).toBe(false);
+    clip.close();
   });
 });

@@ -18,7 +18,9 @@ publishes a state with the Svelte store contract:
   _videoTooShort_); a duplicate counts as done.
 - A **video** file (`video/*`) is stored as a picture carrying a clip (`dev-docs/player/VIDEO_SLIDES.md`):
   its bytes go to the library's video store (`putVideo`), its poster (the frame at the excerpt's
-  start) runs through the picture pipeline, and its claims cover the video's media id. Culling
+  start, decoded with mediabunny as WebKit paints a `<video>` into a canvas black, else drawn from
+  the element after a seek there) runs through the picture pipeline, and its claims cover the
+  video's media id. Culling
   skips it: a video is never removed as a blur or a duplicate.
 - **Cancel** aborts the file in flight's download, reads no further file and clears the state.
 - Any other error ends the import as `failed`; it is never swallowed: `settled()` rejects with
