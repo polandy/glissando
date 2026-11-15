@@ -1,7 +1,7 @@
 import type { Message } from "./messages.ts";
 
 /**
- * German copy of the web page export (dev-docs/HTML_EXPORT.md): the sheet, and the exported
+ * German copy of the web page export (docs/dev/HTML_EXPORT.md): the sheet, and the exported
  * page's own words (`htmlPage.*`), written into the page at export time.
  */
 export const deHtml = {

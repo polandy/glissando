@@ -1,6 +1,6 @@
 /**
  * A song's playback gain: levelled to the target loudness, then the song's own volume applied,
- * never past the peak ceiling (dev-docs/library/MUSIC.md "Loudness levelling and song volume").
+ * never past the peak ceiling (docs/dev/library/MUSIC.md "Loudness levelling and song volume").
  */
 
 /** Every song is levelled to sound this loud, regardless of its own mastering. */

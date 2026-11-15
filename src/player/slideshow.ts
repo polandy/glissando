@@ -11,7 +11,7 @@ import type { GradedSlideshowLook } from "./looks/slideshow-look";
  * which turns the blurred fill off for the slide (ADR-0028). Version 5 added the title card
  * (ADR-0032): a slide's `card`, a ground slide in place of a picture, and the show's `endFadeMs`.
  * Version 6 makes a card's `entrance` required. Version 7 added a picture slide's `video`
- * (ADR-0034, `dev-docs/player/VIDEO_SLIDES.md`). Version 8 added a music track's `gain`
+ * (ADR-0034, `docs/dev/player/VIDEO_SLIDES.md`). Version 8 added a music track's `gain`
  * (ADR-0040). Version 9 added the show's `look` (ADR-0044).
  */
 export const SLIDESHOW_FORMAT_VERSION = 9;
@@ -79,7 +79,7 @@ export type CardEntrance = (typeof CARD_ENTRANCES)[number];
 
 /**
  * The title or closing text the player draws over a slide (ADR-0032). Timing lives with
- * `card-timing.ts`, look with `card-layout.ts`; see `dev-docs/player/TITLE_CARDS.md`.
+ * `card-timing.ts`, look with `card-layout.ts`; see `docs/dev/player/TITLE_CARDS.md`.
  */
 export interface Card {
   readonly title: string;

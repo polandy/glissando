@@ -1,7 +1,7 @@
 import type { Message } from "./messages.ts";
 
 /**
- * German copy of the phone's remote for a slideshow on the TV (dev-docs/tv_remote/REMOTE_PAGE.md),
+ * German copy of the phone's remote for a slideshow on the TV (docs/dev/tv_remote/REMOTE_PAGE.md),
  * built into that page with the export page's play words.
  */
 export const deRemotePage = {

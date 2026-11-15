@@ -1,6 +1,6 @@
 /**
  * The pictures strip's order for a new slideshow, kept in step with the ready pictures
- * (`dev-docs/app/IMPORT_ARRANGING.md`, Order); a thin, stateful wrapper around the pure functions
+ * (`docs/dev/app/IMPORT_ARRANGING.md`, Order); a thin, stateful wrapper around the pure functions
  * of `import-arrangement.ts`, kept out of `ImportSession` to leave it short. A move or a shift
  * exempts the moved pictures from culling through `exempt`.
  */

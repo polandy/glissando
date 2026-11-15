@@ -35,7 +35,7 @@ export interface FramePreferencesPorts {
   readonly showDate: StoredChoice<OnOff>;
 }
 
-/** The picture frame's set-up choices, kept on this device (`dev-docs/app/FRAME.md`). */
+/** The picture frame's set-up choices, kept on this device (`docs/dev/app/FRAME.md`). */
 export class FramePreferences {
   readonly #ports: FramePreferencesPorts;
   readonly #listeners = new Set<(state: FramePreferencesState) => void>();

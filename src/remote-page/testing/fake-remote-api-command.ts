@@ -74,7 +74,7 @@ export function fakeRemoteStreamPlugin(): Plugin {
  * Browser commands (run by Vitest in Node) that answer the remote page and its commands for a
  * secret in the test's browser page, frames included, with Playwright's routing, its stream
  * coming from `fakeRemoteStreamPlugin`: the remote page's browser test runs against them
- * (dev-docs/tv_remote/REMOTE_PAGE.md).
+ * (docs/dev/tv_remote/REMOTE_PAGE.md).
  */
 export const serveFakeRemoteApi: BrowserCommand<[fake: FakeRemoteApi]> = async (context, fake) => {
   if (!("page" in context)) throw new Error("the fake remote API needs the Playwright provider");

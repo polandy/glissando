@@ -11,7 +11,7 @@
   import type { StripSelection } from "./strip-selection";
 
   /**
-   * What the selection offers, fixed to the bottom of the viewport (dev-docs/app/slideshow-editing/:
+   * What the selection offers, fixed to the bottom of the viewport (docs/dev/app/slideshow-editing/:
    * REMOVE_SELECT_REORDER.md, Select and reorder; SELECTING_SEVERAL.md, Selecting several). Its height
    * and inset come from the screen, which keeps that much room below its content.
    */

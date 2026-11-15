@@ -2,7 +2,7 @@
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
 
-  /** The start screen's entry into the picture frame (`dev-docs/app/FRAME.md`). */
+  /** The start screen's entry into the picture frame (`docs/dev/app/FRAME.md`). */
   let { onSetUp, onHide }: { onSetUp: () => void; onHide: () => void } = $props();
 
   const { t } = getTranslator();

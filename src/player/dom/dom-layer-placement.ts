@@ -48,7 +48,7 @@ export class LayerPlacement {
 
   /**
    * Places the layer's picture(s); returns the top-level node its caption, if any, follows.
-   * `lookFilter` (ADR-0044, `dev-docs/player/LOOKS.md` § Renderers) is the show's look as a CSS
+   * `lookFilter` (ADR-0044, `docs/dev/player/LOOKS.md` § Renderers) is the show's look as a CSS
    * filter fragment, "" for "none": every picture here gets it directly, since the returned
    * anchor is this layer's own picture only for a "cover" layout, never for a pair's two halves
    * or a blurred fill's front and backdrop.

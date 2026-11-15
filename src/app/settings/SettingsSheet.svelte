@@ -56,11 +56,11 @@
     /** This screen's short edge in device pixels, what "auto" decides by. */
     screenShortEdge: number;
     onPlaybackQuality: (quality: PlaybackQualityPreference) => void;
-    /** The start screen offers the picture frame card (`dev-docs/app/FRAME.md`). */
+    /** The start screen offers the picture frame card (`docs/dev/app/FRAME.md`). */
     frameCardShown: boolean;
     onSetUpFrame: () => void;
     onFrameCardShown: (shown: boolean) => void;
-    /** ✕, the scrim, Esc; it should go back through history (see dev-docs/app/NAVIGATION.md). */
+    /** ✕, the scrim, Esc; it should go back through history (see docs/dev/app/NAVIGATION.md). */
     onClose: () => void;
   } = $props();
 

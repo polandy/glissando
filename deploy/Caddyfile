@@ -21,8 +21,8 @@
 	}
 }
 
-# A share link's token is a secret (dev-docs/share_link/HTTP_API.md, Logs), and so are a TV's key
-# and a remote's secret (dev-docs/tv_remote/HTTP_API.md): the share and TV routes (log_name share)
+# A share link's token is a secret (docs/dev/share_link/HTTP_API.md, Logs), and so are a TV's key
+# and a remote's secret (docs/dev/tv_remote/HTTP_API.md): the share and TV routes (log_name share)
 # log their requests and errors with each replaced by … and without the query, which those routes
 # never use. Under /api/tv/ and /api/library/tv/ a segment shorter than any key or secret is a
 # route's name (sessions, remote, claim) and stays. A path holding an escape or a dot segment

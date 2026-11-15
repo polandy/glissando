@@ -116,7 +116,7 @@ describe("SettingsSheet with the server library", () => {
         (candidate) => candidate.textContent?.trim() === "Selbst hosten und Immich",
       );
       expect(link?.getAttribute("href")).toBe(
-        "https://github.com/polandy/glissando/blob/main/docs/self-hosting.md",
+        "https://github.com/polandy/glissando/blob/main/docs/user/self-hosting.md",
       );
       unmountSheet();
     }

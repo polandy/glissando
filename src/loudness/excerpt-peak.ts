@@ -1,6 +1,6 @@
 /**
  * The loudest sample peak inside an excerpt, from the stored per-hop peaks — no re-decoding
- * (dev-docs/library/MUSIC.md "Loudness levelling and song volume").
+ * (docs/dev/library/MUSIC.md "Loudness levelling and song volume").
  */
 import { LOUDNESS_HOP_MS, type MusicLoudness } from "./measure-loudness";
 

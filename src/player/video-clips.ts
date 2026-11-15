@@ -19,7 +19,7 @@ interface OpenClip {
 /**
  * The playbacks of a slideshow's video slides: opened lazily when a clip is near, driven from
  * the slide clock each frame (the clock leads, the clip follows) and released once its slide is
- * over (ADR-0035, `dev-docs/player/VIDEO_SLIDES.md`).
+ * over (ADR-0035, `docs/dev/player/VIDEO_SLIDES.md`).
  */
 export class VideoClips {
   readonly #plan: (timeMs: number) => readonly ClipTarget[];

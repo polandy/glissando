@@ -15,7 +15,7 @@
   import ExportFailure from "./export-sheet/ExportFailure.svelte";
 
   /**
-   * "Save as video" (dev-docs/video_export/SHEET.md): a dialog on desktop, a bottom sheet on a
+   * "Save as video" (docs/dev/video_export/SHEET.md): a dialog on desktop, a bottom sheet on a
    * phone. Closing it, Esc included, cancels a running export and discards a private file.
    */
   let {

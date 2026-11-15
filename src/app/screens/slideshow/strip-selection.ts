@@ -1,7 +1,7 @@
 export { isContiguous } from "../../../library/group-order";
 
 /**
- * The strip's selection (dev-docs/app/slideshow-editing/:
+ * The strip's selection (docs/dev/app/slideshow-editing/:
  * REMOVE_SELECT_REORDER.md, Select and reorder; SELECTING_SEVERAL.md, Selecting several): a single
  * picture, or, while `several`, any number of them. `anchor` is the last tile a plain or toggling
  * pick landed on, the start a range pick extends from. `startedBySelect` is set only

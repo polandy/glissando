@@ -41,7 +41,7 @@ export interface KeepCopyOptions {
 }
 
 /**
- * "Keep a copy on this device" (`dev-docs/SERVER_LIBRARY.md`): a server slideshow downloaded into
+ * "Keep a copy on this device" (`docs/dev/SERVER_LIBRARY.md`): a server slideshow downloaded into
  * a new, independent device slideshow. Pictures are decoded like an Immich import; each one's
  * focus is the server's own stored focus where the server has one (it may be richer than a live
  * faces lookup, e.g. confirmed or found by scenery), else Immich's faces. All or nothing, as

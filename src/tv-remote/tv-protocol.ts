@@ -7,10 +7,10 @@ import {
 
 /**
  * What the TV page, the remote page, the app and the service agree on
- * (dev-docs/tv_remote/HTTP_API.md); its readers throw `DocumentFormatError`.
+ * (docs/dev/tv_remote/HTTP_API.md); its readers throw `DocumentFormatError`.
  */
 
-/** The TV's playback as it last reported it (dev-docs/tv_remote/SESSIONS.md). */
+/** The TV's playback as it last reported it (docs/dev/tv_remote/SESSIONS.md). */
 export interface PlaybackState {
   readonly playing: boolean;
   readonly ended: boolean;

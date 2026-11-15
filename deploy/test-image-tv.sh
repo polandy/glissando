@@ -1,6 +1,6 @@
 # Sourced by deploy/test-image-library.sh with its harness, while the library container runs, the
 # fake Immich is up and the slideshow $id is shared by $token: the TV remote through Caddy
-# (ADR-0031, dev-docs/tv_remote/END_TO_END.md). A session made on the public API is claimed and
+# (ADR-0031, docs/dev/tv_remote/END_TO_END.md). A session made on the public API is claimed and
 # shown on the private one, its stream carries `show` unbuffered and its picture comes from Immich;
 # a way B session's command reaches a TV with its stream open.
 

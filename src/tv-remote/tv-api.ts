@@ -7,7 +7,7 @@ import {
 import { readCommand, type Command, type PlaybackState } from "./tv-protocol";
 
 /**
- * The TV page's side of the public TV routes (dev-docs/tv_remote/HTTP_API.md, Public), its
+ * The TV page's side of the public TV routes (docs/dev/tv_remote/HTTP_API.md, Public), its
  * failures as typed errors. The chosen slideshow itself is read as a share link is, at
  * `tvShowPath` (`createShowApi`).
  */

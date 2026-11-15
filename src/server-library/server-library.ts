@@ -11,7 +11,7 @@ import type { ServerLibraryClient } from "./server-library-client";
 import type { ServerLibraryMemory } from "./server-library-memory";
 import { ServerSlideshowStore } from "./server-slideshow-store";
 
-/** Slideshows on the Glissando server, as the app uses them (`dev-docs/SERVER_LIBRARY.md`). */
+/** Slideshows on the Glissando server, as the app uses them (`docs/dev/SERVER_LIBRARY.md`). */
 export interface ServerLibrary {
   readonly availability: ServerLibraryAvailability;
   /** What this device keeps of the library for when the server is away. */

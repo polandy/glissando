@@ -12,7 +12,7 @@ const PREPARE_CONCURRENCY: Readonly<Record<PlaybackQuality, number>> = { "1440":
 /** Pictures ready before playing at least, so one slow Immich answer is covered (ADR-0058). */
 const PRE_ROLL_PICTURES = 6;
 
-/** Where a server slideshow is before and as it plays (`dev-docs/app/PREPARING.md`). */
+/** Where a server slideshow is before and as it plays (`docs/dev/app/PREPARING.md`). */
 export type PrepareView =
   | {
       readonly stage: "measuring";

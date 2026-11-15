@@ -40,7 +40,7 @@
   } = $props();
 
   const { t } = getTranslator();
-  // The playback choices are read once, when the frame starts (`dev-docs/app/FRAME.md`).
+  // The playback choices are read once, when the frame starts (`docs/dev/app/FRAME.md`).
   // svelte-ignore state_referenced_locally
   const { intervalSeconds, order, showClock, showDate } = preferences.state;
 

@@ -29,7 +29,7 @@ import type { StoredMusic, StoredPicture, StoredSlideshow } from "../library/sto
 import { parseMusicLoudness, type MusicLoudness } from "../loudness";
 
 /**
- * `GET /api/share/{token}` read as the page plays it (dev-docs/share_link/HTTP_API.md, Public): the share
+ * `GET /api/share/{token}` read as the page plays it (docs/dev/share_link/HTTP_API.md, Public): the share
  * document as a stored slideshow whose pictures and songs are named by their position
  * (`pictureKey`, `songKey`), and the beats and loudness by song.
  */

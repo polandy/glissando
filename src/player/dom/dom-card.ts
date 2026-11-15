@@ -31,7 +31,7 @@ interface CachedLayout {
 
 /**
  * The DOM elements a title card draws beyond its slide's own picture or ground (ADR-0032,
- * `dev-docs/player/TITLE_CARDS.md`): the ground colour, the veil's filter and tint, and the
+ * `docs/dev/player/TITLE_CARDS.md`): the ground colour, the veil's filter and tint, and the
  * title/subtitle lines, each kept across frames and keyed by the stored `Card` so a slide's
  * elements are created once and released with it, as captions are keyed by their picture.
  */
@@ -106,7 +106,7 @@ export class CardOverlay {
 
   /**
    * The card's text, faded, drifted and (for `words`/`letters`) staggered per item, for the
-   * caller to order on screen (ADR-0032, `dev-docs/player/TITLE_CARDS.md` § Entrances).
+   * caller to order on screen (ADR-0032, `docs/dev/player/TITLE_CARDS.md` § Entrances).
    */
   placeText(cardVisual: CardVisual, layerOpacity: number, stage: Size): HTMLElement {
     const container = this.#elementFor(this.#cardNodes, cardVisual.card, CARD_ATTRIBUTE);

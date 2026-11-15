@@ -1,5 +1,5 @@
-// The share page's script (dev-docs/share_link/RECIPIENTS_PAGE.md), also the TV page's
-// (dev-docs/tv_remote/TV_PAGE.md): picks the page by its path. Built into share.html by
+// The share page's script (docs/dev/share_link/RECIPIENTS_PAGE.md), also the TV page's
+// (docs/dev/tv_remote/TV_PAGE.md): picks the page by its path. Built into share.html by
 // build/share-page-plugin.ts; never imports Svelte.
 import { showStartFailure } from "../export-player/page-start";
 import "../export-player/page.css";

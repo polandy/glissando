@@ -1,6 +1,6 @@
 /**
  * Arranging the pictures step's strip for a new slideshow while an import runs
- * (`dev-docs/app/IMPORT_ARRANGING.md`, Order): capture order until the user moves or shuffles a
+ * (`docs/dev/app/IMPORT_ARRANGING.md`, Order): capture order until the user moves or shuffles a
  * picture, after which it is their own and new pictures join at the end. Pure functions over an
  * order of ids; `PictureIntake`/`ImportSession` hold the state and call `PictureCulling.exempt`
  * for a moved picture.

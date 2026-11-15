@@ -3,7 +3,7 @@
   import Switch from "../components/Switch.svelte";
   import { getTranslator } from "../i18n/context";
 
-  /** Settings' picture frame section (`dev-docs/app/SETTINGS.md`). */
+  /** Settings' picture frame section (`docs/dev/app/SETTINGS.md`). */
   let {
     cardShown,
     onSetUp,

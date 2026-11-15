@@ -3,7 +3,7 @@
   import { getTranslator } from "../i18n/context";
   import type { OpenNotice } from "./open-flow";
 
-  /** Why a file was not opened, with the ways out (dev-docs/app/WAITING_AND_ERRORS.md). */
+  /** Why a file was not opened, with the ways out (docs/dev/app/WAITING_AND_ERRORS.md). */
   let {
     notice,
     onPick,

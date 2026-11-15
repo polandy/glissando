@@ -1,6 +1,6 @@
 /**
  * Pure ITU-R BS.1770-4 loudness measurement and song-volume levelling
- * (dev-docs/library/MUSIC.md "Loudness levelling and song volume"). Framework-free: no DOM, no
+ * (docs/dev/library/MUSIC.md "Loudness levelling and song volume"). Framework-free: no DOM, no
  * Web Audio, no Svelte.
  */
 export {

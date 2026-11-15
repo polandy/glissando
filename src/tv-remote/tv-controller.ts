@@ -3,7 +3,7 @@ import type { Command, PlaybackState } from "./tv-protocol";
 
 /**
  * Applies the remote's commands to the TV's player and reports its playback
- * (dev-docs/tv_remote/TV_PAGE.md, Commands and Reports). No DOM: the player is a port.
+ * (docs/dev/tv_remote/TV_PAGE.md, Commands and Reports). No DOM: the player is a port.
  */
 
 /** Less than this far into a picture, `previous` goes to the picture before. */

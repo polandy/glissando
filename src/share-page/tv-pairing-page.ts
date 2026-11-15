@@ -1,4 +1,4 @@
-// The TV page, `/tv` (dev-docs/tv_remote/TV_PAGE.md, way A): pairs with a phone by a code, then
+// The TV page, `/tv` (docs/dev/tv_remote/TV_PAGE.md, way A): pairs with a phone by a code, then
 // plays the slideshow the phone chooses, as the phone commands.
 import { createMusicAudioContext } from "../player/browser/platform";
 import { MutableMusicOutput } from "../export-player/mutable-music-output";

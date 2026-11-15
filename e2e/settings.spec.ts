@@ -75,6 +75,6 @@ test("E2E-102 without a server the settings leave out Immich, and the self-hosti
   await expect(lastLink).toHaveText("Selbst hosten und Immich");
   await expect(lastLink).toHaveAttribute(
     "href",
-    "https://github.com/polandy/glissando/blob/main/docs/self-hosting.md",
+    "https://github.com/polandy/glissando/blob/main/docs/user/self-hosting.md",
   );
 });

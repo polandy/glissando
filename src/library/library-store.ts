@@ -78,7 +78,7 @@ export interface LibraryStore {
   /** The stored beats of a track; `undefined` while it was not listened to yet. */
   musicBeats(musicId: string): Promise<MusicBeats | undefined>;
   /**
-   * Stores the loudness measured for a track, beside its media (dev-docs/library/MUSIC.md). A
+   * Stores the loudness measured for a track, beside its media (docs/dev/library/MUSIC.md). A
    * track whose media is not stored (any more) keeps nothing, so a late measurement cannot
    * resurrect it.
    */

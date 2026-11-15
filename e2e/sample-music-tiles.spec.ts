@@ -6,7 +6,7 @@ import { openApp } from "./support/browser";
 // German carries the longest moods ("Warm · harmonisch · melancholisch").
 test.use(GERMAN_BROWSER);
 
-// The reference phone (dev-docs/library/SAMPLE_MUSIC.md, "The grid").
+// The reference phone (docs/dev/library/SAMPLE_MUSIC.md, "The grid").
 const PHONE = { width: 412, height: 915 };
 // The owner's laptop (MacBook Air), where a third of the panel made each cover far too large.
 const LAPTOP = { width: 1470, height: 956 };

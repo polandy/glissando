@@ -1,5 +1,5 @@
 /**
- * `#frame=<albumId>` starts a picture frame straight away (`dev-docs/app/FRAME.md`): read once at
+ * `#frame=<albumId>` starts a picture frame straight away (`docs/dev/app/FRAME.md`): read once at
  * startup from an injected location, before the navigator exists.
  */
 const FRAME_HASH_PREFIX = "frame=";

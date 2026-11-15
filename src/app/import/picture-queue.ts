@@ -1,5 +1,5 @@
 /**
- * The queue panel's rows while an import runs (`dev-docs/app/IMPORT_ARRANGING.md`, Picking while
+ * The queue panel's rows while an import runs (`docs/dev/app/IMPORT_ARRANGING.md`, Picking while
  * an import runs): one row per pick, the last few shown, older finished picks collapsed into a
  * count. Picks drain strictly in the order they were made — one pick's files are fully read
  * before the next pick's first file starts — so any pick before the shown window is guaranteed

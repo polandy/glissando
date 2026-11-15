@@ -5,7 +5,7 @@ import { mountEditor, slideshowWith, text, TRACK_MS, unmountEditor } from "./mus
 
 afterEach(() => unmountEditor());
 
-/** BS.1770-4's calibration offset from mean square to LUFS (dev-docs/library/MUSIC.md). */
+/** BS.1770-4's calibration offset from mean square to LUFS (docs/dev/library/MUSIC.md). */
 const LUFS_CALIBRATION_OFFSET = -0.691;
 const LOUDNESS_HOP_MS = 100;
 

@@ -18,7 +18,7 @@ const CAPTION_FONT = "assets/fonts/instrumentsans-latin-wght400-600.woff2";
 
 /**
  * Builds `src/export-player/` into one self-contained script and stylesheet, with the caption
- * font, and serves them as `virtual:glissando-export-player` (dev-docs/html_export/CODE.md).
+ * font, and serves them as `virtual:glissando-export-player` (docs/dev/html_export/CODE.md).
  * The app imports it dynamically, so it is a chunk of its own, loaded on the first export and
  * precached like every built file (ADR-0005).
  */

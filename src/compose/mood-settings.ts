@@ -14,7 +14,7 @@ import { targetSecondsPerPicture } from "./filled-length";
 import type { Playlist, SongBeats } from "./playlist";
 
 /**
- * How each mood paces and shapes a slideshow (ADR-0045, `dev-docs/app/slideshow-editing/MOOD.md`):
+ * How each mood paces and shapes a slideshow (ADR-0045, `docs/dev/app/slideshow-editing/MOOD.md`):
  * a seconds-per-picture target to resolve against the music's tempo, a default transition and its
  * length, and the Ken Burns strength.
  */

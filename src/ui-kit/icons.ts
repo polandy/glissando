@@ -1,5 +1,5 @@
 /**
- * The app's line icons on a 24-unit grid; this table is their one source (see dev-docs/BRAND.md).
+ * The app's line icons on a 24-unit grid; this table is their one source (see docs/dev/BRAND.md).
  * Icon.svelte draws them with a shared stroke, so a shape here carries geometry only.
  */
 export type IconShape =

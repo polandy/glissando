@@ -2,13 +2,13 @@ import { MILLISECONDS_PER_SECOND } from "../player/slideshow";
 import type { Command, PlaybackState } from "../tv-remote/tv-protocol";
 
 /**
- * The remote page's state, pure (dev-docs/tv_remote/REMOTE_PAGE.md): what the remote stream
+ * The remote page's state, pure (docs/dev/tv_remote/REMOTE_PAGE.md): what the remote stream
  * and the answers to its commands said, and what the page shows of it at a given time.
  */
 
 export type Connection = "connecting" | "open" | "reconnecting";
 
-/** What the remote stream tells (dev-docs/tv_remote/HTTP_API.md, Streams), and its loss. */
+/** What the remote stream tells (docs/dev/tv_remote/HTTP_API.md, Streams), and its loss. */
 export type RemoteStreamEvent =
   | { readonly type: "snapshot"; readonly tvPresent: boolean; readonly state: PlaybackState | null }
   | { readonly type: "state"; readonly state: PlaybackState }

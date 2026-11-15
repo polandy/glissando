@@ -4,7 +4,7 @@ import type { Size } from "./ken-burns";
 import type { Card } from "./slideshow";
 
 /**
- * A title card's breaking and position rules (ADR-0032, `dev-docs/player/TITLE_CARDS.md` §
+ * A title card's breaking and position rules (ADR-0032, `docs/dev/player/TITLE_CARDS.md` §
  * Look). Pure geometry; the style table itself lives in `card-style-table.ts`, re-exported here
  * so callers need only this one module. The renderers and the editor's preview draw from the
  * same numbers.

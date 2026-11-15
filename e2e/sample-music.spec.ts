@@ -10,7 +10,7 @@ declare const Buffer: { from(text: string, encoding: "utf8"): Uint8Array };
 // matches the sample-music catalogue strings this case asserts.
 test.use({ locale: "en-GB" });
 
-// The import step's own phone screen (dev-docs/library/SAMPLE_MUSIC.md, "Where it shows").
+// The import step's own phone screen (docs/dev/library/SAMPLE_MUSIC.md, "Where it shows").
 const PHONE = { width: 412, height: 780 };
 
 // The sample-music base URL every build defaults to (build/sample-music-config.ts); fetches to

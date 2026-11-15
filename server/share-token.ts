@@ -1,5 +1,5 @@
 /**
- * A share link's token: a secret in a URL path (`dev-docs/share_link/THE_LINK.md`). Its 128
+ * A share link's token: a secret in a URL path (`docs/dev/share_link/THE_LINK.md`). Its 128
  * random bits are unguessable, and the logs never carry it.
  */
 
