@@ -250,8 +250,6 @@
     font-weight: var(--gl-weight-medium);
     font-size: var(--gl-size-caption);
     text-align: left;
-  }
-  .date {
     left: 0;
     right: 0;
     bottom: 0;
