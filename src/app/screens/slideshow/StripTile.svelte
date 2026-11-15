@@ -6,6 +6,7 @@
   import StripTileBadges from "./StripTileBadges.svelte";
   import StripTileCheck from "./StripTileCheck.svelte";
   import StripTileMarks from "./StripTileMarks.svelte";
+  import StripTileNumber from "./StripTileNumber.svelte";
 
   /** One picture of the strip: its order number and date, and the grab handle a mouse reveals. */
   let {
@@ -50,18 +51,25 @@
     onSplitPair?: (() => void) | undefined;
   } = $props();
 
-  const { t, formatDate, formatSeconds } = getTranslator();
+  const { t, formatDate, formatDuration, formatSeconds } = getTranslator();
   const date = $derived(formatDate(picture.capturedAt));
   const ownSeconds = $derived(
     picture.ownDurationMs === null
       ? null
       : formatSeconds(picture.ownDurationMs / MILLISECONDS_PER_SECOND),
   );
+  /** A clip's excerpt length, shown beside the number so clips stand out at a glance; null for a still. */
+  const clipLength = $derived(
+    picture.clipMs === undefined
+      ? null
+      : formatDuration(Math.round(picture.clipMs / MILLISECONDS_PER_SECOND)),
+  );
   const ownLabel = $derived(
     [
       picture.ownMotion
         ? t("slideshow.pictureLabelOwnMotion", { number, date })
         : t("slideshow.pictureLabel", { number, date }),
+      clipLength === null ? "" : t("clip.tileLabelLength", { length: clipLength }),
       ownSeconds === null ? "" : t("slideshow.pictureLabelOwnDuration", { duration: ownSeconds }),
       picture.ownTransition === null
         ? ""
@@ -110,8 +118,8 @@
     {:else}
       <img src={picture.thumbnailUrl} alt={label} draggable="false" style:filter={lookFilter} />
     {/if}
-    <span class="number mono" aria-hidden="true">{number}</span>
-    {#if isNew || picture.clipMs !== undefined || picture.ownMotion || ownSeconds !== null || picture.ownTransition !== null || picture.alone || picture.blurredFill}
+    <StripTileNumber {number} {clipLength} {selected} />
+    {#if isNew || picture.ownMotion || ownSeconds !== null || picture.ownTransition !== null || picture.alone || picture.blurredFill}
       <StripTileBadges {picture} {isNew} {ownSeconds} />
     {/if}
     <span class="date mono" aria-hidden="true">{date}</span>
@@ -236,27 +244,12 @@
     height: 100%;
     object-fit: cover;
   }
-  .number,
   .date {
     position: absolute;
     color: var(--gl-on-photo);
     font-weight: var(--gl-weight-medium);
     font-size: var(--gl-size-caption);
     text-align: left;
-  }
-  .number {
-    left: 6px;
-    top: 6px;
-    padding: 1px 6px;
-    border-radius: var(--gl-radius-small);
-    background: var(--gl-photo-badge);
-  }
-  /* The selected tile's order number, in the accent (docs/dev/app/slideshow-editing/REMOVE_SELECT_REORDER.md, Select and reorder). */
-  .tile.selected .number {
-    background: var(--gl-accent);
-    color: var(--gl-accent-ink);
-  }
-  .date {
     left: 0;
     right: 0;
     bottom: 0;

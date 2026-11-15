@@ -37,7 +37,7 @@ served over plain http) shows a warning icon with "Sound can't be read here"; th
 and the excerpt still works. "In the slideshow" length
 (0.5 s to 5 min), Sound On/Off with a volume slider (0–100, step 5), "Music quieter meanwhile", a
 note that the transition runs inside the excerpt's end, Reset and Done. There is no Ken Burns or
-duration section: the excerpt is the slide's length. Slideshow tiles show the length badge.
+duration section: the excerpt is the slide's length. A clip's strip tile carries a play glyph and the excerpt's length beside its order number ("2 | ▶ 0:12"), and its label adds ", clip of 0:12" (E2E-059).
 
 | Section                                                        | What it covers                                   |
 | -------------------------------------------------------------- | ------------------------------------------------ |
