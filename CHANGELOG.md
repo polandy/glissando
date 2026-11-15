@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.9](https://github.com/polandy/glissando/compare/glissando-v0.1.8...glissando-v0.1.9) (2026-11-15)
+
+
+### Features
+
+* **slideshow:** mark a clip in its strip tile's number ([#357](https://github.com/polandy/glissando/issues/357)) ([d9484bd](https://github.com/polandy/glissando/commit/d9484bde3af2638e131b263da8536b86d6af91bb))
+* **slideshow:** name a later pair that Pair again takes apart ([#365](https://github.com/polandy/glissando/issues/365)) ([605a660](https://github.com/polandy/glissando/commit/605a66028ba5c1f3a99d84b4d78f899ccf49f24c))
+* **slideshow:** set portrait pairs on a shared plate and split them in one tap ([#359](https://github.com/polandy/glissando/issues/359)) ([0a90fcb](https://github.com/polandy/glissando/commit/0a90fcb382f3f2cf2b64072606345065eb5912e3))
+
+
+### Bug Fixes
+
+* **import:** decode a video's poster with mediabunny, as WebKit paints a video into a canvas black ([7c0ff7c](https://github.com/polandy/glissando/commit/7c0ff7cf8db925c0159f13e38787bc4371a5ac8e))
+* **library:** rebuild the black posters of video slides stored before the poster fix ([#362](https://github.com/polandy/glissando/issues/362)) ([a31f836](https://github.com/polandy/glissando/commit/a31f83609cf69325d58ba3c73c454773f92319ca))
+
 ## [0.1.8](https://github.com/polandy/glissando/compare/glissando-v0.1.7...glissando-v0.1.8) (2026-11-13)
 
 
