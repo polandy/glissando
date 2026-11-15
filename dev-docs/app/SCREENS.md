@@ -45,9 +45,8 @@
   badges bottom right: a frame for a chosen motion, a clock with "8 s" for a chosen picture length,
   a transition mark (titled with the effect, e.g. "Circle") for a chosen transition, except on
   the last picture, "shown alone" for a picture set never to pair and "blurred fill" for one
-  shown whole over a blurred copy of itself; a pair's two tiles are joined by a peach bar below
-  them (ADR-0028). Its label adds "chosen motion", "chosen picture length 8 s", "chosen transition Circle" and,
-  paired, "shown as a pair with picture 4", "shown alone" and "over a blurred fill". The info panel and the player always use the edited picture list.
+  shown whole over a blurred copy of itself; a pair shares a plate ([PORTRAIT_PAIRS.md](slideshow-editing/PORTRAIT_PAIRS.md)). Its label adds "chosen motion", "chosen picture length 8 s", "chosen transition Circle",
+  "shown as a pair with picture 4", "shown alone", "over a blurred fill". The info panel and the player always use the edited picture list.
   A slideshow opened by id is looked up on the device first, then taken for a server slideshow
   (`routes/slideshow-home.ts`); a server slideshow's screen adds where it lives, its missing
   pictures and its own ⋯ menu, and its edits are saved on the server

@@ -3,9 +3,10 @@ import type { LibraryStore } from "../../library/library-store";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import type { Toaster } from "../toast/toaster";
 import type { EditRefusal } from "./edit-refusal";
+import type { PairPorts } from "./pair-editor";
 
 /** What the slideshow editor stores with, tells the user with and words its toasts with. */
-export interface SlideshowEditorPorts {
+export interface SlideshowEditorPorts extends PairPorts {
   readonly store: Pick<LibraryStore, "updateSlideshow" | "claimMedia" | "releaseClaim">;
   /** The picture's focus as known now; the automatic motion aims at it. */
   readonly focusOf: (pictureId: string) => PictureFocus | undefined;

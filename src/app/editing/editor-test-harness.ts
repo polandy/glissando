@@ -8,7 +8,13 @@ import { Toaster } from "../toast/toaster";
 import type { EditRefusal } from "./edit-refusal";
 import { SlideshowEditor } from "./slideshow-editor";
 
-export function stored(ids: readonly string[]): StoredSlideshow {
+/** A square picture's size; a test that needs portrait pairs (ADR-0028) passes `PORTRAIT_SIZE`. */
+const SQUARE_SIZE = { width: 100, height: 100 };
+
+/** A portrait picture's size, so consecutive pictures pair up (ADR-0028). */
+export const PORTRAIT_SIZE = { width: 300, height: 400 };
+
+export function stored(ids: readonly string[], size = SQUARE_SIZE): StoredSlideshow {
   return {
     id: "show",
     title: "Juli 2025",
@@ -16,8 +22,7 @@ export function stored(ids: readonly string[]): StoredSlideshow {
     pictures: ids.map((id) => ({
       id,
       capturedAt: "2025-07-01T10:00:00Z",
-      width: 100,
-      height: 100,
+      ...size,
       fileName: `${id}.jpg`,
       colours: { veil: "#404040", accent: "#C0C0C0" },
     })),
@@ -56,6 +61,7 @@ class RecordingStore extends MemoryLibraryStore {
 export async function setUp(
   ids: readonly string[] = ["a", "b", "c", "d"],
   music: StoredMusic | readonly StoredMusic[] | null = null,
+  size = SQUARE_SIZE,
 ) {
   const scheduler = new FakeScheduler();
   const toaster = new Toaster(scheduler);
@@ -64,7 +70,7 @@ export async function setUp(
   let gone = 0;
   const refused: EditRefusal[] = [];
   const songs = music === null ? [] : "id" in music ? [music] : music;
-  const initial = { ...stored(ids), songs };
+  const initial = { ...stored(ids, size), songs };
   for (const song of songs) {
     await store.putMusic(song.id, new Blob([song.id]));
   }
@@ -106,6 +112,8 @@ export async function setUp(
     songRemovedText: () => "Song entfernt",
     shuffledText: (count) => `${count} Bilder gemischt`,
     sortedByDateText: (count) => `${count} Bilder nach Datum sortiert`,
+    pairSplitText: (first, second) => `Bild ${first} und ${second} getrennt`,
+    pairRejoinedText: (first, second) => `Bild ${first} und ${second} wieder ein Paar`,
     random: () => 0,
     automaticTitle: () => "Juli 2025",
     locale: () => "de-DE",

@@ -8,6 +8,7 @@
   import InfoPanel from "./slideshow/InfoPanel.svelte";
   import { slideshowFocusFailed } from "./slideshow/focus-menu-hint";
   import MoreMenu from "./slideshow/MoreMenu.svelte";
+  import { pairAction } from "./slideshow/pair-action";
   import PicturesColumn from "./slideshow/PicturesColumn.svelte";
   import SelectionBar from "./slideshow/SelectionBar.svelte";
   import SlideshowEditSheets from "./slideshow/SlideshowEditSheets.svelte";
@@ -38,6 +39,8 @@
     onSortByDate,
     onMoveGroup,
     onRename,
+    onSplitPair,
+    onRejoinPair,
     onEdit,
     loadPicture,
     onError,
@@ -175,6 +178,7 @@
         {onSortByDate}
         {onShiftGroup}
         {onMoveGroup}
+        {onSplitPair}
         onOpenOpeningCard={() => sheets.open({ kind: "openingCard" })}
         onOpenClosingCard={() => sheets.open({ kind: "closingCard" })}
         onOpenChapter={(anchorPictureId) => sheets.open({ kind: "chapter", anchorPictureId })}
@@ -213,6 +217,7 @@
       onDone={() => (storedSelection = endSelecting())}
       onInsertChapter={insertAndOpenChapter}
       {onMoveGroup}
+      pairAction={pairAction(slideshow.pictures, selection, onSplitPair, onRejoinPair)}
     />
   {/if}
 </div>

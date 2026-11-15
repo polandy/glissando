@@ -64,6 +64,7 @@ describe("slideshowDetails", () => {
           ownDurationMs: null,
           ownTransition: null,
           pairedWithNumber: null,
+          rejoinsWithNumber: null,
           blurredFill: false,
           alone: false,
         },
@@ -76,6 +77,7 @@ describe("slideshowDetails", () => {
           ownDurationMs: null,
           ownTransition: null,
           pairedWithNumber: null,
+          rejoinsWithNumber: null,
           blurredFill: false,
           alone: false,
         },
@@ -110,6 +112,32 @@ describe("slideshowDetails", () => {
 
     expect(details.pairCount).toBe(1);
     expect(details.pictures.map((picture) => picture.pairedWithNumber)).toEqual([2, 1]);
+  });
+
+  it("names the picture an alone portrait would pair with again", () => {
+    const pictures = [
+      {
+        id: "p1",
+        capturedAt: "2025-07-01T10:00:00Z",
+        width: 300,
+        height: 400,
+        fileName: "a.jpg",
+        colours: COLOURS,
+      },
+      {
+        id: "p2",
+        capturedAt: "2025-07-02T10:00:00Z",
+        width: 300,
+        height: 400,
+        fileName: "b.jpg",
+        colours: COLOURS,
+        alone: true as const,
+      },
+    ];
+
+    const details = slideshowDetails({ ...stored, pictures }, urlOf, "en");
+
+    expect(details.pictures.map((picture) => picture.rejoinsWithNumber)).toEqual([null, 1]);
   });
 
   it("gives a lone portrait picture a blurred fill against the 16:9 reference screen", () => {

@@ -5,6 +5,7 @@ import type { EditorUndos } from "./editor-undos";
 import { LookSettingsEditor } from "./look-settings-editor";
 import { MoodSettingsEditor } from "./mood-settings-editor";
 import { MusicSettingsEditor } from "./music-settings-editor";
+import { PairEditor } from "./pair-editor";
 import { PictureListEditor } from "./picture-list-editor";
 import { PictureSettingsEditor } from "./picture-settings-editor";
 import type { SlideshowEditorPorts } from "./slideshow-editor-ports";
@@ -20,6 +21,7 @@ export interface SlideshowSubEditors {
   readonly chapters: ChapterSettingsEditor;
   readonly look: LookSettingsEditor;
   readonly mood: MoodSettingsEditor;
+  readonly pairs: PairEditor;
 }
 
 /** Builds `SlideshowEditor`'s sub-editors, each reading and applying through the same closures. */
@@ -38,5 +40,6 @@ export function createSubEditors(
     chapters: new ChapterSettingsEditor(ports, undos.reset, current, apply),
     look: new LookSettingsEditor(ports, undos.reset, current, apply),
     mood: new MoodSettingsEditor(ports, undos.reset, current, apply),
+    pairs: new PairEditor(ports, undos.reset, current, apply),
   };
 }

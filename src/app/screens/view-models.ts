@@ -57,6 +57,8 @@ export interface PictureTile {
   readonly ownTransition: TransitionChoice | null;
   /** The pair partner's number (1-based), when the picture shares a slide with it (ADR-0028). */
   readonly pairedWithNumber: number | null;
+  /** Marked alone, it pairs with this number (1-based) again once the mark is cleared. */
+  readonly rejoinsWithNumber: number | null;
   /** Shown whole over a blurred copy of itself because a wide screen would crop too much of it. */
   readonly blurredFill: boolean;
   /** Marked never to be composed into a pair. */

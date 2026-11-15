@@ -6,7 +6,8 @@ import type { Toaster, ToastMessage } from "../toast/toaster";
  * transition together as "timing"), its cleared caption, the slideshow's
  * default transition ("Back to crossfade"), its portrait pictures setting (ADR-0028, "Back to
  * automatic"), its look (ADR-0044, "Back to None") and its mood (ADR-0045, "Back to Custom"); also
- * what a removal or reset of a title slide, a closing slide, a chapter or a video clip drops.
+ * what a removal or reset of a title slide, a closing slide, a chapter or a video clip drops; and
+ * a picture's "alone" mark, which splitting a portrait pair sets and pairing again clears.
  */
 export type ResettableSetting =
   | keyof Pick<StoredPicture, "kenBurns">
@@ -21,7 +22,8 @@ export type ResettableSetting =
   | "addedChapter"
   | "chapterTitle"
   | "chapterSubtitle"
-  | "videoClip";
+  | "videoClip"
+  | "alone";
 
 interface PendingReset {
   readonly toast: ToastMessage;

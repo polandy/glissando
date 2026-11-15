@@ -23,6 +23,7 @@ const tiles: PictureTile[] = Array.from({ length: PICTURE_COUNT }, (_, index) =>
   ownDurationMs: null,
   ownTransition: null,
   pairedWithNumber: null,
+  rejoinsWithNumber: null,
   blurredFill: false,
   alone: false,
   colours: { veil: "#404040", accent: "#C0C0C0" },

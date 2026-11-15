@@ -44,6 +44,10 @@ export interface SlideshowScreenProps {
   /** A drop: moves the group to the slot before the tile at `insertion`. */
   onMoveGroup: (pictureIds: readonly string[], insertion: number) => void;
   onRename: (typed: string) => void;
+  /** The scissors on a pair, or the selection bar's "Split" (ADR-0028). */
+  onSplitPair: (pictureId: string) => void;
+  /** The selection bar's "Pair again" on an alone picture. */
+  onRejoinPair: (pictureId: string) => void;
   /** Opens the picture editor for a picture. */
   onEdit: (pictureId: string) => void;
   /** A picture as the slideshow will show it, for F's full-screen view. */
