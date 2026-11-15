@@ -45,6 +45,9 @@ Every tool result is re-read, and paid for, on every later turn.
 | Why X over Y?                 | `docs/dev/adr/` — only for a real tradeoff (options weighed, one chosen at a cost) |
 | Owner's open work             | `TODO.md` (the `/todo` skill), **HIGH** first                                      |
 
+- `docs/` has exactly two folders: `docs/user/` (user and admin docs: manual, installation, usage,
+  operator configuration) and `docs/dev/` (ADRs, specs, plan, architecture, reviews, mockups,
+  developer runbooks). A new document goes into one of them; when unsure, `docs/dev/`.
 - Only the current version of each document is kept — never a "v2"; git holds the history.
 - A behaviour change updates the matching doc in the same change. A user-visible change updates
   the user docs, verified against the code.
