@@ -8,10 +8,23 @@ import audioOutlastsPictureUrl from "../testing/video/audio-outlasts-picture.web
 const PICTURE_END_MS = 1000;
 /** Container durations round to the track's last frame; one frame at 10 fps is 100 ms. */
 const FRAME_MS = 100;
+/** A channel above this is a drawn picture, not the black a transparent canvas encodes to. */
+const BLACK_CHANNEL_CEILING = 16;
 
 async function fixture(url: string, name: string): Promise<File> {
   const blob = await (await fetch(url)).blob();
   return new File([blob], name, { type: "video/webm" });
+}
+
+/** The brightest channel value of an image, alpha left out. */
+async function brightestChannel(image: Blob): Promise<number> {
+  const bitmap = await createImageBitmap(image);
+  const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+  const context = canvas.getContext("2d");
+  if (context === null) throw new Error("no 2D context to read the poster's pixels with");
+  context.drawImage(bitmap, 0, 0);
+  const { data } = context.getImageData(0, 0, bitmap.width, bitmap.height);
+  return Math.max(...data.filter((_, index) => index % 4 !== 3));
 }
 
 describe("openClipInVideoElement", () => {
@@ -26,5 +39,17 @@ describe("openClipInVideoElement", () => {
     expect(clip?.durationMs).toBeLessThanOrEqual(PICTURE_END_MS);
     expect(logged).toEqual([]);
     clip?.close();
+  });
+
+  it("makes the poster at 0 ms the clip's first picture, not a black canvas", async () => {
+    const file = await fixture(audioOutlastsPictureUrl, "audio-outlasts-picture.webm");
+    const clip = await openClipInVideoElement(file, () => undefined);
+    if (clip === null) throw new Error("the fixture did not open");
+
+    const poster = await clip.posterFrame(0);
+
+    expect(poster.size).toBeGreaterThan(0);
+    expect(await brightestChannel(poster)).toBeGreaterThan(BLACK_CHANNEL_CEILING);
+    clip.close();
   });
 });
