@@ -1,30 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { server } from "vitest/browser";
 import { loadClipMetadata } from "./clip-metadata";
-import { decodedFrameAt, seekedFrameAt, type ClipFrame } from "./clip-poster";
+import { decodedFrameAt, seekedFrameAt } from "./clip-poster";
+import { isBlack } from "../testing/black-frame";
 // 1 s of ffmpeg's test pattern at 64×48 with a longer tone; see video-clip.browser.test.ts.
 import testPatternUrl from "../testing/video/audio-outlasts-picture.webm?url";
 
 const PATTERN_WIDTH = 64;
 const PATTERN_HEIGHT = 48;
-/** A channel above this is a drawn picture, not the black of a frame never painted. */
-const BLACK_CHANNEL_CEILING = 16;
 
 async function testPattern(): Promise<File> {
   const blob = await (await fetch(testPatternUrl)).blob();
   return new File([blob], "test-pattern.webm", { type: "video/webm" });
-}
-
-/** The brightest channel value of a drawn frame, alpha left out. */
-function brightestChannel(frame: ClipFrame): number {
-  const canvas = document.createElement("canvas");
-  canvas.width = frame.width;
-  canvas.height = frame.height;
-  const context = canvas.getContext("2d");
-  if (context === null) throw new Error("no 2D context to read the frame's pixels with");
-  context.drawImage(frame.source, 0, 0, frame.width, frame.height);
-  const { data } = context.getImageData(0, 0, frame.width, frame.height);
-  return Math.max(...data.filter((_, index) => index % 4 !== 3));
 }
 
 describe("decodedFrameAt", () => {
@@ -36,7 +23,7 @@ describe("decodedFrameAt", () => {
     expect(logged).toEqual([]);
     expect(frame).toMatchObject({ width: PATTERN_WIDTH, height: PATTERN_HEIGHT });
     if (frame === null) throw new Error("no frame decoded");
-    expect(brightestChannel(frame)).toBeGreaterThan(BLACK_CHANNEL_CEILING);
+    expect(isBlack(frame.source, frame.width, frame.height)).toBe(false);
   });
 
   it("gives null and logs why for a file that is no container it reads", async () => {
@@ -63,7 +50,7 @@ describe("seekedFrameAt", () => {
       const frame = await seekedFrameAt(video, 0);
 
       expect(frame).toMatchObject({ width: PATTERN_WIDTH, height: PATTERN_HEIGHT });
-      expect(brightestChannel(frame)).toBeGreaterThan(BLACK_CHANNEL_CEILING);
+      expect(isBlack(frame.source, frame.width, frame.height)).toBe(false);
       URL.revokeObjectURL(url);
     },
   );
