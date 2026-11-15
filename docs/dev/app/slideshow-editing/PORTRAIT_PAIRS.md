@@ -24,7 +24,12 @@ whenever the strip resizes).
   "Undo".
 - Pair again clears the mark, with a toast "Pictures 1 and 2 paired again" and "Undo". Pairing
   greedily, the pictures after it may pair up anew: a pair it takes a picture from comes apart.
+  Only then the toast names it — "Pictures 3 and 4 paired again, 4 and 5 split" — and when a
+  chain of later pairs changes, it names the first and ends in "…" (`pairsComingApart`, which
+  compares the slide units before and after). Undo restores every one of them at once.
 - Toggling "Always alone" in the picture editor supersedes a pending undo of either.
 - The phone bar dispatches `actionlinesbalanced` on its action row after a width change has
   rebalanced it, a signal tests wait for.
 - E2E-134 splits a pair by its scissors and by the bar, undoes, reloads and pairs it again.
+- E2E-135 marks a pair's first picture always alone, pairs it again, reads the toast naming the
+  later pair that came apart, and undoes it.

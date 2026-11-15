@@ -144,6 +144,7 @@ export async function mountRoute(
     sortedByDateText: () => "",
     pairSplitText: () => "",
     pairRejoinedText: () => "",
+    pairRejoinedSplitText: () => "",
     random: () => 0,
     automaticTitle: () => "Juli 2025",
     locale: () => "de-DE",

@@ -13,7 +13,7 @@ describe("SlideshowEditor, splitting a portrait pair", () => {
     await editor.settled();
     expect((await storedPicture("a"))?.alone).toBeUndefined();
     expect((await storedPicture("b"))?.alone).toBe(true);
-    expect(toaster.current?.text).toBe("Bild 1 und 2 getrennt");
+    expect(toaster.current?.text).toBe("Bilder 1 und 2 getrennt");
     expect(toaster.current?.action?.label).toBe("Rückgängig");
   });
 
@@ -51,7 +51,7 @@ describe("SlideshowEditor, splitting a portrait pair", () => {
   it("the 'always alone' switch ends the undo, which would overwrite it", async () => {
     const { editor, toaster, storedPicture } = await portraitShow();
     editor.splitPair("a");
-    expect(toaster.current?.text).toBe("Bild 1 und 2 getrennt");
+    expect(toaster.current?.text).toBe("Bilder 1 und 2 getrennt");
 
     editor.setPictureAlone("b", false);
 
@@ -84,7 +84,7 @@ describe("SlideshowEditor, pairing an alone picture again", () => {
 
     await editor.settled();
     expect((await storedPicture("b"))?.alone).toBeUndefined();
-    expect(toaster.current?.text).toBe("Bild 1 und 2 wieder ein Paar");
+    expect(toaster.current?.text).toBe("Bilder 1 und 2 wieder als Paar");
   });
 
   it("the undo marks it alone again", async () => {
@@ -108,5 +108,56 @@ describe("SlideshowEditor, pairing an alone picture again", () => {
 
     expect(store.calls.length).toBe(callsBefore);
     expect(toaster.current).toBeNull();
+  });
+});
+
+describe("SlideshowEditor, pairing again takes a later pair apart", () => {
+  it("names the later pair that comes apart in the toast", async () => {
+    // a+b | c (alone) | d+e → a+b | c+d | e.
+    const { editor, toaster, storedPicture } = await setUp(
+      ["a", "b", "c", "d", "e"],
+      null,
+      PORTRAIT_SIZE,
+    );
+    editor.setPictureAlone("c", true);
+
+    editor.rejoinPair("c");
+
+    await editor.settled();
+    expect((await storedPicture("c"))?.alone).toBeUndefined();
+    expect(toaster.current?.text).toBe("Bilder 3 und 4 wieder als Paar, 4 und 5 getrennt");
+  });
+
+  it("names only the first of a chain of pairs that come apart, then an ellipsis", async () => {
+    // a (alone) | b+c | d+e | f → a+b | c+d | e+f.
+    const { editor, toaster } = await setUp(["a", "b", "c", "d", "e", "f"], null, PORTRAIT_SIZE);
+    editor.setPictureAlone("a", true);
+
+    editor.rejoinPair("a");
+
+    expect(toaster.current?.text).toBe("Bilder 1 und 2 wieder als Paar, 2 und 3 getrennt …");
+  });
+
+  it("the undo restores every pair the chain took apart", async () => {
+    const { editor, toaster, storedPicture } = await setUp(
+      ["a", "b", "c", "d", "e", "f"],
+      null,
+      PORTRAIT_SIZE,
+    );
+    editor.setPictureAlone("a", true);
+    editor.rejoinPair("a");
+
+    toaster.act();
+
+    await editor.settled();
+    expect((await storedPicture("a"))?.alone).toBe(true);
+    expect(editor.slideshow.pictures.map((picture) => picture.alone)).toEqual([
+      true,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+    ]);
   });
 });

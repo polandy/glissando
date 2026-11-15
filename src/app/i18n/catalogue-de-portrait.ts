@@ -26,11 +26,15 @@ export const dePortrait = {
   "slideshow.pictureLabelAlone": ", allein gezeigt",
   "slideshow.pictureLabelBlurredFill": ", über einer unscharfen Füllung",
   "slideshow.splitPair": "Trennen",
-  "slideshow.splitPairLabel": "Bild {first} und {second} trennen",
-  "slideshow.pairSplit": "Bild {first} und {second} getrennt",
+  "slideshow.splitPairLabel": "Bilder {first} und {second} trennen",
+  "slideshow.pairSplit": "Bilder {first} und {second} getrennt",
   "slideshow.rejoinPair": "Wieder als Paar",
   "slideshow.rejoinPairShort": "Paar",
-  "slideshow.pairRejoined": "Bild {first} und {second} wieder ein Paar",
+  "slideshow.pairRejoined": "Bilder {first} und {second} wieder als Paar",
+  "slideshow.pairRejoinedSplit":
+    "Bilder {first} und {second} wieder als Paar, {splitFirst} und {splitSecond} getrennt",
+  "slideshow.pairRejoinedSplitChain":
+    "Bilder {first} und {second} wieder als Paar, {splitFirst} und {splitSecond} getrennt …",
   "editor.layoutTitle": "Layout",
   "editor.alwaysAlone": "Immer allein",
   "editor.alwaysAloneHint": "Dieses Bild wird nie mit einem anderen auf einem Dia gezeigt.",

@@ -40,6 +40,13 @@ export function createScreenEditor(
     portraitPicturesResetText: () => t("portrait.resetDone"),
     pairSplitText: (first, second) => t("slideshow.pairSplit", { first, second }),
     pairRejoinedText: (first, second) => t("slideshow.pairRejoined", { first, second }),
+    pairRejoinedSplitText: ([first, second], [splitFirst, splitSecond], chain) =>
+      t(chain ? "slideshow.pairRejoinedSplitChain" : "slideshow.pairRejoinedSplit", {
+        first,
+        second,
+        splitFirst,
+        splitSecond,
+      }),
     lookResetText: () => t("look.resetDone"),
     moodResetText: () => t("mood.resetDone"),
     openingCardRemovedText: () => t("cards.openingRemoved"),

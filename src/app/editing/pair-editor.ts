@@ -1,4 +1,10 @@
-import { pictureLayoutSummaries, type PictureLayoutSummary } from "../../compose";
+import {
+  pairsComingApart,
+  pictureLayoutSummaries,
+  slideUnits,
+  type PictureLayoutSummary,
+  type PictureNumberPair,
+} from "../../compose";
 import { setPictureAlone } from "../../library/slideshow-edits";
 import type { StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import type { ResetUndo } from "./reset-undo";
@@ -9,12 +15,22 @@ export interface PairPorts {
   readonly pairSplitText: (first: number, second: number) => string;
   /** The undo toast's text after `first` and `second` were made a pair again. */
   readonly pairRejoinedText: (first: number, second: number) => string;
+  /**
+   * The undo toast's text when making `rejoined` a pair again took the later pair `split` apart;
+   * `chain` when more pairs after it came apart too.
+   */
+  readonly pairRejoinedSplitText: (
+    rejoined: PictureNumberPair,
+    split: PictureNumberPair,
+    chain: boolean,
+  ) => string;
 }
 
 /**
  * A picture's "alone" mark (ADR-0028), set by the picture editor's switch or by splitting a pair
  * in the strip. A split marks the pair's second picture: pairing runs greedily from the start, so
- * no other pair changes. Split and rejoin ask nothing; their toast's undo reverses them.
+ * no other pair changes. Clearing the mark can take a later pair apart, which the toast names.
+ * Split and rejoin ask nothing; their toast's undo reverses them.
  */
 export class PairEditor {
   readonly #ports: PairPorts;
@@ -61,9 +77,21 @@ export class PairEditor {
     if (partnerNumber === null) {
       return;
     }
-    const [first, second] = ordered(index + 1, partnerNumber);
-    this.#apply(setPictureAlone(this.#current(), pictureId, false));
-    this.#offerUndo(pictureId, this.#ports.pairRejoinedText(first, second), true);
+    const before = this.#current();
+    const after = setPictureAlone(before, pictureId, false);
+    const split = pairsComingApart(
+      slideUnits(before.pictures, before.portraitPictures),
+      slideUnits(after.pictures, after.portraitPictures),
+    );
+    this.#apply(after);
+    this.#offerUndo(pictureId, this.#rejoinedText(ordered(index + 1, partnerNumber), split), true);
+  }
+
+  #rejoinedText(rejoined: PictureNumberPair, split: readonly PictureNumberPair[]): string {
+    const [firstSplit] = split;
+    return firstSplit === undefined
+      ? this.#ports.pairRejoinedText(...rejoined)
+      : this.#ports.pairRejoinedSplitText(rejoined, firstSplit, split.length > 1);
   }
 
   /** The undo restores the mark as it was; a picture removed meanwhile has nothing to restore. */
@@ -90,6 +118,6 @@ export class PairEditor {
   }
 }
 
-function ordered(a: number, b: number): readonly [number, number] {
+function ordered(a: number, b: number): PictureNumberPair {
   return a < b ? [a, b] : [b, a];
 }

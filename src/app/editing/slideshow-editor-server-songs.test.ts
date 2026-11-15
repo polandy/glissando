@@ -59,6 +59,7 @@ describe("SlideshowEditor on a server slideshow, the playlist (ADR-0023)", () =>
       sortedByDateText: () => "",
       pairSplitText: () => "",
       pairRejoinedText: () => "",
+      pairRejoinedSplitText: () => "",
       random: () => 0,
       automaticTitle: () => "Juli 2025",
       locale: () => "de-DE",

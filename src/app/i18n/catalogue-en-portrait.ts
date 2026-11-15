@@ -32,6 +32,10 @@ export const enPortrait: Pick<Catalogue, keyof typeof dePortrait> = {
   "slideshow.rejoinPair": "Pair again",
   "slideshow.rejoinPairShort": "Pair",
   "slideshow.pairRejoined": "Pictures {first} and {second} paired again",
+  "slideshow.pairRejoinedSplit":
+    "Pictures {first} and {second} paired again, {splitFirst} and {splitSecond} split",
+  "slideshow.pairRejoinedSplitChain":
+    "Pictures {first} and {second} paired again, {splitFirst} and {splitSecond} split …",
   "editor.layoutTitle": "Layout",
   "editor.alwaysAlone": "Always alone",
   "editor.alwaysAloneHint": "This picture never shares a slide with another one.",
