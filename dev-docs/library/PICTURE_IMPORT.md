@@ -22,6 +22,11 @@ publishes a state with the Svelte store contract:
   the element after a seek there) runs through the picture pipeline, and its claims cover the
   video's media id. Culling
   skips it: a video is never removed as a blur or a duplicate.
+- **Black posters** of video slides stored earlier (drawn from an unseeked `<video>`) are rebuilt
+  at every start (`rebuildBlackPosters`): a video slide with the grey colours of an all-black
+  picture whose stored poster samples black gets a new poster from its stored clip, made as an
+  import makes one, with new colours and size; its focus is looked for again. A clip whose first
+  frame is black too keeps its poster; a clip that fails is logged and tried at the next start.
 - **Cancel** aborts the file in flight's download, reads no further file and clears the state.
 - Any other error ends the import as `failed`; it is never swallowed: `settled()` rejects with
   `PictureImportFailedError` (the error as its `cause`), which the app logs and shows as the

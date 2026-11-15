@@ -1,5 +1,4 @@
-/** A channel above this is a drawn picture, not the black of a frame never painted. */
-const BLACK_CHANNEL_CEILING = 16;
+import { BLACK_CHANNEL_CEILING } from "../../library/poster-rebuild";
 
 /** Whether `source`, drawn at `width`×`height`, is all black: no colour channel above the ceiling. */
 export function isBlack(source: CanvasImageSource, width: number, height: number): boolean {
