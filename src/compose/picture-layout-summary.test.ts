@@ -21,8 +21,8 @@ describe("pictureLayoutSummaries", () => {
     const summaries = pictureLayoutSummaries([portrait("a"), portrait("b")], undefined);
 
     expect(summaries).toEqual([
-      { pairedWithNumber: 2, blurredFill: false },
-      { pairedWithNumber: 1, blurredFill: false },
+      { pairedWithNumber: 2, blurredFill: false, rejoinsWithNumber: null },
+      { pairedWithNumber: 1, blurredFill: false, rejoinsWithNumber: null },
     ]);
   });
 
@@ -30,8 +30,8 @@ describe("pictureLayoutSummaries", () => {
     const summaries = pictureLayoutSummaries([landscape("a"), portrait("b")], undefined);
 
     expect(summaries).toEqual([
-      { pairedWithNumber: null, blurredFill: false },
-      { pairedWithNumber: null, blurredFill: true },
+      { pairedWithNumber: null, blurredFill: false, rejoinsWithNumber: null },
+      { pairedWithNumber: null, blurredFill: true, rejoinsWithNumber: null },
     ]);
   });
 
@@ -39,14 +39,43 @@ describe("pictureLayoutSummaries", () => {
     const summaries = pictureLayoutSummaries([portrait("a"), portrait("b")], "fill-screen");
 
     expect(summaries).toEqual([
-      { pairedWithNumber: null, blurredFill: false },
-      { pairedWithNumber: null, blurredFill: false },
+      { pairedWithNumber: null, blurredFill: false, rejoinsWithNumber: null },
+      { pairedWithNumber: null, blurredFill: false, rejoinsWithNumber: null },
     ]);
   });
 
   it("leaves a landscape picture without a blurred fill: cropping loses little of it", () => {
     const summaries = pictureLayoutSummaries([landscape("a")], undefined);
 
-    expect(summaries).toEqual([{ pairedWithNumber: null, blurredFill: false }]);
+    expect(summaries).toEqual([
+      { pairedWithNumber: null, blurredFill: false, rejoinsWithNumber: null },
+    ]);
+  });
+
+  it("names the neighbour an alone picture would pair with again, once its mark is cleared", () => {
+    const summaries = pictureLayoutSummaries(
+      [portrait("a"), { ...portrait("b"), alone: true }, landscape("c")],
+      undefined,
+    );
+
+    expect(summaries.map((summary) => summary.rejoinsWithNumber)).toEqual([null, 1, null]);
+  });
+
+  it("names no rejoin partner when the alone picture would stay single without its mark", () => {
+    const summaries = pictureLayoutSummaries(
+      [landscape("a"), { ...portrait("b"), alone: true }, landscape("c")],
+      undefined,
+    );
+
+    expect(summaries.map((summary) => summary.rejoinsWithNumber)).toEqual([null, null, null]);
+  });
+
+  it("names no rejoin partner while the slideshow shows every picture on its own", () => {
+    const summaries = pictureLayoutSummaries(
+      [portrait("a"), { ...portrait("b"), alone: true }],
+      "one-at-a-time",
+    );
+
+    expect(summaries.map((summary) => summary.rejoinsWithNumber)).toEqual([null, null]);
   });
 });

@@ -124,6 +124,9 @@ export const ICONS = {
       path("M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"),
     ],
   },
+  scissors: {
+    shapes: [circle(6, 6.75, 3), circle(6, 17.25, 3), path("M8.4 8.6L19.5 18M8.4 15.4L19.5 6")],
+  },
   unlink: {
     shapes: [
       path("M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1"),

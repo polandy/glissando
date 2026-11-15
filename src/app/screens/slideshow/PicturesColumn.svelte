@@ -25,6 +25,7 @@
     onSortByDate,
     onShiftGroup,
     onMoveGroup,
+    onSplitPair,
     onOpenOpeningCard,
     onOpenClosingCard,
     onOpenChapter,
@@ -51,6 +52,8 @@
     onSortByDate: () => void;
     onShiftGroup: (pictureIds: readonly string[], offset: number) => void;
     onMoveGroup: (pictureIds: readonly string[], insertion: number) => void;
+    /** The scissors on a portrait pair (ADR-0028). */
+    onSplitPair: (pictureId: string) => void;
     /** Opens the title slide / closing slide sheet (TITLE_SLIDES.md). */
     onOpenOpeningCard: () => void;
     onOpenClosingCard: () => void;
@@ -116,6 +119,7 @@
     {onRemoveGroup}
     {onShiftGroup}
     {onMoveGroup}
+    {onSplitPair}
     openingCard={slideshow.openingCard}
     closingCard={slideshow.closingCard}
     {onOpenOpeningCard}

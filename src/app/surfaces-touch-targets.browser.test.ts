@@ -241,6 +241,7 @@ describe.skipIf(!canEmulate).each(THEMES)("surface touch targets, %s theme", (th
         ownDurationMs: null,
         ownTransition: null,
         pairedWithNumber: null,
+        rejoinsWithNumber: null,
         blurredFill: false,
         alone: false,
         colours: picture.colours,
