@@ -33,6 +33,7 @@ import { browserIntakePorts } from "./app/import/browser-intake-ports";
 import { browserImmich } from "./immich/browser-immich";
 import { createImmichReaders } from "./immich/immich-readers";
 import { FocusPass } from "./library/focus-pass";
+import { startBlackPosterRebuild } from "./app/black-poster-rebuild";
 import { serializeFocusDetector } from "./library/serialized-focus-detector";
 import type { IndexedDbLibraryStore } from "./library/indexeddb-store";
 import { isNewerVersionError, openLibraryStore } from "./library/indexeddb-open";
@@ -157,6 +158,12 @@ const download = createDownloader({
 });
 
 const immichReaders = createImmichReaders(immichClient, immichAvailability, logError);
+startBlackPosterRebuild({
+  store,
+  decode: immichReaders.decode,
+  onRebuilt: (pictureIds) => focusPass.lookAgain(pictureIds),
+  log: logError,
+}).catch(reportError);
 
 // Read before the navigator exists, so its own first route is never raced by this one.
 const deepLinkedFrameAlbumId = parseFrameDeepLink(window.location.hash);
