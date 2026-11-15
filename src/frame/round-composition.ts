@@ -16,7 +16,7 @@ export interface RoundPicture {
 const UNKNOWN_SIZE = { width: 1, height: 1 };
 
 /**
- * Composes one round's finite `Slideshow` (`dev-docs/app/FRAME.md`, ADR-0030): the automatic Ken
+ * Composes one round's finite `Slideshow` (`docs/dev/app/FRAME.md`, ADR-0030): the automatic Ken
  * Burns and transitions a normal slideshow gets, `intervalMs` per picture, no music, no caption
  * baked into the slide (the frame draws the place and date as its own overlay).
  */

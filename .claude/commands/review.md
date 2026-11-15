@@ -1,7 +1,7 @@
 Review uncommitted or recently committed changes against project standards:
 
 1. `git diff HEAD` (or `git diff HEAD~1` if the working tree is clean).
-2. Read `dev-docs/CODING_PRINCIPLES.md` and `CLAUDE.md`'s **Testing**, **Working agreement** and
+2. Read `docs/dev/CODING_PRINCIPLES.md` and `CLAUDE.md`'s **Testing**, **Working agreement** and
    **Code rules**. **Those files are the standard** — check the diff against them rather than a
    list restated here.
 3. Beyond them, check:

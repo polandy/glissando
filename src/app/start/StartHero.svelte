@@ -10,7 +10,7 @@
     onCreate,
     onPickFile,
   }: {
-    /** The "Load demo slideshow" button (dev-docs/app/INSTALLING_AND_OFFLINE.md). */
+    /** The "Load demo slideshow" button (docs/dev/app/INSTALLING_AND_OFFLINE.md). */
     demo: { visible: boolean; state: DemoSlideshowState; onLoad: () => void };
     onCreate: () => void;
     onPickFile: () => void;

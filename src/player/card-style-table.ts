@@ -1,7 +1,7 @@
 import type { CardInk, CardStyle } from "./slideshow";
 
 /**
- * The title card's four styles and two inks (ADR-0032, `dev-docs/player/TITLE_CARDS.md` §
+ * The title card's four styles and two inks (ADR-0032, `docs/dev/player/TITLE_CARDS.md` §
  * Look): pure data, split out of `card-layout.ts` to keep that file under the line limit.
  */
 

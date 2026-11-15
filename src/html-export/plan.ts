@@ -10,7 +10,7 @@ export interface PageSize {
   readonly bound: Bound;
 }
 
-/** The sizes a web page export offers, smallest first (dev-docs/html_export/SIZES.md). */
+/** The sizes a web page export offers, smallest first (docs/dev/html_export/SIZES.md). */
 export const PAGE_SIZES: readonly PageSize[] = [
   { id: "small", bound: { longEdge: 1280, shortEdge: 720 } },
   { id: "sharp", bound: { longEdge: 1920, shortEdge: 1080 } },

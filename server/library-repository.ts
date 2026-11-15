@@ -26,7 +26,7 @@ export interface MusicRecord {
   readonly uploadedAt: number;
 }
 
-/** A slideshow's share link (`dev-docs/SHARE_LINK.md`); at most one per slideshow. */
+/** A slideshow's share link (`docs/dev/SHARE_LINK.md`); at most one per slideshow. */
 export interface ShareLink {
   readonly token: string;
   readonly createdAt: number;

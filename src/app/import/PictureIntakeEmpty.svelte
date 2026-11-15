@@ -6,7 +6,7 @@
 
   /**
    * The pictures step before anything is picked: the drop zone and its sources, or, while adding
-   * to a server slideshow, the sources alone (`dev-docs/server_library/IN_THE_APP.md`: no device
+   * to a server slideshow, the sources alone (`docs/dev/server_library/IN_THE_APP.md`: no device
    * pictures for a server slideshow, unless `copyToAdd` turns them into a device copy's).
    */
   let {

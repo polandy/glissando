@@ -3,7 +3,7 @@ import type { StoredPicture, StoredSlideshow } from "./stored-slideshow";
 
 /**
  * Shuffling the pictures of a stored slideshow into a random order, sorting them by capture date again,
- * and taking either back (dev-docs/app/slideshow-editing/REMOVE_SELECT_REORDER.md, Shuffle and Sort by date).
+ * and taking either back (docs/dev/app/slideshow-editing/REMOVE_SELECT_REORDER.md, Shuffle and Sort by date).
  */
 
 function withPictureOrder(

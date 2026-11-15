@@ -1,6 +1,6 @@
 /**
  * The automatic choices that turn imported media into a playable slideshow ("good by default"),
- * see `dev-docs/COMPOSITION.md`. Pure, framework-free functions; no I/O.
+ * see `docs/dev/COMPOSITION.md`. Pure, framework-free functions; no I/O.
  */
 
 export { orderByCaptureDate } from "./order-by-capture-date";

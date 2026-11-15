@@ -42,7 +42,7 @@ function curveValue([v0, v1, v2, v3, v4]: CurveKnots, c: number): number {
 }
 
 /**
- * `rgb` graded by `look` (ADR-0044, `dev-docs/player/LOOKS.md`): the matrix step then the tone
+ * `rgb` graded by `look` (ADR-0044, `docs/dev/player/LOOKS.md`): the matrix step then the tone
  * curve, per channel. The identity for "none". The reference the shader and the DOM fallback's
  * SVG filter are tested against.
  */

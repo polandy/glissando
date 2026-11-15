@@ -7,7 +7,7 @@ import type { Page } from "@playwright/test";
  * fullscreen may take Esc to leave it instead of handing it to the page).
  *
  * `path` is the first navigation, so it is the only way to land on it with a `#frame=` deep link
- * already in the URL (`dev-docs/app/FRAME.md` reads the hash once, at startup).
+ * already in the URL (`docs/dev/app/FRAME.md` reads the hash once, at startup).
  */
 export async function openApp(page: Page, path = "/"): Promise<void> {
   await page.addInitScript(() => {

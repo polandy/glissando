@@ -41,7 +41,7 @@ describe("ImmichSettingsGroup", () => {
 
     expect(text()).toContain("Not set up");
     expect(button("How to set it up")?.getAttribute("href")).toBe(
-      "https://github.com/polandy/glissando/blob/main/docs/self-hosting.md",
+      "https://github.com/polandy/glissando/blob/main/docs/user/self-hosting.md",
     );
   });
 

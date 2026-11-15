@@ -9,7 +9,7 @@ export interface DemoSlideshowServices {
   readonly connectivity: DemoConnectivity;
 }
 
-/** Builds the "Load demo slideshow" button's composition-root services (dev-docs/app/INSTALLING_AND_OFFLINE.md). */
+/** Builds the "Load demo slideshow" button's composition-root services (docs/dev/app/INSTALLING_AND_OFFLINE.md). */
 export function createDemoSlideshowServices(window: Window): DemoSlideshowServices {
   return {
     config: __GLISSANDO_DEMO_SLIDESHOW__,

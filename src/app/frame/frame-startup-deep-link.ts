@@ -7,12 +7,12 @@ export interface FrameDeepLinkAvailability {
 }
 
 /**
- * Opens `#frame=<albumId>` straight to the running frame (`dev-docs/app/FRAME.md`), once the
+ * Opens `#frame=<albumId>` straight to the running frame (`docs/dev/app/FRAME.md`), once the
  * server library is on: availability answers asynchronously, so this waits for its state rather
  * than racing the app's own startup. Resolves at most once, and only opens the frame while the
  * app is still on the start screen (a user who already navigated elsewhere keeps what they
  * chose). Either way, the hash is cleared once resolved: it is not part of `history.state`
- * (`dev-docs/app/NAVIGATION.md`), so left in place it would replay the same deep link on a later
+ * (`docs/dev/app/NAVIGATION.md`), so left in place it would replay the same deep link on a later
  * reload, overriding a user who has since exited the frame or navigated elsewhere.
  */
 export function openDeepLinkedFrame(

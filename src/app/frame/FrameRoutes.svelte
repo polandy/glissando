@@ -5,7 +5,7 @@
   import FrameLayer from "./FrameLayer.svelte";
   import FrameSetupRoute from "./FrameSetupRoute.svelte";
 
-  /** The picture frame's set-up and running screens, over the start screen (`dev-docs/app/FRAME.md`). */
+  /** The picture frame's set-up and running screens, over the start screen (`docs/dev/app/FRAME.md`). */
   let {
     route,
     services,

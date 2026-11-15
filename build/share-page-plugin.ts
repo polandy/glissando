@@ -5,7 +5,7 @@ import { sharePageHtml } from "../src/share-page/share-page-html.ts";
 import { captionFontDataUrl, fontDataUrl } from "./export-player-bundle.ts";
 import { buildPlayerPage } from "./export-player-plugin.ts";
 
-/** Caddy answers every `/s/<token>` with this file (dev-docs/SHARE_LINK.md). */
+/** Caddy answers every `/s/<token>` with this file (docs/dev/SHARE_LINK.md). */
 export const SHARE_PAGE_FILE = "share.html";
 /** The share page as text, for its browser test; typed in src/share-page/testing/. */
 export const SHARE_PAGE_MODULE = "virtual:glissando-share-page";
@@ -15,7 +15,7 @@ const SHARE_PAGE_ENTRY = "src/share-page/main.ts";
 /**
  * Builds the page a share link opens into the build as `share.html`: the export player's page
  * with the share page's script, both languages' words, and everything inline
- * (dev-docs/share_link/RECIPIENTS_PAGE.md). It also serves the page as
+ * (docs/dev/share_link/RECIPIENTS_PAGE.md). It also serves the page as
  * `virtual:glissando-share-page`, which only its browser test imports.
  */
 export function sharePagePlugin(): Plugin {

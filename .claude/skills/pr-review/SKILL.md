@@ -1,6 +1,6 @@
 ---
 name: pr-review
-description: Quality review of a pull request — docs/ADR sync, conformance to CLAUDE.md and dev-docs/CODING_PRINCIPLES.md, implementation quality, test coverage against the diff, the UI delivery loop, CI status (fix failures) and branch freshness. Posts the verdict as a PR comment. Use when asked to review a PR by number or branch, and unasked right after opening your own PR.
+description: Quality review of a pull request — docs/ADR sync, conformance to CLAUDE.md and docs/dev/CODING_PRINCIPLES.md, implementation quality, test coverage against the diff, the UI delivery loop, CI status (fix failures) and branch freshness. Posts the verdict as a PR comment. Use when asked to review a PR by number or branch, and unasked right after opening your own PR.
 argument-hint: <PR number or branch>
 ---
 
@@ -18,17 +18,17 @@ for real findings rather than rubber-stamping, and finish with a verdict.
 - Read the PR description and any linked ADR first — the review checks the code _against its
   stated intent_.
 - **The standard is the files, not this skill**: `CLAUDE.md` (Testing, Working agreement, Code
-  rules) and `dev-docs/CODING_PRINCIPLES.md`. If they changed in this PR, the files win. Read
+  rules) and `docs/dev/CODING_PRINCIPLES.md`. If they changed in this PR, the files win. Read
   only the sections the diff touches.
 
 ## 1. Docs ↔ implementation
 
-- Every behaviour change updates the matching `dev-docs/` spec section and, when visible to a
+- Every behaviour change updates the matching `docs/dev/` spec section and, when visible to a
   user, the user docs — in this PR. Check the reverse too: no doc describes behaviour the PR
   removed or changed.
 - Comments on touched code describe the current state only; no history narration.
 
-## 2. ADRs (`dev-docs/adr/`)
+## 2. ADRs (`docs/dev/adr/`)
 
 - A real tradeoff decided without an ADR → finding. An ADR for a mechanical change → finding.
 - A contradicted existing ADR needs a status update, or the PR changes.

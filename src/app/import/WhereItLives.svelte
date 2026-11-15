@@ -5,7 +5,7 @@
   import type { MessageKey } from "../i18n/messages";
   import type { IconName } from "../../ui-kit/icons";
 
-  /** "Where should it live?": this device or the Glissando server (`dev-docs/SERVER_LIBRARY.md`). */
+  /** "Where should it live?": this device or the Glissando server (`docs/dev/SERVER_LIBRARY.md`). */
   let {
     home,
     locked,

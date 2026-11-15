@@ -30,7 +30,7 @@ function isUnavailable(error: unknown): boolean {
 }
 
 /**
- * "Keep a copy on this device" and "Save on the server" (`dev-docs/SERVER_LIBRARY.md`), run in
+ * "Keep a copy on this device" and "Save on the server" (`docs/dev/SERVER_LIBRARY.md`), run in
  * the background: each running copy's progress (`ExportProgress`, `copying`) is published, keyed
  * by its slideshow; the end shows in a toast with "Open". Never rejects.
  */

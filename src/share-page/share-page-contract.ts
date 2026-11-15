@@ -1,5 +1,5 @@
 /**
- * What share.html and its script agree on (dev-docs/share_link/RECIPIENTS_PAGE.md); the
+ * What share.html and its script agree on (docs/dev/share_link/RECIPIENTS_PAGE.md); the
  * script imports only this, never the page builder.
  */
 
@@ -14,7 +14,7 @@ export function shareToken(pathname: string): string | null {
   return SHARE_PATH.exec(pathname)?.[1] ?? null;
 }
 
-/** The TV page's own path, `/tv` (dev-docs/tv_remote/TV_PAGE.md, way A). */
+/** The TV page's own path, `/tv` (docs/dev/tv_remote/TV_PAGE.md, way A). */
 export function isTvPath(pathname: string): boolean {
   return TV_PATH.test(pathname);
 }

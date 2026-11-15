@@ -1,6 +1,6 @@
 /**
  * Hands playback over from one round's player to the next without the player itself being
- * incremental (`dev-docs/app/FRAME.md`, ADR-0030): the next round is created hidden as soon as
+ * incremental (`docs/dev/app/FRAME.md`, ADR-0030): the next round is created hidden as soon as
  * the current one starts and shows its first picture ahead of its turn, so by the time the
  * current one ends the next is usually ready. It starts playing only when it is swapped in, so
  * every round plays from its beginning; only then is the old one torn down.
@@ -20,7 +20,7 @@ export interface FrameRoundPlayer {
 
 export type RoundOutcome =
   | { readonly kind: "player"; readonly player: FrameRoundPlayer }
-  /** The album has nothing left to compose a round from (`dev-docs/app/FRAME.md`). */
+  /** The album has nothing left to compose a round from (`docs/dev/app/FRAME.md`). */
   | { readonly kind: "noPicturesLeft" };
 
 export interface RoundHandoverPorts {

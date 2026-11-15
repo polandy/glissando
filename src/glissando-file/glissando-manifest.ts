@@ -50,7 +50,7 @@ export const GLISSANDO_FORMAT_ID = "glissando";
  * 15 a song's own volume, `volumeDb` (ADR-0040), version 16 a song's sample-track id,
  * `sampleTrack` (ADR-0042), version 17 a picture's resolved `place` (ADR-0043) and a slideshow's
  * trip chapters, `automaticChaptersOff`, `chapterEdits` and `addedChapters`
- * (`dev-docs/player/TRIP_CHAPTERS.md`), version 18 the slideshow's colour grade, `look`
+ * (`docs/dev/player/TRIP_CHAPTERS.md`), version 18 the slideshow's colour grade, `look`
  * (ADR-0044), version 19 the slideshow's mood (ADR-0045), version 20 the slideshow's energy
  * pacing, `energyPacing` (ADR-0046), version 21 the slideshow's music repeat, `repeatMusic`
  * (ADR-0047), version 22 a picture's found focus, `focus` (ADR-0053).
@@ -168,7 +168,7 @@ export interface ManifestSlideshow {
   readonly openingCard?: ManifestCard;
   /** The closing slide; absent: none. */
   readonly closingCard?: ManifestCard;
-  /** Automatic chapters turned off; absent: on (`dev-docs/player/TRIP_CHAPTERS.md`). */
+  /** Automatic chapters turned off; absent: on (`docs/dev/player/TRIP_CHAPTERS.md`). */
   readonly automaticChaptersOff?: true;
   /** An automatic chapter's title, subtitle or visibility, overridden; absent: none. */
   readonly chapterEdits?: readonly ManifestChapterEdit[];

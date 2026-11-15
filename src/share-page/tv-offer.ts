@@ -5,7 +5,7 @@ import { createTvParts, offerPhone } from "./tv-parts";
 import type { TvPageWords } from "./tv-page-words";
 import { openTvSession, type TvPorts, type TvSession } from "./tv-session";
 
-/** Way B of the TV page (dev-docs/tv_remote/TV_PAGE.md): a share link's page, phone-driven. */
+/** Way B of the TV page (docs/dev/tv_remote/TV_PAGE.md): a share link's page, phone-driven. */
 export interface TvOfferOptions {
   readonly document: Document;
   readonly words: TvPageWords;

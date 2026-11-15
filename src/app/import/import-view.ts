@@ -37,7 +37,7 @@ export function pendingPictureCount(state: PictureImportState): number {
 
 /**
  * "Next" waits until every picture is downscaled and checked for similar shots and blur
- * (dev-docs/SCOPE.md, interaction rules).
+ * (docs/dev/SCOPE.md, interaction rules).
  */
 export function canContinue(state: PictureImportState, culling: CullingState): boolean {
   return !state.busy && culling.checking === null && !state.failed && state.pictures.length > 0;

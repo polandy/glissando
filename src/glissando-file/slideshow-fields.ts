@@ -42,7 +42,7 @@ import { DocumentFormatError, readDateTime, readText, type JsonObject } from "./
 
 /**
  * The field checks every document holding a slideshow shares — the .glissando manifest and the
- * server slideshow (`dev-docs/SERVER_LIBRARY.md`). Each document adds the keys that name its
+ * server slideshow (`docs/dev/SERVER_LIBRARY.md`). Each document adds the keys that name its
  * media; `version` is the manifest format version whose fields are read.
  */
 

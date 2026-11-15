@@ -6,7 +6,7 @@ type CardChoice = (typeof CARD_CHOICES)[number];
 
 const CARD_KEY = "glissando.frame.cardShown";
 
-/** Whether the start screen offers the picture frame card, kept in this browser (`dev-docs/app/FRAME.md`). */
+/** Whether the start screen offers the picture frame card, kept in this browser (`docs/dev/app/FRAME.md`). */
 export class FrameCardPreference {
   readonly #port: StoredChoice<CardChoice>;
   readonly #listeners = new Set<(shown: boolean) => void>();

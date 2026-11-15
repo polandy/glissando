@@ -5,7 +5,7 @@
   import { getTranslator } from "../i18n/context";
   import type { BuildInfo } from "./build-info";
 
-  /** The running build, and the way to the waiting one (dev-docs/app/SETTINGS.md). */
+  /** The running build, and the way to the waiting one (docs/dev/app/SETTINGS.md). */
   let {
     build,
     updateWaiting,

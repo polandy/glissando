@@ -27,7 +27,7 @@ export type Route =
   | { readonly screen: "music"; readonly slideshowId: string }
   | { readonly screen: "picture"; readonly slideshowId: string; readonly pictureId: string }
   | { readonly screen: "frameSetup" }
-  /** The running picture frame (`dev-docs/app/FRAME.md`); over start, not over its set-up screen. */
+  /** The running picture frame (`docs/dev/app/FRAME.md`); over start, not over its set-up screen. */
   | { readonly screen: "frame"; readonly albumId: string };
 
 /** What the Immich browser has open below its tabs: one album or one person. */

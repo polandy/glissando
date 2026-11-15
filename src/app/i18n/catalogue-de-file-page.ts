@@ -1,6 +1,6 @@
 import type { Message } from "./messages.ts";
 
-/** German copy of index.html's choose-folder card (dev-docs/library/GLISSANDO_FILE.md). */
+/** German copy of index.html's choose-folder card (docs/dev/library/GLISSANDO_FILE.md). */
 export const deFilePage = {
   "filePage.chooseTitle": "Wähle den Ordner dieser Diashow",
   "filePage.chooseText":

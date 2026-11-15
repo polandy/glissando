@@ -5,7 +5,7 @@
 
   /**
    * An export that cannot go on: the sentence with its way out, the raw error one press away
-   * (dev-docs/app/WAITING_AND_ERRORS.md). The session already reported the error.
+   * (docs/dev/app/WAITING_AND_ERRORS.md). The session already reported the error.
    */
   let {
     description,

@@ -1,7 +1,7 @@
 import type { Message } from "./messages.ts";
 
 /**
- * German copy of the page a shared slideshow's link opens (dev-docs/SHARE_LINK.md), built into
+ * German copy of the page a shared slideshow's link opens (docs/dev/SHARE_LINK.md), built into
  * that page with the export page's `htmlPage.*` words.
  */
 export const deSharePage = {

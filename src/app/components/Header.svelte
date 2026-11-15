@@ -21,7 +21,7 @@
      * (see `Crumb`). None on the start screen: the brand.
      */
     crumbs: readonly Crumb[];
-    /** Shows the back arrow; it should go back through history (see dev-docs/app/NAVIGATION.md). */
+    /** Shows the back arrow; it should go back through history (see docs/dev/app/NAVIGATION.md). */
     onBack?: () => void;
     /** Greys the back arrow out while leaving would interrupt something under way. */
     backDisabled?: boolean;

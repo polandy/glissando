@@ -1,6 +1,6 @@
 /**
  * What the exported page's markup and its player script agree on
- * (dev-docs/html_export/THE_PAGE.md). Both sides import it, so a renamed id cannot leave the page
+ * (docs/dev/html_export/THE_PAGE.md). Both sides import it, so a renamed id cannot leave the page
  * unreadable.
  */
 
@@ -46,7 +46,7 @@ export type PageState =
   | "paused"
   | "ended"
   | "error"
-  // The share page's own (dev-docs/SHARE_LINK.md): after Play until playing, the link turned
+  // The share page's own (docs/dev/SHARE_LINK.md): after Play until playing, the link turned
   // off, the server not answering.
   | "starting"
   | "gone"

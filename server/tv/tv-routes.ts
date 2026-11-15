@@ -31,7 +31,7 @@ import type { CloseStream, EventSink, TvHub } from "./tv-hub";
 import { redactTvSecrets } from "./tv-redaction";
 
 /**
- * The TV remote's HTTP layer (dev-docs/tv_remote/HTTP_API.md): a request in, a plain response or
+ * The TV remote's HTTP layer (docs/dev/tv_remote/HTTP_API.md): a request in, a plain response or
  * a stream out, so it is tested without sockets.
  */
 

@@ -1,7 +1,7 @@
 import type { Message } from "./messages.ts";
 
 /**
- * German copy of the share page as the TV page (dev-docs/tv_remote/TV_PAGE.md), built into
+ * German copy of the share page as the TV page (docs/dev/tv_remote/TV_PAGE.md), built into
  * that page with the share page's words.
  */
 export const deTvPage = {

@@ -54,7 +54,7 @@ function scrollSpeed(y: number, edges: { readonly top: number; readonly bottom: 
 }
 
 /**
- * The picture strip's pointer drag, for mouse and touch alike (dev-docs/app/slideshow-editing/SELECTING_SEVERAL.md, Moving;
+ * The picture strip's pointer drag, for mouse and touch alike (docs/dev/app/slideshow-editing/SELECTING_SEVERAL.md, Moving;
  * ADR-0019). Pure and driven by the strip with plain pointer data; timing and hit-testing come
  * in as ports, so a test drives a whole drag without waiting on a real timer or frame.
  */

@@ -8,7 +8,7 @@ import { NO_SONG_BEATS } from "./playlist";
 import { NO_SONG_LOUDNESS, type SongLoudness } from "./song-loudness";
 
 // Close enough together that the relative gate never excludes the quieter passage from the
-// excerpt's integrated loudness (dev-docs/app/slideshow-editing/ENERGY_PACING.md).
+// excerpt's integrated loudness (docs/dev/app/slideshow-editing/ENERGY_PACING.md).
 const QUIET_LUFS = -24;
 const LOUD_LUFS = -16;
 
@@ -145,7 +145,7 @@ describe("composeSlideshow with energy pacing", () => {
 
     const durationsMs = durationsOf(stored, loudness);
 
-    // The quiet-to-loud rise sits at 15 000 ms (dev-docs ENERGY_PACING.md "Lifts"); a boundary
+    // The quiet-to-loud rise sits at 15 000 ms (docs/dev ENERGY_PACING.md "Lifts"); a boundary
     // between two automatic slides lands there exactly.
     expect(slideEndsMs(durationsMs)).toContain(15_000);
   });

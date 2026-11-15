@@ -13,8 +13,8 @@ import { createTvHandler } from "./tv/tv-routes";
 
 /**
  * The library service's composition root: the handler on SQLite in the data volume, served on
- * loopback, where Caddy forwards `/api/library` to it (`dev-docs/SERVER_LIBRARY.md`), and the
- * TV remote's sessions in memory beside it (`dev-docs/TV_REMOTE.md`).
+ * loopback, where Caddy forwards `/api/library` to it (`docs/dev/SERVER_LIBRARY.md`), and the
+ * TV remote's sessions in memory beside it (`docs/dev/TV_REMOTE.md`).
  */
 
 const LOOPBACK = "127.0.0.1";

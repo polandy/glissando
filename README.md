@@ -13,13 +13,13 @@
 
 <p align="center">
   <a href="https://polandy.github.io/glissando/"><b>Open Glissando</b></a> ·
-  <a href="docs/user-guide.md">User guide</a> ·
-  <a href="docs/self-hosting.md">Self-hosting</a> ·
-  <a href="docs/development.md">Development</a>
+  <a href="docs/user/user-guide.md">User guide</a> ·
+  <a href="docs/user/self-hosting.md">Self-hosting</a> ·
+  <a href="docs/dev/development.md">Development</a>
 </p>
 
 <p align="center">
-  <img src="docs/images/slideshow.png" alt="A slideshow in Glissando: pictures in order, Play and Save as video" width="820">
+  <img src="docs/user/images/slideshow.png" alt="A slideshow in Glissando: pictures in order, Play and Save as video" width="820">
 </p>
 
 ## Why Glissando
@@ -64,34 +64,34 @@ secrets:
 ```
 
 Then `docker compose up -d glissando`, put your HTTPS reverse proxy in front, and **protect it
-with a sign-in or a VPN**. Step by step: [docs/self-hosting.md](docs/self-hosting.md).
+with a sign-in or a VPN**. Step by step: [docs/user/self-hosting.md](docs/user/self-hosting.md).
 
 <p align="center">
-  <img src="docs/images/immich-phone.png" alt="Picking photos from Immich on a phone" width="260">
+  <img src="docs/user/images/immich-phone.png" alt="Picking photos from Immich on a phone" width="260">
 </p>
 
 ## Two ways to use it
 
-|                    | On your device                                          | With your own server and Immich                                  |
-| ------------------ | ------------------------------------------------------- | ---------------------------------------------------------------- |
-| Get it             | open <https://polandy.github.io/glissando/>             | run the container next to Immich ([guide](docs/self-hosting.md)) |
-| Needs              | nothing after the first load — works offline            | your server, reachable from your devices                         |
-| Pictures from      | files on the device                                     | files on the device, or picked from Immich                       |
-| Slideshows live    | in the browser on that one device                       | on the device, or on the server for every device at home         |
-| Make, play, export | ✓ music, Ken Burns, transitions, video (MP4), HTML file | ✓ the same                                                       |
-| Picture frame      | —                                                       | an Immich album, played endlessly                                |
-| Share by link      | —                                                       | anyone can watch in a browser                                    |
-| TV remote          | —                                                       | show on the TV, control it from the phone                        |
-| Your pictures      | never leave the device                                  | stay with your devices, server and Immich, unless you share      |
+|                    | On your device                                          | With your own server and Immich                                       |
+| ------------------ | ------------------------------------------------------- | --------------------------------------------------------------------- |
+| Get it             | open <https://polandy.github.io/glissando/>             | run the container next to Immich ([guide](docs/user/self-hosting.md)) |
+| Needs              | nothing after the first load — works offline            | your server, reachable from your devices                              |
+| Pictures from      | files on the device                                     | files on the device, or picked from Immich                            |
+| Slideshows live    | in the browser on that one device                       | on the device, or on the server for every device at home              |
+| Make, play, export | ✓ music, Ken Burns, transitions, video (MP4), HTML file | ✓ the same                                                            |
+| Picture frame      | —                                                       | an Immich album, played endlessly                                     |
+| Share by link      | —                                                       | anyone can watch in a browser                                         |
+| TV remote          | —                                                       | show on the TV, control it from the phone                             |
+| Your pictures      | never leave the device                                  | stay with your devices, server and Immich, unless you share           |
 
 ## Documentation
 
-| For          | Read                                             |
-| ------------ | ------------------------------------------------ |
-| Using it     | [User guide](docs/user-guide.md)                 |
-| Running it   | [Self-hosting with Immich](docs/self-hosting.md) |
-| Contributing | [Development](docs/development.md)               |
-| Plans        | [Scope and roadmap](dev-docs/SCOPE.md)           |
+| For          | Read                                                  |
+| ------------ | ----------------------------------------------------- |
+| Using it     | [User guide](docs/user/user-guide.md)                 |
+| Running it   | [Self-hosting with Immich](docs/user/self-hosting.md) |
+| Contributing | [Development](docs/dev/development.md)                |
+| Plans        | [Scope and roadmap](docs/dev/SCOPE.md)                |
 
 Status: early development — see the [changelog](CHANGELOG.md).
 

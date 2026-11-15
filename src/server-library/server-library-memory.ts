@@ -1,6 +1,6 @@
 import type { KeyValueStorage } from "../app/storage/storage-port";
 
-/** The store a slideshow lives in (`dev-docs/SERVER_LIBRARY.md`). */
+/** The store a slideshow lives in (`docs/dev/SERVER_LIBRARY.md`). */
 export type SlideshowHome = "device" | "server";
 
 const SLIDESHOW_HOMES: readonly SlideshowHome[] = ["device", "server"];
@@ -16,7 +16,7 @@ export interface ServerSlideshowCard {
 
 /**
  * What this device remembers of the server library between app starts
- * (`dev-docs/server_library/IN_THE_APP.md`): whether it was on, and the last list's cards.
+ * (`docs/dev/server_library/IN_THE_APP.md`): whether it was on, and the last list's cards.
  * Fail-soft: a device whose storage refuses remembers nothing.
  */
 export interface ServerLibraryMemory {

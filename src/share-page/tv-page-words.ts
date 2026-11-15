@@ -1,5 +1,5 @@
 /**
- * The share page's words as the TV page (`tvPage.*`, dev-docs/tv_remote/TV_PAGE.md); part of
+ * The share page's words as the TV page (`tvPage.*`, docs/dev/tv_remote/TV_PAGE.md); part of
  * `SharePageWords`, so built into every share page in both languages.
  */
 export interface TvPageWords {

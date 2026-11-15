@@ -35,7 +35,7 @@
       opacity: 1;
     }
   }
-  /* Selecting several (dev-docs/app/slideshow-editing/SELECTING_SEVERAL.md, Selecting several): the check circle instead of the mark. */
+  /* Selecting several (docs/dev/app/slideshow-editing/SELECTING_SEVERAL.md, Selecting several): the check circle instead of the mark. */
   :global(.tile.selecting-mode) .mark {
     display: none;
   }
