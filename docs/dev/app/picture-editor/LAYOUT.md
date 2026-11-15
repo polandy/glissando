@@ -13,4 +13,5 @@
   - otherwise (shown alone by nature, or by the switch): "Shown alone."
 - Toggling the switch calls `SlideshowEditor.setPictureAlone`, applied at once; no own toast
   (the slideshow's "always alone" flag has no automatic default to undo back to, unlike the
-  motion, duration and transition sections).
+  motion, duration and transition sections). Splitting or rejoining a pair from the slideshow
+  screen sets the same flag and does offer an undo toast (SCREENS.md, the picture strip).

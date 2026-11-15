@@ -10,6 +10,10 @@ export interface SlideshowRoutePictureActions {
   readonly onSortByDate: () => void;
   readonly onMoveGroup: (pictureIds: readonly string[], insertion: number) => void;
   readonly onRename: (typed: string) => void;
+  /** Splits the portrait pair the picture belongs to (ADR-0028). */
+  readonly onSplitPair: (pictureId: string) => void;
+  /** Pairs an alone picture with its neighbour again. */
+  readonly onRejoinPair: (pictureId: string) => void;
 }
 
 /**
@@ -27,5 +31,7 @@ export function slideshowRoutePictureActions(
     onSortByDate: () => current()?.sortByDate(),
     onMoveGroup: (pictureIds, insertion) => current()?.moveGroup(pictureIds, insertion),
     onRename: (typed) => current()?.rename(typed),
+    onSplitPair: (pictureId) => current()?.splitPair(pictureId),
+    onRejoinPair: (pictureId) => current()?.rejoinPair(pictureId),
   };
 }

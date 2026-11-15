@@ -10,7 +10,7 @@ import {
   tile,
   unmountScreen,
 } from "./slideshow-screen-harness";
-import { expectActionRowScrollsToRemove } from "./slideshow-screen-dom";
+import { expectActionsWrapInsideBar } from "./slideshow-screen-dom";
 
 const THEMES = ["light", "dark"] as const;
 /** The reference phone, a Pixel 9 Pro, in CSS pixels. */
@@ -81,7 +81,7 @@ describe("SlideshowScreen selection bar look", () => {
     expect(done.right).toBeLessThanOrEqual(barBox.right);
     expect(barBox.right).toBeLessThanOrEqual(PHONE.width);
     expect(buttonNamed("Früher").getBoundingClientRect().top).toBeGreaterThanOrEqual(done.bottom);
-    // Eight actions are wider than the phone: the row scrolls inside the bar.
-    expectActionRowScrollsToRemove(bar);
+    // Eight actions are wider than the phone: they wrap onto a second line inside the bar.
+    expectActionsWrapInsideBar(bar);
   });
 });

@@ -23,6 +23,7 @@ describe("importPictureTile", () => {
       ownDurationMs: null,
       ownTransition: null,
       pairedWithNumber: null,
+      rejoinsWithNumber: null,
       blurredFill: false,
       alone: false,
       colours: COLOURS,

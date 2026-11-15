@@ -72,6 +72,8 @@ function editorOver(store: MemoryLibraryStore, toaster: Toaster): SlideshowEdito
     songRemovedText: () => "Song entfernt",
     shuffledText: () => "",
     sortedByDateText: () => "",
+    pairSplitText: () => "",
+    pairRejoinedText: () => "",
     random: () => 0,
     automaticTitle: () => "Juli 2025",
     locale: () => "de-DE",

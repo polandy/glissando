@@ -21,6 +21,7 @@ const BANNED: ReadonlyArray<readonly [RegExp, string]> = [
   [/\bbackend\b/i, "Glissando server"],
   [/\bdownsiz/i, "downscaled"],
   [/\bFullscreen\b/, "Full screen"],
+  [/\b(Unpair|Separate|Detach)\b/i, "Split"],
   [/\bTrimmed\b/, "Excerpt"],
   [/\bFine settings\b/, "More settings"],
   [/\bKen Burns\b/i, "motion"],

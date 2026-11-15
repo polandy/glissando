@@ -32,6 +32,7 @@ export function pictureTile(
     ownDurationMs: null,
     ownTransition: null,
     pairedWithNumber: null,
+    rejoinsWithNumber: null,
     blurredFill: false,
     alone: false,
     colours: PICTURE_COLOURS,

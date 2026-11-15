@@ -5,6 +5,8 @@
   import CardTile from "./card-sheet/CardTile.svelte";
   import ChapterTile from "./ChapterTile.svelte";
   import DragGhost from "./DragGhost.svelte";
+  import { holdTouchScroll } from "./hold-touch-scroll";
+  import { pairCuts } from "./pair-cuts";
   import { lookFilterUrl } from "./look-filter-id";
   import LookFilterDefs from "./LookFilterDefs.svelte";
   import PlaceholderTile from "./PlaceholderTile.svelte";
@@ -41,6 +43,7 @@
     placeholderCount = 0,
     chapters = [],
     onOpenChapter = () => undefined,
+    onSplitPair,
   }: PictureStripProps = $props();
 
   const { t } = getTranslator();
@@ -126,17 +129,7 @@
     }
   });
 
-  // A lifted touch owns the finger: the page must not scroll under it (ADR-0019). The browser
-  // treats a window-level touchmove as passive by default, so this needs an explicit listener.
-  $effect(() => {
-    const preventWhileLifted = (event: TouchEvent): void => {
-      if (dragState.lifted) {
-        event.preventDefault();
-      }
-    };
-    window.addEventListener("touchmove", preventWhileLifted, { passive: false });
-    return () => window.removeEventListener("touchmove", preventWhileLifted);
-  });
+  $effect(() => holdTouchScroll(() => dragState.lifted));
 
   // Fixed for the strip's lifetime: the props it reads are read fresh, by reference, on every key.
   // svelte-ignore state_referenced_locally
@@ -221,6 +214,7 @@
   class="strip"
   aria-label={t("slideshow.pictures")}
   bind:this={strip}
+  {@attach pairCuts(pictures, chapterByAnchor)}
   onpointerdown={pointerDown}
   oncontextmenu={contextmenu}
 >
@@ -255,6 +249,8 @@
       onPick={(event) => clickTile(event, picture.id)}
       onOpen={() => openOnDoubleClick(picture.id)}
       onKeydown={(event) => keydown(event, picture.id, index)}
+      partnerSelected={selection.ids.has(pictures[(picture.pairedWithNumber ?? 0) - 1]?.id ?? "")}
+      onSplitPair={onSplitPair && (() => onSplitPair(picture.id))}
     />
   {/each}
   {#each { length: placeholderCount }, index (index)}
@@ -280,16 +276,20 @@
 <style>
   .strip {
     display: grid;
+    /* A pair's plate bridges half of the gap from either side (StripTile). */
+    --strip-gap: 10px;
     grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
-    gap: 10px;
+    gap: var(--strip-gap);
     margin: 0;
     padding: 0;
     list-style: none;
+    /* The pair plates sit behind their tiles, never behind the page. */
+    isolation: isolate;
   }
   @container (max-width: 720px) {
     .strip {
       grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
+      --strip-gap: 6px;
     }
   }
 </style>

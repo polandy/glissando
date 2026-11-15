@@ -2,6 +2,7 @@
   import { getTranslator } from "../../i18n/context";
   import { MILLISECONDS_PER_SECOND } from "../../../player";
   import type { PictureTile } from "../view-models";
+  import PairSplitButton from "./PairSplitButton.svelte";
   import StripTileBadges from "./StripTileBadges.svelte";
   import StripTileCheck from "./StripTileCheck.svelte";
   import StripTileMarks from "./StripTileMarks.svelte";
@@ -20,6 +21,8 @@
     onPick,
     onOpen,
     onKeydown,
+    partnerSelected = false,
+    onSplitPair,
   }: {
     picture: PictureTile;
     /** The position in play order, from 1. */
@@ -41,6 +44,10 @@
     /** A double-click with a mouse: opens the picture editor. */
     onOpen: () => void;
     onKeydown: (event: KeyboardEvent) => void;
+    /** The picture this one shares a slide with is selected. */
+    partnerSelected?: boolean;
+    /** Splits the pair this picture belongs to; without it, the pair shows no scissors. */
+    onSplitPair?: (() => void) | undefined;
   } = $props();
 
   const { t, formatDate, formatSeconds } = getTranslator();
@@ -69,6 +76,7 @@
     ].join(""),
   );
   const label = $derived(isNew ? t("add.newLabel", { label: ownLabel }) : ownLabel);
+  const partner = $derived(picture.pairedWithNumber);
 </script>
 
 <li
@@ -79,8 +87,8 @@
   class:dragging
   class:drop-before={drop === "before"}
   class:drop-after={drop === "after"}
-  class:paired-first={picture.pairedWithNumber !== null && picture.pairedWithNumber > number}
-  class:paired-second={picture.pairedWithNumber !== null && picture.pairedWithNumber < number}
+  class:paired-first={partner !== null && partner > number}
+  class:paired-second={partner !== null && partner < number}
 >
   <button
     class="pick"
@@ -110,6 +118,14 @@
   </button>
   <StripTileCheck {selecting} {selected} />
   <StripTileMarks />
+  {#if partner !== null && partner > number && onSplitPair !== undefined}
+    <PairSplitButton
+      first={number}
+      second={partner}
+      shown={!selecting && (selected || partnerSelected)}
+      onSplit={onSplitPair}
+    />
+  {/if}
 </li>
 
 <style>
@@ -120,6 +136,10 @@
     scroll-margin-bottom: var(--selection-clearance, 0px);
     border-radius: var(--gl-radius-tile);
     background: var(--gl-hover);
+    /* The strip sets its gap; a tile shown on its own assumes the widest one. */
+    --tile-gap: var(--strip-gap, 10px);
+    --plate-reach: calc(var(--tile-gap) / -2 + 1px);
+    --plate-radius: calc(var(--gl-radius-tile) - var(--plate-reach));
   }
   .tile.selected {
     outline: 3px solid var(--gl-accent);
@@ -132,22 +152,35 @@
   .tile.dragging {
     opacity: 0.35;
   }
-  /* A pair's two tiles (ADR-0028): a continuous bar under both, each drawing its own half. */
+  /* A pair's two tiles (ADR-0028): one plate behind both, each drawing its half up to the middle
+     of the gap; open (dashed) where a row break or a chapter cuts the pair (`pair-cuts.ts`). */
   .tile.paired-first::after,
   .tile.paired-second::after {
     content: "";
     position: absolute;
-    bottom: -4px;
-    height: 2px;
-    background: var(--gl-accent);
+    /* Short of the middle of the gap, so the plates of two rows never touch. */
+    inset: var(--plate-reach);
+    z-index: -1;
+    border: 2px solid var(--gl-pair-edge);
+    background: var(--gl-pair-plate);
   }
   .tile.paired-first::after {
-    left: 50%;
-    right: -5px;
+    right: calc(var(--tile-gap) / -2 - 1px);
+    border-right: 0;
+    border-radius: var(--plate-radius) 0 0 var(--plate-radius);
   }
   .tile.paired-second::after {
-    left: -5px;
-    right: 50%;
+    left: calc(var(--tile-gap) / -2 - 1px);
+    border-left: 0;
+    border-radius: 0 var(--plate-radius) var(--plate-radius) 0;
+  }
+  .tile.paired-first:global([data-pair-cut])::after {
+    right: var(--plate-reach);
+    border-right: 2px dashed var(--gl-pair-edge);
+  }
+  .tile.paired-second:global([data-pair-cut])::after {
+    left: var(--plate-reach);
+    border-left: 2px dashed var(--gl-pair-edge);
   }
   /* Where a dragged picture lands: a dashed mark in the gap before or after the tile. */
   .tile.drop-before::before,

@@ -25,6 +25,7 @@ variants and fails on the first one.
 | keep & share, the actions    | Save                                           | Speichern                                    | Export, "Exporting…", "Export failed"                 |
 | the server                   | Glissando server                               | Glissando-Server                             | server, backend                                       |
 | made smaller for a device    | downscaled                                     | verkleinert                                  | downsized, downscales                                 |
+| two pictures on one slide    | pair / Split / Pair again                      | Paar / Trennen / Wieder als Paar             | Unpair, Separate, Detach                              |
 | the full-screen view         | Full screen                                    | Vollbild                                     | Fullscreen, View full screen                          |
 | the part of a clip or song   | Excerpt                                        | Ausschnitt                                   | Trimmed, clip (for music), Cut                        |
 | the transition without fade  | Hard cut                                       | Harter Schnitt                               | Cut (collides with the excerpt)                       |

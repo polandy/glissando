@@ -48,4 +48,6 @@ export interface PictureStripProps {
   chapters?: readonly SlideshowChapter[];
   /** Opens the chapter's sheet. Unused while `chapters` is absent. */
   onOpenChapter?: (anchorPictureId: string) => void;
+  /** Splits the portrait pair the picture belongs to (ADR-0028); without it, pairs show no scissors. */
+  onSplitPair?: ((pictureId: string) => void) | undefined;
 }

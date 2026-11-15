@@ -22,6 +22,7 @@ const TILE: PictureTile = {
   ownDurationMs: null,
   ownTransition: null,
   pairedWithNumber: null,
+  rejoinsWithNumber: null,
   blurredFill: false,
   alone: false,
   colours: { veil: "#113355", accent: "#AACCEE" },

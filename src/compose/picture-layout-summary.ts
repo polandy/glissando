@@ -26,12 +26,18 @@ export interface PictureLayoutSummary {
   readonly pairedWithNumber: number | null;
   /** Shown whole over a blurred copy of itself because the reference screen would crop too much. */
   readonly blurredFill: boolean;
+  /**
+   * For a picture marked alone: the number of the neighbour it pairs with once that mark is
+   * cleared; null when it would stay single, or is not marked alone.
+   */
+  readonly rejoinsWithNumber: number | null;
 }
 
 /**
  * How each of `pictures` lays out (ADR-0028), for the strip's badges and the picture editor's
  * layout section: a pair's two pictures name each other, a single one says whether it gets the
- * blurred fill against `LAYOUT_REFERENCE_VIEWPORT`.
+ * blurred fill against `LAYOUT_REFERENCE_VIEWPORT`; one marked alone names the neighbour it would
+ * pair with again.
  */
 export function pictureLayoutSummaries(
   pictures: readonly StoredPicture[],
@@ -41,6 +47,7 @@ export function pictureLayoutSummaries(
   const summaries: PictureLayoutSummary[] = pictures.map(() => ({
     pairedWithNumber: null,
     blurredFill: false,
+    rejoinsWithNumber: null,
   }));
   for (const unit of units) {
     const [firstIndex, secondIndex] = unit.pictureIndices;
@@ -49,13 +56,40 @@ export function pictureLayoutSummaries(
       summaries[firstIndex] = {
         pairedWithNumber: null,
         blurredFill: blurredFill(picture, portraitPictures),
+        rejoinsWithNumber: rejoinsWithNumber(pictures, firstIndex, portraitPictures),
       };
     } else {
-      summaries[firstIndex] = { pairedWithNumber: secondIndex + 1, blurredFill: false };
-      summaries[secondIndex] = { pairedWithNumber: firstIndex + 1, blurredFill: false };
+      summaries[firstIndex] = {
+        pairedWithNumber: secondIndex + 1,
+        blurredFill: false,
+        rejoinsWithNumber: null,
+      };
+      summaries[secondIndex] = {
+        pairedWithNumber: firstIndex + 1,
+        blurredFill: false,
+        rejoinsWithNumber: null,
+      };
     }
   }
   return summaries;
+}
+
+/** Lays the pictures out again without `index`'s alone mark, and names its partner there. */
+function rejoinsWithNumber(
+  pictures: readonly StoredPicture[],
+  index: number,
+  portraitPictures: PortraitPictures | undefined,
+): number | null {
+  const { alone, ...unmarked } = pictures[index] as StoredPicture;
+  if (alone !== true) {
+    return null;
+  }
+  const without = pictures.map((picture, at) => (at === index ? unmarked : picture));
+  const unit = slideUnits(without, portraitPictures).find((candidate) =>
+    (candidate.pictureIndices as readonly number[]).includes(index),
+  );
+  const partnerIndex = unit?.pictureIndices.find((at) => at !== index);
+  return partnerIndex === undefined ? null : partnerIndex + 1;
 }
 
 function blurredFill(

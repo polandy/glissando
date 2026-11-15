@@ -38,6 +38,8 @@ export function createScreenEditor(
     captionClearedText: () => t("editor.captionCleared"),
     slideshowTransitionResetText: () => t("transitions.resetDone"),
     portraitPicturesResetText: () => t("portrait.resetDone"),
+    pairSplitText: (first, second) => t("slideshow.pairSplit", { first, second }),
+    pairRejoinedText: (first, second) => t("slideshow.pairRejoined", { first, second }),
     lookResetText: () => t("look.resetDone"),
     moodResetText: () => t("mood.resetDone"),
     openingCardRemovedText: () => t("cards.openingRemoved"),

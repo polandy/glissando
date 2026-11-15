@@ -23,14 +23,15 @@
   picture editor, [PICTURE_EDITOR.md](../PICTURE_EDITOR.md)), "Insert chapter before"
   ([TRIP_CHAPTERS.md](TRIP_CHAPTERS.md)), ⇄ "Move to …", 🗑 "Remove" (named with the count,
   "Remove 3 pictures"), and "Done" in the accent. Below 1140 px the bar has two rows: the count ("Picture 3 of 12", or the chip
-  with the range for several) on the left and "Done" on the right, then every action in one
-  row, the icon over its label, the buttons equally wide (the bar 112 px high, every target at
-  least 44 px: the coarse-pointer pad extends the hit area of a button narrower than that). The
-  row holds Earlier, Later, View and Edit (one picture, only), Insert chapter before (one
-  picture, only; labelled "Chapter"), "Move to …" (labelled "Move"; with a selection, only) and
-  Remove. Earlier, Later and Move to are absent while adding. There is no "More" menu. The
-  labels are never cut off at 360 px; a still narrower screen scrolls the row inside the bar,
-  never the page. The full names stay the accessible names. Earlier and Later look disabled at the ends but stay focusable
+  with the range for several) on the left and "Done" on the right, then every action, the icon over
+  its label, the buttons equally wide, every target at least 44 px (the coarse-pointer pad
+  extends the hit area of a button narrower than that). The actions take one line where all fit
+  at their narrowest (the bar 112 px high), otherwise two even lines, the first taking the odd
+  one (the bar 168 px high; `action-lines.ts`). The actions are Earlier, Later, View and Edit (one
+  picture, only), Insert chapter before (one picture, only; labelled "Chapter"), "Move to …"
+  (labelled "Move"; with a selection, only), "Split" or "Pair again" (one picture of a pair,
+  or an alone one that would pair; SCREENS.md) and Remove. Earlier, Later and Move to are absent while adding. There is no "More" menu. The
+  labels are never cut off at 360 px, and no action ever scrolls off-screen. The full names stay the accessible names. Earlier and Later look disabled at the ends but stay focusable
   (`aria-disabled`). "Move to …" opens a small dialog (`MoveToSheet.svelte`) with the choices
   Start, End and "Before picture …" (a − N + stepper from 1 to the picture count, starting at
   the selected picture's number) and "Move"; the selection stays and the moved tile scrolls

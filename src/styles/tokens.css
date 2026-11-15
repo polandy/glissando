@@ -54,6 +54,9 @@
   /* The accent as a quiet fill, its edge and a glow around a dot: a waiting new version. */
   --gl-accent-tint: color-mix(in srgb, var(--gl-accent) 22%, var(--gl-surface));
   --gl-accent-line: color-mix(in srgb, var(--gl-accent) 55%, var(--gl-line));
+  /* Two portrait pictures on one slide: the plate behind both tiles and its edge (ADR-0028). */
+  --gl-pair-plate: color-mix(in srgb, var(--gl-accent) 48%, var(--gl-surface));
+  --gl-pair-edge: var(--gl-accent);
   --gl-accent-halo: color-mix(in srgb, var(--gl-accent) 30%, transparent);
   --gl-scrim: rgb(34 29 51 / 0.04);
   --gl-shadow: 0 1px 2px rgb(34 29 51 / 0.06), 0 6px 18px rgb(34 29 51 / 0.06);
@@ -179,6 +182,7 @@
   --gl-radius-pill: 999px;
   /* The narrow selection bar: the count and Done over a row of labelled actions. */
   --gl-selection-bar-labelled-height: 112px;
+  --gl-selection-bar-two-lines-height: 168px;
 
   /* The smallest touch target a finger can hit with confidence (44 pt); see base.css. */
   --gl-hit-min: 44px;
