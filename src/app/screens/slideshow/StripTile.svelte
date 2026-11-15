@@ -136,7 +136,9 @@
     scroll-margin-bottom: var(--selection-clearance, 0px);
     border-radius: var(--gl-radius-tile);
     background: var(--gl-hover);
-    --plate-reach: calc(var(--strip-gap, 10px) / -2 + 1px);
+    /* The strip sets its gap; a tile shown on its own assumes the widest one. */
+    --tile-gap: var(--strip-gap, 10px);
+    --plate-reach: calc(var(--tile-gap) / -2 + 1px);
     --plate-radius: calc(var(--gl-radius-tile) - var(--plate-reach));
   }
   .tile.selected {
@@ -163,12 +165,12 @@
     background: var(--gl-pair-plate);
   }
   .tile.paired-first::after {
-    right: calc(var(--strip-gap, 10px) / -2 - 1px);
+    right: calc(var(--tile-gap) / -2 - 1px);
     border-right: 0;
     border-radius: var(--plate-radius) 0 0 var(--plate-radius);
   }
   .tile.paired-second::after {
-    left: calc(var(--strip-gap, 10px) / -2 - 1px);
+    left: calc(var(--tile-gap) / -2 - 1px);
     border-left: 0;
     border-radius: 0 var(--plate-radius) var(--plate-radius) 0;
   }

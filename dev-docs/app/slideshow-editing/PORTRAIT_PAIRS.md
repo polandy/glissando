@@ -14,14 +14,17 @@ whenever the strip resizes).
 ## Splitting and pairing again
 
 - A scissors button "Split pictures 1 and 2" sits on the bridge (at the first tile's end when
-  the pair is cut). It shows on hover where the pointer hovers, and while either picture of the
-  pair is selected; it is focusable only while shown.
+  the pair is cut). It shows while the mouse is over either tile (over the first only when a
+  chapter tile sits between them) and while either picture of the pair is selected; it is focusable only while shown.
 - With one picture selected, the selection bar offers "Split" for a picture of a pair, and
   "Pair again" (narrow: "Pair") for an alone picture that would pair without its mark
   (`pair-action.ts`).
 - Splitting marks the pair's second picture alone (`PairEditor.split`): pairing is greedy from
   the start, so exactly this one pair comes apart. A toast "Pictures 1 and 2 split" offers
   "Undo".
-- Pair again clears the mark, with a toast "Pictures 1 and 2 paired again" and "Undo".
+- Pair again clears the mark, with a toast "Pictures 1 and 2 paired again" and "Undo". Pairing
+  greedily, the pictures after it may pair up anew: a pair it takes a picture from comes apart.
 - Toggling "Always alone" in the picture editor supersedes a pending undo of either.
+- The phone bar dispatches `actionlinesbalanced` on its action row after a width change has
+  rebalanced it, a signal tests wait for.
 - E2E-134 splits a pair by its scissors and by the bar, undoes, reloads and pairs it again.

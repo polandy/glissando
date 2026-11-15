@@ -5,6 +5,8 @@ const ACTION_LINES_ATTRIBUTE = "data-lines";
 /** The custom property holding how many columns the two lines share. */
 const ACTION_COLUMNS_PROPERTY = "--action-columns";
 const TWO_LINES = "2";
+/** Dispatched on the action row once a change of the bar's width has rebalanced it. */
+export const ACTION_LINES_BALANCED = "actionlinesbalanced";
 
 /** How many columns two even lines of `count` actions need: the first line takes the odd one. */
 function twoLineColumns(count: number): number {
@@ -47,6 +49,7 @@ export function actionLines(actionKeys: readonly string[]): Attachment<HTMLEleme
         pending = 0;
         balancedWidth = bar.clientWidth;
         balanceActionLines(row);
+        row.dispatchEvent(new Event(ACTION_LINES_BALANCED));
       });
     });
     observer.observe(bar);

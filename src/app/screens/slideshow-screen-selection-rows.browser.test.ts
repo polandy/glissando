@@ -4,6 +4,7 @@ import { flushSync } from "svelte";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { page } from "vitest/browser";
 import { expectActionsWrapInsideBar } from "./slideshow-screen-dom";
+import { ACTION_LINES_BALANCED } from "./slideshow/action-lines";
 import { details, mountScreen, tile, unmountScreen } from "./slideshow-screen-harness";
 
 /** The narrowest phone the bar is held to, in CSS pixels. */
@@ -138,24 +139,34 @@ describe("selection bar at 360 px, laying out its lines", () => {
       mountScreen(details(["a", "b", "c", "d"]));
       tile(2, "02.07.2025").click();
       flushSync();
-      // Two rendering steps: the bar's resize observations are delivered within them.
-      for (let frame = 0; frame < 2; frame += 1) {
-        await new Promise(requestAnimationFrame);
-      }
-      expect(bar().querySelector(".actions")?.getAttribute("data-lines")).toBe("2");
+      await renderingSteps();
+      const actions = bar().querySelector<HTMLElement>(".actions");
+      expect(actions?.getAttribute("data-lines")).toBe("2");
       expect(errors).toEqual([]);
 
+      const balanced = new Promise((resolve) =>
+        actions?.addEventListener(ACTION_LINES_BALANCED, resolve, { once: true }),
+      );
       await page.viewport(WIDE_PHONE.width, WIDE_PHONE.height);
-      for (let frame = 0; frame < 2; frame += 1) {
-        await new Promise(requestAnimationFrame);
-      }
-      expect(bar().querySelector(".actions")?.hasAttribute("data-lines")).toBe(false);
+      await balanced;
+      expect(actions?.hasAttribute("data-lines")).toBe(false);
+      await renderingSteps();
       expect(errors).toEqual([]);
     } finally {
       window.removeEventListener("error", record);
     }
   });
 });
+
+/**
+ * Resolves once a whole rendering step has run, resize observations included: a frame callback
+ * runs before its step's observations, so the second one comes after the first step's.
+ */
+async function renderingSteps(): Promise<void> {
+  for (let frame = 0; frame < 2; frame += 1) {
+    await new Promise(requestAnimationFrame);
+  }
+}
 
 function byNameOnScreen(name: string): HTMLButtonElement {
   const found = [...document.querySelectorAll<HTMLButtonElement>("button")].find(

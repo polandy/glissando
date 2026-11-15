@@ -37,12 +37,13 @@
   .split {
     position: absolute;
     top: 50%;
-    left: calc(100% + var(--strip-gap, 10px) / 2);
+    left: calc(100% + var(--tile-gap) / 2);
     z-index: 3;
     display: grid;
     place-items: center;
-    width: 28px;
-    height: 28px;
+    --split-size: 28px;
+    width: var(--split-size);
+    height: var(--split-size);
     padding: 0;
     border: 0;
     border-radius: var(--gl-radius-pill);
@@ -59,12 +60,12 @@
   .split::before {
     content: "";
     position: absolute;
-    inset: -8px;
+    inset: calc((var(--split-size) - var(--gl-hit-min)) / 2);
   }
   /* Cut by a row break or a chapter: on the first tile's edge instead of the bridge. */
   :global(.tile[data-pair-cut]) > .split {
     left: auto;
-    right: -14px;
+    right: calc(var(--split-size) / -2);
     transform: translate(0, -50%) scale(0.85);
   }
   .split.shown,
