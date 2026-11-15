@@ -55,10 +55,7 @@ async function openClipEditor(
   await expectSlideshowScreen(page);
   await beforeOpening();
 
-  const tile = page
-    .getByRole("listitem")
-    .filter({ has: page.getByText(/^Video, /) })
-    .getByRole("button", { name: /^Bild 1, aufgenommen am/ });
+  const tile = page.getByRole("button", { name: /^Bild 1, aufgenommen am .*, Clip von / });
   await tile.click();
   await page
     .getByRole("toolbar", { name: "Auswahl" })

@@ -45,12 +45,8 @@ test("E2E-059 a clip imported as a slide shows its length, opens in the clip edi
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
   await expectSlideshowScreen(page);
 
-  await expect(page.getByText("Video, 0:03")).toBeAttached();
-
-  const tile = page
-    .getByRole("listitem")
-    .filter({ has: page.getByText("Video, 0:03") })
-    .getByRole("button", { name: /^Bild 1, aufgenommen am/ });
+  const tile = page.getByRole("button", { name: /^Bild 1, aufgenommen am .*, Clip von 0:03$/ });
+  await expect(tile).toBeVisible();
   await tile.click();
   await expect(tile).toHaveAttribute("aria-pressed", "true");
   await page
@@ -114,10 +110,7 @@ test("E2E-063 the clip editor's strip shows the player's place as a draggable ma
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
   await expectSlideshowScreen(page);
 
-  const tile = page
-    .getByRole("listitem")
-    .filter({ has: page.getByText(/^Video, /) })
-    .getByRole("button", { name: /^Bild 1, aufgenommen am/ });
+  const tile = page.getByRole("button", { name: /^Bild 1, aufgenommen am .*, Clip von / });
   await tile.click();
   await page
     .getByRole("toolbar", { name: "Auswahl" })
