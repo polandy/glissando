@@ -25,7 +25,7 @@ function select(pictureId: string): void {
   flushSync();
 }
 
-const scissors = () => byLabel("Bild 1 und 2 trennen");
+const scissors = () => byLabel("Bilder 1 und 2 trennen");
 const reachable = (element: HTMLElement) => getComputedStyle(element).pointerEvents !== "none";
 
 describe("SlideshowScreen: splitting a portrait pair (ADR-0028)", () => {

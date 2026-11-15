@@ -112,10 +112,10 @@ export async function setUp(
     songRemovedText: () => "Song entfernt",
     shuffledText: (count) => `${count} Bilder gemischt`,
     sortedByDateText: (count) => `${count} Bilder nach Datum sortiert`,
-    pairSplitText: (first, second) => `Bild ${first} und ${second} getrennt`,
-    pairRejoinedText: (first, second) => `Bild ${first} und ${second} wieder ein Paar`,
+    pairSplitText: (first, second) => `Bilder ${first} und ${second} getrennt`,
+    pairRejoinedText: (first, second) => `Bilder ${first} und ${second} wieder als Paar`,
     pairRejoinedSplitText: ([first, second], [splitFirst, splitSecond], chain) =>
-      `Bild ${first} und ${second} wieder ein Paar, ${splitFirst} und ${splitSecond} getrennt${chain ? " …" : ""}`,
+      `Bilder ${first} und ${second} wieder als Paar, ${splitFirst} und ${splitSecond} getrennt${chain ? " …" : ""}`,
     random: () => 0,
     automaticTitle: () => "Juli 2025",
     locale: () => "de-DE",

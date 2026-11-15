@@ -33,7 +33,12 @@ function rejoinToast(language: Language, ids: readonly string[], aloneId: string
 describe("the Pair again toast's copy", () => {
   it.each([
     // a+b | c | d+e: no later pair loses a picture.
-    { language: "de", ids: ["a", "b", "c", "d"], alone: "b", text: "Bild 1 und 2 wieder ein Paar" },
+    {
+      language: "de",
+      ids: ["a", "b", "c", "d"],
+      alone: "b",
+      text: "Bilder 1 und 2 wieder als Paar",
+    },
     {
       language: "en",
       ids: ["a", "b", "c", "d"],
@@ -45,7 +50,7 @@ describe("the Pair again toast's copy", () => {
       language: "de",
       ids: ["a", "b", "c", "d", "e"],
       alone: "c",
-      text: "Bild 3 und 4 wieder ein Paar, 4 und 5 getrennt",
+      text: "Bilder 3 und 4 wieder als Paar, 4 und 5 getrennt",
     },
     {
       language: "en",
@@ -58,7 +63,7 @@ describe("the Pair again toast's copy", () => {
       language: "de",
       ids: ["a", "b", "c", "d", "e", "f"],
       alone: "a",
-      text: "Bild 1 und 2 wieder ein Paar, 2 und 3 getrennt …",
+      text: "Bilder 1 und 2 wieder als Paar, 2 und 3 getrennt …",
     },
     {
       language: "en",

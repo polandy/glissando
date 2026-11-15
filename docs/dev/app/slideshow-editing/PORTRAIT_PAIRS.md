@@ -31,3 +31,5 @@ whenever the strip resizes).
 - The phone bar dispatches `actionlinesbalanced` on its action row after a width change has
   rebalanced it, a signal tests wait for.
 - E2E-134 splits a pair by its scissors and by the bar, undoes, reloads and pairs it again.
+- E2E-135 marks a pair's first picture always alone, pairs it again, reads the toast naming the
+  later pair that came apart, and undoes it.
