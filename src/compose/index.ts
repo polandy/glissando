@@ -6,6 +6,7 @@
 export { orderByCaptureDate } from "./order-by-capture-date";
 export { slideDurationsMs, type TimedPicture } from "./slide-durations-ms";
 export { pictureDurationsMs } from "./picture-durations-ms";
+export { pairsComingApart, type PictureNumberPair } from "./pairs-coming-apart";
 export { PAIR_WEIGHT, slideOfPicture, slideUnits, timedUnit, type SlideUnit } from "./slide-units";
 export {
   LAYOUT_REFERENCE_VIEWPORT,

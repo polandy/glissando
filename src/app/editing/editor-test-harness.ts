@@ -114,6 +114,8 @@ export async function setUp(
     sortedByDateText: (count) => `${count} Bilder nach Datum sortiert`,
     pairSplitText: (first, second) => `Bild ${first} und ${second} getrennt`,
     pairRejoinedText: (first, second) => `Bild ${first} und ${second} wieder ein Paar`,
+    pairRejoinedSplitText: ([first, second], [splitFirst, splitSecond], chain) =>
+      `Bild ${first} und ${second} wieder ein Paar, ${splitFirst} und ${splitSecond} getrennt${chain ? " …" : ""}`,
     random: () => 0,
     automaticTitle: () => "Juli 2025",
     locale: () => "de-DE",

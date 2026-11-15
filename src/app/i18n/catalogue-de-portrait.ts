@@ -31,6 +31,10 @@ export const dePortrait = {
   "slideshow.rejoinPair": "Wieder als Paar",
   "slideshow.rejoinPairShort": "Paar",
   "slideshow.pairRejoined": "Bild {first} und {second} wieder ein Paar",
+  "slideshow.pairRejoinedSplit":
+    "Bild {first} und {second} wieder ein Paar, {splitFirst} und {splitSecond} getrennt",
+  "slideshow.pairRejoinedSplitChain":
+    "Bild {first} und {second} wieder ein Paar, {splitFirst} und {splitSecond} getrennt …",
   "editor.layoutTitle": "Layout",
   "editor.alwaysAlone": "Immer allein",
   "editor.alwaysAloneHint": "Dieses Bild wird nie mit einem anderen auf einem Dia gezeigt.",

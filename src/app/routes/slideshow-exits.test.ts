@@ -74,6 +74,7 @@ function editorOver(store: MemoryLibraryStore, toaster: Toaster): SlideshowEdito
     sortedByDateText: () => "",
     pairSplitText: () => "",
     pairRejoinedText: () => "",
+    pairRejoinedSplitText: () => "",
     random: () => 0,
     automaticTitle: () => "Juli 2025",
     locale: () => "de-DE",
