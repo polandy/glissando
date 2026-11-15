@@ -55,7 +55,7 @@ function sseEvent(type: string, data: unknown): string {
 /**
  * Browser commands (run by Vitest in Node) that answer the TV page at `/tv` and the public TV
  * routes in the test's browser page, frames included: the TV page's browser test runs against
- * them (dev-docs/tv_remote/TV_PAGE.md).
+ * them (docs/dev/tv_remote/TV_PAGE.md).
  */
 export const serveFakeTvApi: BrowserCommand<[fake: FakeTvApi]> = async (context, fake) => {
   if (!("page" in context)) throw new Error("the fake TV API needs the Playwright provider");

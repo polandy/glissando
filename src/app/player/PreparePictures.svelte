@@ -7,7 +7,7 @@
   import "./player-overlay.css";
 
   /**
-   * The black screen before a server slideshow plays (`dev-docs/app/PREPARING.md`): measuring
+   * The black screen before a server slideshow plays (`docs/dev/app/PREPARING.md`): measuring
    * the first pictures, then preparing as many as playing needs, with "Start now" and, for 4K,
    * "Play in 1440". ✕ and Esc close.
    */

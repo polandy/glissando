@@ -5,7 +5,7 @@
 
   /**
    * Lemon for a warning, coral for an error, mint for what is done as asked; it stays where its
-   * cause is (dev-docs/app/WAITING_AND_ERRORS.md).
+   * cause is (docs/dev/app/WAITING_AND_ERRORS.md).
    * `actions` are buttons below the text; `onDismiss` adds a ✕. `live` announces the notice to
    * assistive tech as it appears; off for one that merely describes the current state alongside
    * other, unannounced notes (ADR-0047's "fitted"), so it never doubles up with a toast's own

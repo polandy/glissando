@@ -18,7 +18,7 @@ const GEONAMES_DUMP_SHA256 = "306220b96c4dc00fd3bd7b2427290afed492a05ad5111d0716
 /**
  * Every committed (non-npm) component Vite's own `build.license` cannot see, appended to its
  * npm licences list in this order: the music decoder (ADR-0020), the on-device detectors
- * (ADR-0012, ADR-0036), the self-hosted fonts (`dev-docs/BRAND.md`) and the bundled place names
+ * (ADR-0012, ADR-0036), the self-hosted fonts (`docs/dev/BRAND.md`) and the bundled place names
  * (ADR-0043).
  */
 export const COMMITTED_LICENSES: readonly CommittedLicense[] = [

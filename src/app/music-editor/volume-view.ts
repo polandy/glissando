@@ -52,7 +52,7 @@ export interface VolumeViewInput {
 
 /**
  * The "Volume" section's view: own volume atop the level that brings the excerpt to the target
- * loudness, never past the peak ceiling (dev-docs/library/MUSIC.md "Loudness levelling and song
+ * loudness, never past the peak ceiling (docs/dev/library/MUSIC.md "Loudness levelling and song
  * volume"). Pure: everything it needs is passed in.
  */
 export function volumeView({ status, loudnessLufs, peakDbfs, ownDb }: VolumeViewInput): VolumeView {

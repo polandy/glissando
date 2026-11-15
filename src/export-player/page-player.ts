@@ -1,6 +1,6 @@
 // The player wiring the exported page and the share page have in common: the controls, keys,
 // cards and the player behind them. Each page brings its data (`PlayablePage`) and its own
-// reactions (`PagePlayerHooks`); see dev-docs/html_export/CODE.md.
+// reactions (`PagePlayerHooks`); see docs/dev/html_export/CODE.md.
 import { captionInset, captionInsetMotion } from "../ui-kit/caption-inset";
 import { ControlsVisibility } from "../ui-kit/controls-visibility";
 import { toggleFullscreen } from "../ui-kit/fullscreen";
@@ -45,7 +45,7 @@ export type PageChange = "playing" | "pause" | "ended" | "time" | "refused";
 
 /**
  * Plays the page's slideshow. Beyond `show`, the TV page drives it with the rest
- * (dev-docs/tv_remote/TV_PAGE.md); those throw before the first `show`.
+ * (docs/dev/tv_remote/TV_PAGE.md); those throw before the first `show`.
  */
 export interface PagePlayer {
   /** Plays `page` from now on: from `atSeconds` (0), at once when `play`, else paused. */

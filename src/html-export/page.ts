@@ -16,7 +16,7 @@ import type { BundledNotice } from "./ports.ts";
 /**
  * The exported page as text, in the order it is written: `pageHead`, one media block per medium
  * (`mediaBlockStart`, its base64, `MEDIA_BLOCK_END`), then `pageTail` with the player script, so
- * the script finds every block when it runs. See dev-docs/html_export/THE_PAGE.md.
+ * the script finds every block when it runs. See docs/dev/html_export/THE_PAGE.md.
  */
 
 /** Nothing loads from outside the file; the decode worker starts from a `blob:` URL. */

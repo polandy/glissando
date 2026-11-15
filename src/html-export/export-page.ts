@@ -68,7 +68,7 @@ const utf8 = new TextEncoder();
 export const MEDIA_CHUNK_BYTES = 3 * 256 * 1024;
 
 /**
- * Writes `stored` as one self-contained web page to the job's sink (dev-docs/HTML_EXPORT.md).
+ * Writes `stored` as one self-contained web page to the job's sink (docs/dev/HTML_EXPORT.md).
  * On a failure or a cancel the sink is aborted and the error rethrown: the signal's reason, a
  * `PagePictureError`, a `PlayerAssetError`, or the sink's own.
  */

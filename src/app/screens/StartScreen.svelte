@@ -60,15 +60,15 @@
     onDismissNotice: () => void;
     onReload: () => void;
     logo?: Snippet | undefined;
-    /** The status line at the bottom (dev-docs/app/INSTALLING_AND_OFFLINE.md). */
+    /** The status line at the bottom (docs/dev/app/INSTALLING_AND_OFFLINE.md). */
     statusBar: Snippet;
-    /** The picture frame card shows only while the server library is on (`dev-docs/app/FRAME.md`). */
+    /** The picture frame card shows only while the server library is on (`docs/dev/app/FRAME.md`). */
     serverOn?: boolean;
     onSetUpFrame: () => void;
     onHideFrameCard: () => void;
     /** The owner can hide the picture frame card; Settings brings it back. */
     frameCardShown?: boolean;
-    /** The "Load demo slideshow" button (dev-docs/app/INSTALLING_AND_OFFLINE.md). */
+    /** The "Load demo slideshow" button (docs/dev/app/INSTALLING_AND_OFFLINE.md). */
     demo?: { visible: boolean; state: DemoSlideshowState; onLoad: () => void };
   } = $props();
 

@@ -57,7 +57,7 @@
     sources: Snippet;
     /**
      * A server slideshow's pictures: linked from Immich, whose box comes first, none from the
-     * device (`dev-docs/server_library/IN_THE_APP.md`).
+     * device (`docs/dev/server_library/IN_THE_APP.md`).
      */
     linking?: boolean;
     /** While linking, files from this device are taken for a device copy (`PictureIntakeEmpty`). */

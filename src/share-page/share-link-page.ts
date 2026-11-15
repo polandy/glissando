@@ -1,6 +1,6 @@
-// The share page for a link, `/s/<token>` (dev-docs/share_link/RECIPIENTS_PAGE.md): loads the
+// The share page for a link, `/s/<token>` (docs/dev/share_link/RECIPIENTS_PAGE.md): loads the
 // shared slideshow from the share API and plays it with the web page export's player page; its
-// start card offers control by phone (dev-docs/tv_remote/TV_PAGE.md, way B).
+// start card offers control by phone (docs/dev/tv_remote/TV_PAGE.md, way B).
 import { createMusicAudioContext } from "../player/browser/platform";
 import { MutableMusicOutput } from "../export-player/mutable-music-output";
 import { createPagePlayer } from "../export-player/page-player";
@@ -71,7 +71,7 @@ export async function startShareLinkPage(
   const pagePlayer = createPagePlayer(view, music, {
     start(play) {
       view.showState("starting");
-      // Live: each start plays the slideshow as it is now (dev-docs/share_link/THE_LINK.md).
+      // Live: each start plays the slideshow as it is now (docs/dev/share_link/THE_LINK.md).
       loadSharedShow(api, createUrl, show, language).then((now) => {
         if (now !== show) {
           for (const url of show.songUrls.values()) URL.revokeObjectURL(url);

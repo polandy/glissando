@@ -5,7 +5,7 @@ import { checkSlideshowMood, type SlideshowMood } from "./slideshow-mood";
 import type { StoredSlideshow } from "./stored-slideshow";
 
 /**
- * The editing of the slideshow's mood (ADR-0045, `dev-docs/app/slideshow-editing/MOOD.md`). Pure
+ * The editing of the slideshow's mood (ADR-0045, `docs/dev/app/slideshow-editing/MOOD.md`). Pure
  * functions over the stored record; the caller stores the result.
  */
 

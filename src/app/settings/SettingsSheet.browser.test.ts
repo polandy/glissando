@@ -108,7 +108,7 @@ describe("SettingsSheet", () => {
       "Dokumentation → https://github.com/polandy/glissando#readme (_blank, noopener noreferrer)",
       "Quellcode auf GitHub → https://github.com/polandy/glissando (_blank, noopener noreferrer)",
       "Open-Source-Lizenzen → third-party-licenses.md (_blank, noopener)",
-      "Selbst hosten und Immich → https://github.com/polandy/glissando/blob/main/docs/self-hosting.md (_blank, noopener noreferrer)",
+      "Selbst hosten und Immich → https://github.com/polandy/glissando/blob/main/docs/user/self-hosting.md (_blank, noopener noreferrer)",
     ]);
   });
 });

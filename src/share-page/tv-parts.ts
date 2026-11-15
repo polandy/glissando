@@ -7,7 +7,7 @@ import type { TvPageWords } from "./tv-page-words";
 /** How long a command's note stays on screen. */
 const NOTE_SHOWN_MS = 1800;
 
-/** The TV's own cards (dev-docs/tv_remote/TV_PAGE.md); at most one shows at a time. */
+/** The TV's own cards (docs/dev/tv_remote/TV_PAGE.md); at most one shows at a time. */
 export type TvCard =
   | { readonly kind: "pairing"; readonly code: string; readonly link: string }
   | { readonly kind: "connected" }

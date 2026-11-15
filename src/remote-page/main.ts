@@ -1,4 +1,4 @@
-// The remote page's script (dev-docs/tv_remote/REMOTE_PAGE.md): controls a slideshow on the TV
+// The remote page's script (docs/dev/tv_remote/REMOTE_PAGE.md): controls a slideshow on the TV
 // through the server. Built into remote.html by build/remote-page-plugin.ts; never imports
 // Svelte.
 import type { Command } from "../tv-remote/tv-protocol";

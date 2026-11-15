@@ -1,5 +1,5 @@
 /**
- * A TV's key and a remote's secret are credentials in a URL path (dev-docs/tv_remote/SESSIONS.md):
+ * A TV's key and a remote's secret are credentials in a URL path (docs/dev/tv_remote/SESSIONS.md):
  * the logs carry neither, as they carry no share token.
  */
 

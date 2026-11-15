@@ -1,5 +1,5 @@
 /**
- * Whether the demo slideshow button shows (dev-docs/app/INSTALLING_AND_OFFLINE.md), and where it
+ * Whether the demo slideshow button shows (docs/dev/app/INSTALLING_AND_OFFLINE.md), and where it
  * downloads from.
  */
 export interface DemoSlideshowConfig {

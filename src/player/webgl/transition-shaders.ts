@@ -71,7 +71,7 @@ const int LAYOUT_BLURRED_FILL = ${LAYOUT_CODE["blurred-fill"]};
 const int LAYOUT_PAIR = ${LAYOUT_CODE["pair-across"]};
 /** The blurred fill's backdrop is darkened to this fraction of its brightness (ADR-0028). */
 const float BACKDROP_BRIGHTNESS = ${glslFloat(BACKDROP_BRIGHTNESS)};
-/** The veil's three shares (ADR-0032, \`dev-docs/player/TITLE_CARDS.md\` § Look). */
+/** The veil's three shares (ADR-0032, \`docs/dev/player/TITLE_CARDS.md\` § Look). */
 const float VEIL_SATURATION_SHARE = ${glslFloat(VEIL_SATURATION_SHARE)};
 const float VEIL_CONTRAST_SHARE = ${glslFloat(VEIL_CONTRAST_SHARE)};
 const float VEIL_TINT_OPACITY_SHARE = ${glslFloat(VEIL_TINT_OPACITY_SHARE)};
@@ -134,7 +134,7 @@ vec4 withCaption(vec4 picture, sampler2D caption, float captionOpacity, vec2 p) 
   return vec4(band.rgb + picture.rgb * (1.0 - band.a), 1.0);
 }
 /**
- * The veil's look at \`amount\` (ADR-0032, \`dev-docs/player/TITLE_CARDS.md\` § Look): mix toward
+ * The veil's look at \`amount\` (ADR-0032, \`docs/dev/player/TITLE_CARDS.md\` § Look): mix toward
  * the layer's own blurred backdrop, desaturate, pull contrast toward mid-grey, then mix toward
  * the card's tint, each step scaled by its share times \`amount\`. Unchanged at amount 0.
  */

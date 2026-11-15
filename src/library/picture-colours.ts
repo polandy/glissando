@@ -1,5 +1,5 @@
 /**
- * A picture's two stored colours (ADR-0033, `dev-docs/player/TITLE_CARD_COLOURS.md`): `veil`, a
+ * A picture's two stored colours (ADR-0033, `docs/dev/player/TITLE_CARD_COLOURS.md`): `veil`, a
  * dark muted tone to tint a card's veil, and `accent`, a light clearer tone for a colour ground.
  * Pure: it takes the pixels of the stored, downscaled picture, sampled to at most 64 × 64.
  */

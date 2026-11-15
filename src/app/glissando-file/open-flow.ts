@@ -6,7 +6,7 @@ import type { Navigator } from "../navigation/navigator";
 import type { Toaster } from "../toast/toaster";
 import { isQuotaExceeded } from "../../storage-quota/is-quota-exceeded";
 
-/** The screen an open started from; its notice shows there (dev-docs/app/SCREENS.md). */
+/** The screen an open started from; its notice shows there (docs/dev/app/SCREENS.md). */
 export type OpenOrigin = "library" | "pictures";
 
 export type OpenProblem =

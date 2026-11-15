@@ -10,7 +10,7 @@ export interface FrameServices {
   readonly frameDevice: FrameDevice;
 }
 
-/** Builds the picture frame's composition-root services (`dev-docs/app/FRAME.md`). */
+/** Builds the picture frame's composition-root services (`docs/dev/app/FRAME.md`). */
 export function createFrameServices(
   window: Window,
   scheduler: Scheduler,

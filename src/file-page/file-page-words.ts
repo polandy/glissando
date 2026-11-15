@@ -9,7 +9,7 @@ import type { FolderProblem } from "./check-folder";
 
 /**
  * `index.html`'s words in one language (`filePage.*` and the export page's `htmlPage.*`): built
- * into the page for both languages, like the share page's (dev-docs/library/GLISSANDO_FILE.md).
+ * into the page for both languages, like the share page's (docs/dev/library/GLISSANDO_FILE.md).
  */
 export interface FilePageWords extends PlayerPageWords {
   readonly chooseTitle: string;

@@ -1,5 +1,5 @@
 /*
- * The TV page's parts (dev-docs/tv_remote/TV_PAGE.md), read from across the room: every size is
+ * The TV page's parts (docs/dev/tv_remote/TV_PAGE.md), read from across the room: every size is
  * a design token times `--tv-scale`, which grows with the screen.
  */
 :root {

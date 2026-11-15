@@ -1,4 +1,4 @@
-/* Design tokens: the "studio" palette per theme, type and shape; roles in dev-docs/BRAND.md. */
+/* Design tokens: the "studio" palette per theme, type and shape; roles in docs/dev/BRAND.md. */
 @font-face {
   font-family: "Instrument Sans";
   src: url("../../assets/fonts/instrumentsans-latin-wght400-600.woff2") format("woff2");

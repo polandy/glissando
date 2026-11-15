@@ -23,7 +23,7 @@ for (const colorScheme of ["light", "dark"] as const) {
     await third.click();
     await expect(selectionBar).toBeVisible();
 
-    // Inverse to the screen (dev-docs/app/slideshow-editing/REMOVE_SELECT_REORDER.md).
+    // Inverse to the screen (docs/dev/app/slideshow-editing/REMOVE_SELECT_REORDER.md).
     const barColour = await selectionBar.evaluate((bar) => getComputedStyle(bar).backgroundColor);
     const screenColour = await page.evaluate(() => {
       const probe = document.createElement("div");

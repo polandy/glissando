@@ -21,7 +21,7 @@ import {
 /**
  * A slideshow on the Glissando server: the .glissando manifest's slideshow with every picture
  * linked from Immich and the playlist's songs each named by the server's id
- * (`dev-docs/server_library/SERVER_DOCUMENT.md`). Shared by the app and the server.
+ * (`docs/dev/server_library/SERVER_DOCUMENT.md`). Shared by the app and the server.
  */
 
 const SERVER_DOCUMENT_FORMAT_ID = "glissando-server";
@@ -36,7 +36,7 @@ const SERVER_DOCUMENT_FORMAT_ID = "glissando-server";
 export const SERVER_DOCUMENT_FORMAT_VERSION = 7;
 /** The manifest format version whose slideshow fields a server document carries. */
 const MANIFEST_FIELDS_VERSION = REPEAT_MUSIC_FROM_VERSION;
-/** Trip chapters (`dev-docs/player/TRIP_CHAPTERS.md`) are not part of a server document yet. */
+/** Trip chapters (`docs/dev/player/TRIP_CHAPTERS.md`) are not part of a server document yet. */
 const TRIP_CHAPTER_KEYS = ["automaticChaptersOff", "chapterEdits", "addedChapters"];
 /** Every key a server document's slideshow, each picture and each song may carry. */
 export const SERVER_SLIDESHOW_KEYS: readonly string[] = slideshowKeys(

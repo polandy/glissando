@@ -1,6 +1,6 @@
 import type { Message } from "./messages.ts";
 
-/** German copy of the video export (dev-docs/VIDEO_EXPORT.md); part of the German catalogue. */
+/** German copy of the video export (docs/dev/VIDEO_EXPORT.md); part of the German catalogue. */
 export const deVideo = {
   "videoExport.title": "Video",
   "videoExport.subtitle": "{title} · {duration} · {music}",

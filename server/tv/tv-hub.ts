@@ -4,7 +4,7 @@ import { drawCode } from "./tv-code";
 import { evictionCandidate, type Session } from "./tv-session";
 
 /**
- * The TV sessions, in memory only (dev-docs/tv_remote/SESSIONS.md): who may control which TV,
+ * The TV sessions, in memory only (docs/dev/tv_remote/SESSIONS.md): who may control which TV,
  * and the streams each side holds open. No timer and no socket: expiry is checked on each call,
  * and a stream is a sink the HTTP layer maps onto `text/event-stream`.
  */

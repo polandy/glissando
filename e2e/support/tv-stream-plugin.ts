@@ -3,7 +3,7 @@ import type { Plugin } from "vite";
 
 /**
  * Serves the TV API's `EventSource` streams as a held-open connection, for e2e's `vite preview`
- * only (`dev-docs/tv_remote/END_TO_END.md`): `route.fulfill()` always delivers a complete,
+ * only (`docs/dev/tv_remote/END_TO_END.md`): `route.fulfill()` always delivers a complete,
  * already-closed response, and the remote page treats a closed stream as a lost connection.
  * `fake-tv-api.ts` runs the real hub and routes in the test's process, continues the browser's
  * stream request here (`TV_STREAM_QUERY` added to the same path) and pushes each event line to

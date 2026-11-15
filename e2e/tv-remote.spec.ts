@@ -81,7 +81,7 @@ test("E2E-052 a guest on the share page scans the QR, and the remote pauses and 
   await sheet.getByRole("button", { name: "Fertig" }).click();
 
   // The "Control with your phone" button sits under the start card's own Play button, before
-  // the slideshow plays: the remote's own Play starts it (dev-docs/tv_remote/TV_PAGE.md).
+  // the slideshow plays: the remote's own Play starts it (docs/dev/tv_remote/TV_PAGE.md).
   const guest = await page.context().newPage();
   server.attachPage(guest);
   await guest.goto(url);

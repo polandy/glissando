@@ -16,7 +16,7 @@ export const SLIDESHOWS_PATH = `${LIBRARY_PATH}/slideshows`;
 export const MUSIC_PATH = `${LIBRARY_PATH}/music`;
 /** The path segment naming a picture's focus under a slideshow (ADR-0041). */
 export const FOCUS_PATH_PART = "focus";
-/** The public share API, no sign-in (`dev-docs/SHARE_LINK.md`). */
+/** The public share API, no sign-in (`docs/dev/SHARE_LINK.md`). */
 export const SHARE_PATH = "/api/share";
 /** Asked by Caddy's forward_auth on loopback only; Caddy routes no outside request here. */
 export const SHARE_PICTURE_CHECK_PATH = "/internal/share-picture";
@@ -88,7 +88,7 @@ export function jsonResponse(
   };
 }
 
-/** The error codes the API answers (`dev-docs/server_library/HTTP_API.md`). */
+/** The error codes the API answers (`docs/dev/server_library/HTTP_API.md`). */
 export type ErrorCode =
   | "notFound"
   | "invalidDocument"

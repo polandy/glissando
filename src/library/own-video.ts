@@ -3,7 +3,7 @@ import { MAX_VIDEO_EXCERPT_MS, MIN_VIDEO_EXCERPT_MS } from "../player/slideshow"
 export { MAX_VIDEO_EXCERPT_MS, MIN_VIDEO_EXCERPT_MS };
 
 /**
- * The clip a video slide plays (ADR-0034, `dev-docs/player/VIDEO_SLIDES.md`); the picture holding
+ * The clip a video slide plays (ADR-0034, `docs/dev/player/VIDEO_SLIDES.md`); the picture holding
  * it is the poster. All times are whole ms of the clip.
  */
 export interface StoredVideo {

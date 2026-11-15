@@ -3,7 +3,7 @@ import type { CloseStream, EventSink } from "./tv-hub";
 
 /**
  * A TV or remote stream as a plain value the routes answer, and its mapping onto a
- * `text/event-stream` response at the edge (dev-docs/tv_remote/HTTP_API.md, Streams).
+ * `text/event-stream` response at the edge (docs/dev/tv_remote/HTTP_API.md, Streams).
  */
 
 /** Below the idle timeouts of common proxies, so they keep a quiet stream open. */

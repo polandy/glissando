@@ -43,7 +43,7 @@ export interface AppServices extends ServerSlideshowSessions {
   readonly reportError: ErrorReporter;
   readonly settings: AppSettings;
   readonly persistencePrompt: PersistencePrompt;
-  /** Installing, offline use and updates (dev-docs/app/INSTALLING_AND_OFFLINE.md). */
+  /** Installing, offline use and updates (docs/dev/app/INSTALLING_AND_OFFLINE.md). */
   readonly pwa: PwaStatus;
   /** Where the music sounds, in the player and the music editor; unlocked by a user gesture. */
   readonly musicOutput: MusicOutput;
@@ -64,7 +64,7 @@ export interface AppServices extends ServerSlideshowSessions {
   /** Immich through the self-hosted Glissando (ADR-0013); checked as the app opens. */
   readonly immich: { readonly client: ImmichClient; readonly availability: ImmichAvailability };
   /**
-   * Slideshows on the Glissando server (dev-docs/SERVER_LIBRARY.md); its availability is asked
+   * Slideshows on the Glissando server (docs/dev/SERVER_LIBRARY.md); its availability is asked
    * whenever Immich's answers.
    */
   readonly serverLibrary: ServerLibrary;
@@ -98,19 +98,19 @@ export interface AppServices extends ServerSlideshowSessions {
   download(file: Blob, fileName: string): void;
   /** `index.html` for a slideshow's .glissando file, which plays its unpacked folder (ADR-0038). */
   playerPage(slideshow: StoredSlideshow): Promise<string>;
-  /** What the video export sheet needs of the browser (dev-docs/VIDEO_EXPORT.md). */
+  /** What the video export sheet needs of the browser (docs/dev/VIDEO_EXPORT.md). */
   readonly videoExport: VideoExportDevice;
-  /** What the web page export sheet needs of the browser (dev-docs/HTML_EXPORT.md). */
+  /** What the web page export sheet needs of the browser (docs/dev/HTML_EXPORT.md). */
   readonly htmlExport: HtmlExportDevice;
   /** Reloads the app, e.g. to get a newer version. */
   reload(): void;
-  /** The picture frame's set-up choices, kept on this device (`dev-docs/app/FRAME.md`). */
+  /** The picture frame's set-up choices, kept on this device (`docs/dev/app/FRAME.md`). */
   readonly framePreferences: FramePreferences;
   /** Whether the start screen offers the picture frame card, kept on this device. */
   readonly frameCardPreference: FrameCardPreference;
   /** What the picture frame needs of the browser beyond Immich and storage. */
   readonly frameDevice: FrameDevice;
-  /** The start screen's "Load demo slideshow" button (dev-docs/app/INSTALLING_AND_OFFLINE.md). */
+  /** The start screen's "Load demo slideshow" button (docs/dev/app/INSTALLING_AND_OFFLINE.md). */
   readonly demoSlideshow: DemoSlideshowServices;
   /** Previews a sample track (SAMPLE_MUSIC.md); undefined when the build turns sample music off. */
   readonly samplePreview?: SamplePreview;

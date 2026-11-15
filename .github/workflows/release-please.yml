@@ -48,7 +48,7 @@ jobs:
       - run: docker push "$IMAGE:$VERSION" && docker push "$IMAGE:latest"
 
   # The public installation: the same static build on GitHub Pages, offline-only, without the
-  # server's extras (dev-docs/app/INSTALLING_AND_OFFLINE.md).
+  # server's extras (docs/dev/app/INSTALLING_AND_OFFLINE.md).
   pages:
     needs: release-please
     if: needs.release-please.outputs.release_created == 'true'

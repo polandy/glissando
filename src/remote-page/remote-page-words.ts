@@ -3,7 +3,7 @@ import type { Playback } from "./remote-model.ts";
 /**
  * The remote page's words in one language, as the catalogue holds them (`remotePage.*` and
  * the export page's play words): built into remote.html for both languages
- * (dev-docs/tv_remote/REMOTE_PAGE.md).
+ * (docs/dev/tv_remote/REMOTE_PAGE.md).
  */
 export const REMOTE_TEXT_KEYS = [
   "showing",

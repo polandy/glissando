@@ -28,7 +28,7 @@
     /** The position in play order, from 1. */
     number: number;
     selected: boolean;
-    /** Selecting several (dev-docs/app/slideshow-editing/SELECTING_SEVERAL.md, Selecting several): every tile shows a check circle. */
+    /** Selecting several (docs/dev/app/slideshow-editing/SELECTING_SEVERAL.md, Selecting several): every tile shows a check circle. */
     selecting: boolean;
     /** Just added: outlined and badged while the screen is shown. */
     isNew: boolean;
@@ -251,7 +251,7 @@
     border-radius: var(--gl-radius-small);
     background: var(--gl-photo-badge);
   }
-  /* The selected tile's order number, in the accent (dev-docs/app/slideshow-editing/REMOVE_SELECT_REORDER.md, Select and reorder). */
+  /* The selected tile's order number, in the accent (docs/dev/app/slideshow-editing/REMOVE_SELECT_REORDER.md, Select and reorder). */
   .tile.selected .number {
     background: var(--gl-accent);
     color: var(--gl-accent-ink);
@@ -263,7 +263,7 @@
     padding: 14px 7px 5px;
     background: linear-gradient(transparent, var(--gl-photo-fade));
   }
-  /* Selecting several (dev-docs/app/slideshow-editing/SELECTING_SEVERAL.md, Selecting several): the check circle instead of the marks. */
+  /* Selecting several (docs/dev/app/slideshow-editing/SELECTING_SEVERAL.md, Selecting several): the check circle instead of the marks. */
   /* While selecting several, the unpicked tiles step back and a picked picture sits inset. */
   .tile.selecting-mode:not(.selected) .pick img {
     filter: saturate(0.8) brightness(0.92);

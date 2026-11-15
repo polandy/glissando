@@ -19,7 +19,7 @@ export interface FrameAlbumsOptions {
 }
 
 /**
- * The set-up screen's album grid (`dev-docs/app/FRAME.md`), published with the Svelte store
+ * The set-up screen's album grid (`docs/dev/app/FRAME.md`), published with the Svelte store
  * contract; an Immich problem is shown as the failure, not thrown.
  */
 export class FrameAlbums {

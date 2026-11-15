@@ -62,12 +62,12 @@
     onDismissNotice: () => void;
     onReload: () => void;
     statusBar: Snippet;
-    /** The picture frame card shows only while the server library is on (`dev-docs/app/FRAME.md`). */
+    /** The picture frame card shows only while the server library is on (`docs/dev/app/FRAME.md`). */
     serverOn: boolean;
     onSetUpFrame: () => void;
     onHideFrameCard: () => void;
     frameCardShown: boolean;
-    /** The "Load demo slideshow" button (dev-docs/app/INSTALLING_AND_OFFLINE.md). */
+    /** The "Load demo slideshow" button (docs/dev/app/INSTALLING_AND_OFFLINE.md). */
     demoSlideshow: Pick<DemoSlideshowFlow, "state" | "subscribe" | "start">;
     publicInstall: boolean;
   } = $props();

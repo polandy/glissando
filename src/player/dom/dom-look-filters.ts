@@ -9,7 +9,7 @@ const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 const FILTER_ID_PREFIX = "glissando-look";
 
 /**
- * One inline SVG `<filter>` per graded look (ADR-0044, `dev-docs/player/LOOKS.md` § Renderers),
+ * One inline SVG `<filter>` per graded look (ADR-0044, `docs/dev/player/LOOKS.md` § Renderers),
  * built once from `lookFilterValues` and referenced by a picture or video element's CSS
  * `filter: url(#id)`. Present in the DOM for that lookup only, never shown itself.
  */

@@ -34,7 +34,7 @@ export interface ServerFocusPassResult {
 }
 
 /**
- * The server's own background focus pass (ADR-0041, `dev-docs/server_library/FOCUS.md`): starts
+ * The server's own background focus pass (ADR-0041, `docs/dev/server_library/FOCUS.md`): starts
  * as `followServerFocusStart` says, and again right after a slideshow is created or saved on the
  * server; never on the frame route, a kiosk showing one album having no library to search.
  */

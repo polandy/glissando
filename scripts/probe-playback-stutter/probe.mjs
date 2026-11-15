@@ -6,7 +6,7 @@
 // advancing while playing), its pause/stall/seek events, every texture upload and
 // createImageBitmap on the main thread with its size, and a CDP CPU profile.
 // Instrumentation is injected from outside; src/ is untouched. Pass your own file; nothing of
-// it is written anywhere. See dev-docs/player/TIMING.md (Measuring stutter).
+// it is written anywhere. See docs/dev/player/TIMING.md (Measuring stutter).
 //
 //   npx vite build --minify false && npx vite preview --port 4211 &
 //   node scripts/probe-playback-stutter/probe.mjs <url> <file.glissando> [--seconds 60] [--cpu-slowdown N]

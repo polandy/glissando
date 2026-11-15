@@ -20,7 +20,7 @@ export interface FrameRoundHandoverDeps {
   readonly onPhotoFailed: (error: unknown) => void;
   /**
    * A round's player and its container, as soon as both exist: the preparing round renders into
-   * its container hidden, ahead of the hand-over that reveals it (`dev-docs/app/FRAME.md`).
+   * its container hidden, ahead of the hand-over that reveals it (`docs/dev/app/FRAME.md`).
    */
   readonly onRoundReady: (player: FrameRoundPlayer, container: HTMLElement) => void;
   /**
@@ -32,7 +32,7 @@ export interface FrameRoundHandoverDeps {
 
 /**
  * Builds the `RoundHandover` ports that compose and play one round at a time
- * (`dev-docs/app/FRAME.md`, ADR-0030): each round gets its own DOM container, torn down with its
+ * (`docs/dev/app/FRAME.md`, ADR-0030): each round gets its own DOM container, torn down with its
  * player once the hand-over moves past it.
  */
 export function createFrameRoundHandoverPorts(deps: FrameRoundHandoverDeps): RoundHandoverPorts {

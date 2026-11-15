@@ -4,7 +4,7 @@ import { remotePageHtml } from "../src/remote-page/remote-page-html.ts";
 import { buildPlayerPage } from "./export-player-plugin.ts";
 import { darkTokenDeclarations, inlineFontFaces } from "./remote-page-styles.ts";
 
-/** Caddy answers every `/r/<remoteSecret>` with this file (dev-docs/tv_remote/REMOTE_PAGE.md). */
+/** Caddy answers every `/r/<remoteSecret>` with this file (docs/dev/tv_remote/REMOTE_PAGE.md). */
 export const REMOTE_PAGE_FILE = "remote.html";
 /** The remote page as text, for its browser test; typed in src/remote-page/testing/. */
 export const REMOTE_PAGE_MODULE = "virtual:glissando-remote-page";
