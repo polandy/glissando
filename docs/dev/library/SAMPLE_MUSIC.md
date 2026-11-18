@@ -123,7 +123,8 @@ Without a connection (`NetworkStatus`, `src/immich/immich-availability.ts`: `nav
 and its events), the grid opens with the notice "You are offline. Tracks already on this
 device can be added; listening to the others needs a connection." A track not on this device is
 dimmed, without its play button, with "+" disabled and the status "Needs a connection"; one on
-this device keeps both. A download under way when the connection drops fails as above.
+this device keeps both. A download under way when the connection drops fails as above. E2E-140
+runs it: offline, the stored track is added from the device without a request.
 
 ## The credit
 
