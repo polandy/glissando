@@ -46,11 +46,11 @@ test("E2E-137 a tap hides and shows the controls, and playing hides them after 2
   await expect(player(page, TITLE)).toHaveCSS("cursor", "auto");
 
   // Just short of the delay the controls are still there.
-  await page.clock.runFor(CONTROLS_HIDE_DELAY_MS - 1);
+  await page.clock.fastForward(CONTROLS_HIDE_DELAY_MS - 1);
   await expect(controls).toBeVisible();
   await expect(player(page, TITLE)).toHaveCSS("cursor", "auto");
 
-  await page.clock.runFor(1);
+  await page.clock.fastForward(1);
   await expect(player(page, TITLE)).toHaveCSS("cursor", "none");
   // Hidden controls are faded out and inert: they take no focus.
   await controls.focus();

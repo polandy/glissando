@@ -10,6 +10,9 @@ here; this file is the full text.
 - **No test may race**: no sleeps, fixed waits or polling for an effect that only probably lands;
   no wall clock, no ambient randomness. Give the production code a seam (injected clock, a
   settled/completion signal) instead.
+- **A held page clock moves with `page.clock.fastForward`**, never `runFor`, while the player
+  runs: `runFor` steps every animation frame in between, and each is a software-rendered WebGL
+  frame in the CI image — 2.5 s of page time took ~26 s of real time.
 - **An absence needs a positive signal** — assert what must still be there before what is gone.
 - **Prove it can fail**: break the behaviour and watch exactly that case go red.
 - **Every e2e file opens with `// Spec: docs/dev/<section>.md`** — the spec section its cases
