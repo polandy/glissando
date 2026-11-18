@@ -53,7 +53,10 @@ manifest and icons in `public/`; the PNG icons come from `scripts/brand/icons.sh
 - **Running installed with a told refusal**: at startup storage is requested again, since
   browsers grant it to installed apps without asking.
 - **Updates**: "Reload now" (or "Reload to update" in the settings) asks the waiting version to take over, then this tab reloads into the
-  new version; other tabs keep running their version until their next start.
+  new version; other tabs keep running their version until their next start. E2E-139 runs the
+  cycle with two real builds: the e2e preview on port 4175 serves a second build of the same
+  sources, built as another commit, to a browser carrying a cookie
+  (`e2e/support/next-build-plugin.ts`).
 
 - **The demo slideshow** (approved mockup:
   https://polandy.github.io/glissando-assets/mockups/demo-card/, variant A): on the public

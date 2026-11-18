@@ -8,6 +8,7 @@ export default tseslint.config(
     ignores: [
       "dist/",
       "dist-server/",
+      "dist-next/",
       "playwright-report/",
       "test-results/",
       "src/import/libav/*.mjs",
