@@ -1,3 +1,4 @@
+// Spec: docs/dev/composition/MUSIC.md
 import { expect, test, type Page } from "@playwright/test";
 import { createSlideshowWithMusic, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";

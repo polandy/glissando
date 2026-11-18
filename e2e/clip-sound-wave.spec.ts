@@ -1,3 +1,4 @@
+// Spec: docs/dev/app/picture-editor/TIMING.md
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { chooseFiles, expectSlideshowScreen, GERMAN_BROWSER, openImport } from "./support/app";
 import { openApp } from "./support/browser";

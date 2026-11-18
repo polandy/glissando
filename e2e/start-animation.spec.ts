@@ -1,3 +1,4 @@
+// Spec: docs/dev/app/PREPARING.md
 import { expect, test, type Page } from "@playwright/test";
 
 declare global {

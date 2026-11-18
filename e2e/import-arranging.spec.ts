@@ -1,3 +1,4 @@
+// Spec: docs/dev/app/IMPORT_ARRANGING.md
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import {
   chooseFiles,

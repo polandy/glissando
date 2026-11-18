@@ -1,3 +1,4 @@
+// Spec: docs/dev/library/PICTURE_IMPORT.md
 import { expect, test, type Page } from "@playwright/test";
 import {
   chooseFiles,

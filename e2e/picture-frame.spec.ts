@@ -1,3 +1,4 @@
+// Spec: docs/dev/app/FRAME.md
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";

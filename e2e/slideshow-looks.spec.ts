@@ -1,3 +1,4 @@
+// Spec: docs/dev/app/slideshow-editing/LOOK.md
 import { expect, test, type Page } from "@playwright/test";
 import { createSlideshow, editsStored, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";

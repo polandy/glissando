@@ -1,3 +1,4 @@
+// Spec: docs/dev/player/CAPTIONS.md
 import { expect, test, type Page } from "@playwright/test";
 import {
   captionField,

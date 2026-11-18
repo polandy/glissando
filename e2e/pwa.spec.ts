@@ -1,3 +1,4 @@
+// Spec: docs/dev/app/INSTALLING_AND_OFFLINE.md
 import { expect, test, type Page } from "@playwright/test";
 import { createSlideshow, GERMAN_BROWSER } from "./support/app";
 import { BELOW_PATH, BELOW_PATH_URL } from "./support/below-path";

@@ -1,3 +1,4 @@
+// Spec: docs/dev/app/SCREENS.md
 import { expect, test } from "@playwright/test";
 import {
   choosePictures,

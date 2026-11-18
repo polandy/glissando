@@ -1,3 +1,4 @@
+// Spec: docs/dev/library/MUSIC_ANALYSIS.md
 import { expect, test } from "@playwright/test";
 import { createSlideshowWithMusic, editsStored, GERMAN_BROWSER } from "./support/app";
 import { showMusicDetails } from "./support/switch";

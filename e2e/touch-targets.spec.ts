@@ -1,3 +1,4 @@
+// Spec: docs/dev/BRAND.md
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { touchTargetViolations } from "../src/app/testing/touch-target";
 import {

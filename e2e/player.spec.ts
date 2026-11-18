@@ -1,3 +1,4 @@
+// Spec: docs/dev/app/PLAYER_OVERLAY.md
 import { expect, test, type Page } from "@playwright/test";
 import { createSlideshow, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";

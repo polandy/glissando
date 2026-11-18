@@ -1,3 +1,4 @@
+// Spec: docs/dev/app/SCREENS.md
 import { expect, test } from "@playwright/test";
 import { createSlideshowWithMusic, editsStored, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";

@@ -1,3 +1,4 @@
+// Spec: docs/dev/app/SCREENS.md
 import { expect, test, type Page } from "@playwright/test";
 import {
   createSlideshow,
