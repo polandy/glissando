@@ -19,6 +19,7 @@ export const NEXT_BUILD_COOKIE = { name: "glissando-e2e-build", value: "next" } 
 const HTTP_OK = 200;
 const HTTP_NOT_FOUND = 404;
 const INDEX_FILE = "index.html";
+const PARENT_DIRECTORY = "..";
 const CONTENT_TYPES: Readonly<Record<string, string>> = {
   ".html": "text/html",
   ".js": "text/javascript",
@@ -70,6 +71,9 @@ export function nextBuildPlugin(directory: string): Plugin {
         const file = join(directory, relative === "" ? INDEX_FILE : relative);
         let body: Uint8Array;
         try {
+          if (relative.split("/").includes(PARENT_DIRECTORY)) {
+            throw new Error(`${pathname} leaves ${directory}`);
+          }
           body = readFileSync(file);
         } catch {
           response.writeHead(HTTP_NOT_FOUND, {});
