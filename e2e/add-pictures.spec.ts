@@ -1,3 +1,4 @@
+// Spec: docs/dev/app/slideshow-editing/ADDING_PICTURES.md
 import { expect, test } from "@playwright/test";
 import {
   choosePictures,

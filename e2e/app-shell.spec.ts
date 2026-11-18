@@ -1,3 +1,4 @@
+// Spec: docs/dev/app/PREPARING.md
 import { expect, test, type Page } from "@playwright/test";
 
 /** The built app's script; held back, it leaves index.html's app shell on screen. */

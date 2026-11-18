@@ -1,3 +1,4 @@
+// Spec: docs/dev/app/slideshow-editing/REMOVE_SELECT_REORDER.md
 import { expect, test, type CDPSession, type Locator, type Page } from "@playwright/test";
 import { createSlideshow, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";

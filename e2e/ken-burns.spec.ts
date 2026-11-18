@@ -1,3 +1,4 @@
+// Spec: docs/dev/composition/KEN_BURNS.md
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { exportSlideshow } from "../src/glissando-file/export-slideshow";
 import { EXPORT_OPTIONS } from "../src/glissando-file/testing/glissando-fixtures";

@@ -1,3 +1,4 @@
+// Spec: docs/dev/library/GLISSANDO_FILE_IO.md
 import { expect, test, type Page } from "@playwright/test";
 import { captionPicture, chooseFiles, createSlideshow, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";

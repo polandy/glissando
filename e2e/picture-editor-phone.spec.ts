@@ -1,3 +1,4 @@
+// Spec: docs/dev/app/PICTURE_EDITOR.md
 import { expect, test } from "@playwright/test";
 import { createSlideshow, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";

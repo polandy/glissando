@@ -12,6 +12,8 @@ here; this file is the full text.
   settled/completion signal) instead.
 - **An absence needs a positive signal** — assert what must still be there before what is gone.
 - **Prove it can fail**: break the behaviour and watch exactly that case go red.
+- **Every e2e file opens with `// Spec: docs/dev/<section>.md`** — the spec section its cases
+  verify, so a spec change finds its cases.
 - **E2e finds elements as a user does**: `getByRole`, `getByLabel`, `getByText`, scoped with
   `filter`; `data-testid` only for purely visual parts (wave bars, playhead, ghost) and for a
   readout whose changing text is what the case asserts. Never a CSS class or an xpath walk — a

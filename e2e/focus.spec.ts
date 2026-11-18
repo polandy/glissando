@@ -1,3 +1,4 @@
+// Spec: docs/dev/library/FOCUS_SEARCH.md
 import { expect, test, type Page } from "@playwright/test";
 import {
   choosePictures,

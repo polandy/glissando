@@ -1,3 +1,4 @@
+// Spec: docs/dev/app/MUSIC_EDITOR.md
 import { expect, test } from "@playwright/test";
 import {
   chooseFiles,

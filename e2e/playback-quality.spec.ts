@@ -1,3 +1,4 @@
+// Spec: docs/dev/server_library/IMAGE.md
 import { expect, test, type Page } from "@playwright/test";
 import { SERVER_DOCUMENT_FORMAT_VERSION } from "../src/server-library/server-document";
 import { GERMAN_BROWSER } from "./support/app";
