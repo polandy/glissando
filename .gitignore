@@ -10,3 +10,4 @@ playwright-report/
 test-results/
 .vitest/
 scripts/ux-tour/shots/
+dist-next/

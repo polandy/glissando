@@ -12,6 +12,7 @@ import { remotePagePlugin } from "./build/remote-page-plugin.ts";
 import { sampleMusicConfigPlugin } from "./build/sample-music-config.ts";
 import { serviceWorkerPlugin } from "./build/service-worker-plugin.ts";
 import { sharePagePlugin } from "./build/share-page-plugin.ts";
+import { nextBuildPluginsFor } from "./e2e/support/next-build-plugin.ts";
 import { tvStreamPluginsFor } from "./e2e/support/tv-stream-plugin.ts";
 // Every module this config loads imports with explicit file extensions (ADR-0026).
 import { setCoarsePointer } from "./src/app/testing/coarse-pointer-command.ts";
@@ -71,6 +72,8 @@ export default defineConfig({
     serviceWorkerPlugin(),
     // Only the Playwright web servers turn this on; e2e/support/fake-tv-api.ts needs it.
     ...tvStreamPluginsFor(env),
+    // Only the update-cycle web server turns this on (E2E-139).
+    ...nextBuildPluginsFor(env),
   ],
   test: {
     // e2e/ belongs to Playwright.
