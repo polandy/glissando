@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.1.10](https://github.com/polandy/glissando/compare/glissando-v0.1.9...glissando-v0.1.10) (2026-11-19)
+
+
+### Features
+
+* **player:** a refused clip keeps its poster and the show goes on ([#383](https://github.com/polandy/glissando/issues/383)) ([f2dcd9f](https://github.com/polandy/glissando/commit/f2dcd9f16be31cb3175887eb146f5773b0e049aa))
+
+
+### Bug Fixes
+
+* **e2e:** step E2E-141's player frames at a small viewport so the case fits the test timeout on a CI runner ([#388](https://github.com/polandy/glissando/issues/388)) ([54763b8](https://github.com/polandy/glissando/commit/54763b8f1594fe5860b6c6612b18f3c521b2b17b))
+* **import:** draw a clip's poster from the element only once the seeked frame has been presented ([#391](https://github.com/polandy/glissando/issues/391)) ([53796f1](https://github.com/polandy/glissando/commit/53796f190cbf9de27f17bd707f3b14bd1d944495))
+* **player:** hold the show while a picture is late again ([#376](https://github.com/polandy/glissando/issues/376)) ([043ed1c](https://github.com/polandy/glissando/commit/043ed1c1d0e8c8fb4ab1512c9c63d58c83565075))
+
+
+### Performance Improvements
+
+* **player:** read decoded pictures through a CPU-backed canvas, no stall at slide changes ([#379](https://github.com/polandy/glissando/issues/379)) ([a5f14f2](https://github.com/polandy/glissando/commit/a5f14f2ed311714d80917dc36f7eee7006ed05c5))
+* **player:** skip the card pass for a layer without a visible card ([#381](https://github.com/polandy/glissando/issues/381)) ([1a1b99a](https://github.com/polandy/glissando/commit/1a1b99a81cee700746458df607d0b8660a6caf5d))
+* **player:** upload a clip's frame only when it shows a new picture ([#380](https://github.com/polandy/glissando/issues/380)) ([6b592ba](https://github.com/polandy/glissando/commit/6b592bac863066044a66e9a8c811a475c6b8ba69))
+
 ## [0.1.9](https://github.com/polandy/glissando/compare/glissando-v0.1.8...glissando-v0.1.9) (2026-11-15)
 
 

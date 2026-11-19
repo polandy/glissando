@@ -13,6 +13,9 @@ here; this file is the full text.
 - **A held page clock moves with `page.clock.fastForward`**, never `runFor`, while the player
   runs: `runFor` steps every animation frame in between, and each is a software-rendered WebGL
   frame in the CI image — 2.5 s of page time took ~26 s of real time.
+- **A case that steps many player frames shrinks the viewport first** (`setViewportSize`): a
+  software-rendered frame costs its pixel count, and E2E-141's 104 frames at 1280×720 took 36 s on
+  one CPU against 6 s at 320×180.
 - **A case that measures how far media played** plays it on the held page clock too: a stand-in
   element whose position follows `performance.now` (E2E-132), never a real element's playback.
 - **A value read once to compare** is read only after what changes it has landed — e.g. the

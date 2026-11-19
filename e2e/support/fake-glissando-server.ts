@@ -52,7 +52,7 @@ export interface FakeGlissandoServer {
   /** Links made so far; each one's token ends in its count, so sharing again makes a new link. */
   linksMade: number;
   /**
-   * Routes this fake's share page/API and TV API (`/tv`, `/r/<secret>` included) on `page` too:
+   * Routes this fake's Immich and library routes, share page/API and TV API (`/tv`, `/r/<secret>` included) on `page` too:
    * a route registered only through the browser context (or through its `"page"` event, for a
    * page opened later) can miss a request a page sends very soon after it opens, observed for
    * way B's `POST .../tv`, sent right after a new page's first paint. Every page the case opens
@@ -61,6 +61,8 @@ export interface FakeGlissandoServer {
   attachPage(page: Page): void;
   /** Moves the TV hub's clock on, so a TV session idles out without the case waiting for it. */
   advanceTvTime(ms: number): void;
+  /** Closes a TV page so the TV hub sees the TV go, as the real server does when it leaves. */
+  closeTvPage(page: Page): Promise<void>;
 }
 
 const IMMICH_ROUTE = /\/immich\/(.*)$/;
@@ -107,9 +109,15 @@ export async function fakeGlissandoServer(
     advanceTvTime: () => {
       throw new Error("fakeGlissandoServer has not finished setting itself up yet");
     },
+    closeTvPage: () => {
+      throw new Error("fakeGlissandoServer has not finished setting itself up yet");
+    },
   };
-  await page.route(IMMICH_ROUTE, (route) => answerImmich(route, server, photo));
-  await page.route(LIBRARY_ROUTE, (route) => answerLibrary(route, server));
+  const attachLibraryRoutes = async (target: Page) => {
+    await target.route(IMMICH_ROUTE, (route) => answerImmich(route, server, photo));
+    await target.route(LIBRARY_ROUTE, (route) => answerLibrary(route, server));
+  };
+  await attachLibraryRoutes(page);
   const tvApi = attachTvApi(page, server, photo);
   const attachShareRoutes = (target: Page) => {
     void target.route(SHARE_PAGE_ROUTE, (route) =>
@@ -123,7 +131,9 @@ export async function fakeGlissandoServer(
     void target.route(SHARE_API_ROUTE, (route) => answerShareApi(route, server, photo));
   };
   attachShareRoutes(page);
+  server.closeTvPage = tvApi.closePage;
   server.attachPage = (target: Page) => {
+    void attachLibraryRoutes(target);
     attachShareRoutes(target);
     tvApi.attachTo(target);
   };

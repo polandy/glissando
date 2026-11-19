@@ -1,4 +1,4 @@
-// Spec: docs/dev/tv_remote/SESSIONS.md
+// Spec: docs/dev/tv_remote/REMOTE_PAGE.md, docs/dev/tv_remote/SESSIONS.md
 import { expect, test, type Page } from "@playwright/test";
 import { GERMAN_BROWSER } from "./support/app";
 import { SESSION_IDLE_MS } from "../server/tv/tv-hub";
@@ -108,6 +108,102 @@ test("E2E-052 a guest on the share page scans the QR, and the remote pauses and 
 
   await remote.getByRole("button", { name: "Nächstes Bild" }).click();
   await expect(remote.getByText("Bild 2 von 3 · Pausiert", { exact: true })).toBeVisible();
+});
+
+test("E2E-145 a second phone that enters a code already claimed is told it matches no TV, and the first stays connected", async ({
+  page,
+}) => {
+  let jpeg: Uint8Array | null = null;
+  const server = await fakeGlissandoServer(page, () => {
+    if (jpeg === null) throw new Error("a photo was asked for before the case made one");
+    return jpeg;
+  });
+  await openApp(page);
+  jpeg = (await pictureTakenOn(page, "photo.jpg", "2019-07-02", "#4db6ac")).buffer;
+  await createServerSlideshow(page);
+
+  const tv = await page.context().newPage();
+  server.attachPage(tv);
+  await tv.goto("/tv");
+  await expect(tvCode(tv)).toHaveText(new RegExp(`^.{${TV_CODE_LENGTH}}$`));
+  const code = (await tvCode(tv).textContent()) ?? "";
+
+  const enterCode = async (phone: Page) => {
+    await phone.getByRole("button", { name: /^Auf dem Fernseher zeigen/ }).click();
+    const sheet = phone.getByRole("dialog", { name: "Auf dem Fernseher zeigen" });
+    await sheet
+      .getByRole("group", { name: "Code vom Fernseher" })
+      .getByRole("textbox")
+      .first()
+      .fill(code);
+    await sheet.getByRole("button", { name: "Verbinden" }).click();
+    return sheet;
+  };
+
+  const firstSheet = await enterCode(page);
+  await expect(
+    firstSheet.getByText(`Mit Fernseher ${code} verbunden`, { exact: true }),
+  ).toBeVisible();
+  await expect(tv.getByRole("heading", { name: /Handy verbunden/ })).toBeVisible();
+
+  const secondPhone = await page.context().newPage();
+  server.attachPage(secondPhone);
+  await openApp(secondPhone);
+  await createServerSlideshow(secondPhone);
+  await secondPhone.getByRole("button", { name: "Weitere Einstellungen" }).click();
+  const secondSheet = await enterCode(secondPhone);
+
+  await expect(secondSheet.getByText("Dieser Code passt zu keinem Fernseher")).toBeVisible();
+  await expect(secondSheet.getByText(/^Mit Fernseher .* verbunden$/)).toBeHidden();
+  await expect(
+    firstSheet.getByText(`Mit Fernseher ${code} verbunden`, { exact: true }),
+  ).toBeVisible();
+  await expect(tv.getByRole("heading", { name: /Handy verbunden/ })).toBeVisible();
+});
+
+test("E2E-147 the TV closes its page mid-show, and the remote says the TV is not there and disables its controls", async ({
+  page,
+}) => {
+  let jpeg: Uint8Array | null = null;
+  const server = await fakeGlissandoServer(page, () => {
+    if (jpeg === null) throw new Error("a photo was asked for before the case made one");
+    return jpeg;
+  });
+  await openApp(page);
+  jpeg = (await pictureTakenOn(page, "photo.jpg", "2019-07-02", "#4db6ac")).buffer;
+  await createServerSlideshow(page);
+
+  const tv = await page.context().newPage();
+  server.attachPage(tv);
+  await tv.goto("/tv");
+  await expect(tvCode(tv)).toHaveText(new RegExp(`^.{${TV_CODE_LENGTH}}$`));
+  const code = (await tvCode(tv).textContent()) ?? "";
+
+  await page.getByRole("button", { name: /^Auf dem Fernseher zeigen/ }).click();
+  const sheet = page.getByRole("dialog", { name: "Auf dem Fernseher zeigen" });
+  await sheet
+    .getByRole("group", { name: "Code vom Fernseher" })
+    .getByRole("textbox")
+    .first()
+    .fill(code);
+  await sheet.getByRole("button", { name: "Verbinden" }).click();
+  await expect(sheet.getByText(`Mit Fernseher ${code} verbunden`, { exact: true })).toBeVisible();
+  await sheet.getByRole("button", { name: /\d+ Bild/ }).click();
+  await sheet.getByRole("button", { name: "Auf dem Fernseher zeigen", exact: true }).click();
+  await page.waitForURL(/\/r\//);
+  await expect(tv.locator("html")).toHaveAttribute("data-state", "playing");
+  await expect(page.getByRole("button", { name: "Pause" })).toBeEnabled();
+
+  await server.closeTvPage(tv);
+
+  await expect(page.getByText("Der Fernseher ist nicht da", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText(
+      "Der Fernseher hat seine Seite geschlossen. Öffne sie dort wieder, dann geht es weiter.",
+    ),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Pause" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Nächstes Bild" })).toBeDisabled();
 });
 
 test("E2E-144 a code whose TV never connected idles out, and the phone is told it matches no TV", async ({

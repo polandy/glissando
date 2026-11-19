@@ -22,6 +22,8 @@ const CLIP_COLOUR = "#4db6ac";
 const PICTURE_DAY = "2025-07-12";
 const CLOCK_START = new Date("2026-01-01T12:00:00Z").getTime();
 const CLOCK_HOLD_MS = 60_000;
+/** The player's size while the case steps it: a software-rendered frame costs its pixel count. */
+const PLAYER_VIEWPORT = { width: 320, height: 180 };
 /** One player frame per step of the held page clock; each is a software-rendered WebGL frame. */
 const FRAME_MS = 250;
 /** 13 s: past the picture (about 7 s on the found beat) and the clip, into the end card. */
@@ -87,6 +89,8 @@ async function playThrough(page: Page): Promise<GainProbe["log"]> {
   await page.evaluate(() => {
     (window as unknown as { musicGainProbe: GainProbe }).musicGainProbe.log = [];
   });
+  const viewport = page.viewportSize();
+  await page.setViewportSize(PLAYER_VIEWPORT);
   await page.getByRole("button", { name: "Abspielen" }).last().click();
   const player = page.getByRole("dialog");
   await expect(player).toHaveAttribute("aria-busy", "false");
@@ -99,6 +103,7 @@ async function playThrough(page: Page): Promise<GainProbe["log"]> {
   );
   await page.keyboard.press("Escape");
   await expect(player).toBeHidden();
+  if (viewport !== null) await page.setViewportSize(viewport);
   return log;
 }
 
