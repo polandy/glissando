@@ -82,3 +82,25 @@ browser and records what a viewer would notice: animation-frame gaps, main-threa
 uploads, the music element's pauses, seeks and stalls. It can starve the CPU, pin the browser to
 cores and make the pictures of a server slideshow arrive late, so a stutter is measured before and
 after a change instead of listened for. Its header lists the options.
+
+Per animation frame it also counts the draw, program, framebuffer and texture-delete calls and,
+where the browser has `EXT_disjoint_timer_query_webgl2`, the frame's GPU time. Every gap over
+33 ms lists the work of the frame drawn right before it (`droppedFrameWork`) and counts as at a
+slide boundary when it starts within 400 ms of a picture's texture allocation.
+
+**The reference is the owner's host, headless, on its integrated GPU** (`--browser host --gpu
+amd`, the default): it renders on real hardware without a display. Performance work aims at
+**60 Hz**, a 16.7 ms frame; a faster display is targeted only once a device with one is measured.
+A change made for speed is measured first, on the reference and, for anything about memory or a
+weak GPU, on a phone.
+
+- **A software renderer measures nothing about Glissando.** The pinned CI image has no GPU:
+  Chromium draws with SwiftShader, headless Firefox gets no WebGL2 context and falls back to the
+  DOM renderer. Vulkan (`--gpu nvidia`) can fall back to SwiftShader headless as well. The probe
+  reads the page's WebGL2 renderer before playing and stops (exit 3) on a software or missing
+  one; `--allow-software-gl` measures anyway, for a functional run. WebKit always reports
+  "Apple GPU", whatever renders.
+- **A show that did not play measures an idle page**: the summary's `warnings` say when no
+  picture was prepared after play or the music never played.
+- **Headless Chrome on the integrated GPU can refuse to play a clip** with hardware decoding;
+  `--software-video-decode` decodes in software.
