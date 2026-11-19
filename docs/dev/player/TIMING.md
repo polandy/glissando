@@ -102,5 +102,8 @@ weak GPU, on a phone.
   "Apple GPU", whatever renders.
 - **A show that did not play measures an idle page**: the summary's `warnings` say when no
   picture was prepared after play or the music never played.
+- **A gap that ends as a decoded picture arrives** (`workerMessages` in) is the decode, not the
+  draw: the frame before it draws as little as any other. The decode worker reads pixels from a
+  CPU-backed canvas for that reason (ADR-0014).
 - **Headless Chrome on the integrated GPU can refuse to play a clip** with hardware decoding;
   `--software-video-decode` decodes in software.

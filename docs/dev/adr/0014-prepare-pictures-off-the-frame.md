@@ -33,7 +33,9 @@ in WebKit and well under 1 ms in Chromium.
   come from `openPicture` (or `fetch` for a URL `src`), a module worker decodes them with
   `createImageBitmap(…, { imageOrientation: "from-image" })` — upright by EXIF, as an `<img>`
   shows them — draws it onto an `OffscreenCanvas`, reads its RGBA bytes there (`pixelsOf`) and
-  transfers them back. Reading from a canvas copy also keeps WebKit from handing decodes
+  transfers them back. That canvas is CPU-backed (`willReadFrequently`): Chromium backs a 2D
+  canvas with the GPU, and reading a whole picture back from it held the page's frames for 35 to
+  100 ms right before each slide change on the reference host. Reading from a canvas copy also keeps WebKit from handing decodes
   running at once of equally sized pictures (photos of one camera) each other's bitmaps; a
   decode in a chain inside the worker did not help. A released picture's bytes are left to the
   garbage collector; destroying the player terminates the worker.
