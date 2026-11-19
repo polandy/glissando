@@ -1,3 +1,4 @@
+// Spec: docs/dev/app/PICTURE_EDITOR.md
 import { expect, test, type Page } from "@playwright/test";
 import {
   chooseCustomMood,
