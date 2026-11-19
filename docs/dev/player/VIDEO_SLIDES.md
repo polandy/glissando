@@ -106,7 +106,7 @@ changes: a clip is content, not decoration.
   starts. It holds at `0.2` until the slide ends, then ramps back up over a slower
   `VIDEO_DUCK_RAMP_UP_MS` = 1500 ms so the music swells back instead of jumping. Pure function
   `duckFactorAt(timeMs, spans)` in `src/player/`; the music's own trim and fades (ADR-0009)
-  multiply on top.
+  multiply on top (E2E-141).
 - Two clips closer together than a ramp up plus a ramp down stay ducked between them.
 - A clip whose bytes are missing or that the browser cannot decode or refuses to play raises
   `VideoPlaybackError` when it loads or starts, so a show never waits for it. The refused clip is
