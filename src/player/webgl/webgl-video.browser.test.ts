@@ -16,6 +16,8 @@ import {
   type Rgb,
 } from "../testing/browser-pictures";
 import { WebGlRenderer } from "./webgl-renderer";
+// 1 s of ffmpeg's test pattern at 64×48; see video-clip.browser.test.ts.
+import testPatternUrl from "../../import/testing/video/audio-outlasts-picture.webm?url";
 
 const STILL = standingStill({ zoom: 1, centerX: 0.5, centerY: 0.5 });
 const SCREEN = { width: 160, height: 90 };
@@ -51,6 +53,15 @@ function setUp(viewport = SCREEN) {
     deleted.push(texture);
     deleteTexture(texture);
   };
+  const videoUploads: TexImageSource[] = [];
+  const texImage2D = gl.texImage2D.bind(gl) as (...args: unknown[]) => void;
+  gl.texImage2D = ((...args: unknown[]) => {
+    const source = args.at(-1);
+    if (source instanceof HTMLVideoElement) {
+      videoUploads.push(source);
+    }
+    texImage2D(...args);
+  }) as typeof gl.texImage2D;
   const frameOf = (poster: PixelPicture, live?: LiveFrame): RenderFrame<PixelPicture> => ({
     kind: "slide",
     endFade: 0,
@@ -80,7 +91,25 @@ function setUp(viewport = SCREEN) {
     );
     return [pixel[0] ?? 0, pixel[1] ?? 0, pixel[2] ?? 0];
   };
-  return { renderer, frameOf, drawAndRead, created, deleted };
+  return { renderer, frameOf, drawAndRead, created, deleted, videoUploads };
+}
+
+/** The test pattern, paused at `atSeconds` with that frame decoded. */
+async function pausedClip(atSeconds: number): Promise<HTMLVideoElement> {
+  const video = document.createElement("video");
+  video.muted = true;
+  video.src = testPatternUrl;
+  await new Promise((resolve) => video.addEventListener("loadeddata", resolve, { once: true }));
+  await seekTo(video, atSeconds);
+  return video;
+}
+
+function seekTo(video: HTMLVideoElement, seconds: number): Promise<Event> {
+  const seeked = new Promise<Event>((resolve) =>
+    video.addEventListener("seeked", resolve, { once: true }),
+  );
+  video.currentTime = seconds;
+  return seeked;
 }
 
 function isColour(actual: Rgb, expected: Rgb): boolean {
@@ -120,6 +149,24 @@ describe("WebGlRenderer: video slides (ADR-0035)", () => {
     expect(drawAndRead(frame, 0.5, 0.5)).toEqual(BLUE);
     repaint(live, GREEN);
     expect(drawAndRead(frame, 0.5, 0.5)).toEqual(GREEN);
+  });
+
+  it("uploads a paused clip's frame once however often it is drawn, and again after a seek", async () => {
+    const { frameOf, drawAndRead, videoUploads } = setUp();
+    const poster = solidPixels(RED);
+    const clip = await pausedClip(0.2);
+    const frame = frameOf(poster, clip);
+    const DRAWS = 10;
+    for (let draw = 0; draw < DRAWS; draw += 1) {
+      drawAndRead(frame, 0.5, 0.5);
+    }
+    expect(videoUploads).toHaveLength(1);
+
+    await seekTo(clip, 0.6);
+    drawAndRead(frame, 0.5, 0.5);
+    drawAndRead(frame, 0.5, 0.5);
+
+    expect(videoUploads).toHaveLength(2);
   });
 
   it("goes back to the poster when the live frame is gone", async () => {

@@ -2,6 +2,7 @@ import type { PixelPicture } from "../browser/pixel-loader";
 import type { LiveFrame } from "../ports";
 import { createBackdropTexture } from "./backdrop-texture";
 import { setLinearClamped } from "./caption-textures";
+import { LiveFrameVersions } from "./live-frame-versions";
 
 /** Pixels uploaded by one `prepare` step: a few milliseconds of a frame in WebKit (ADR-0014). */
 export const UPLOAD_PIXELS_PER_FRAME = 1_048_576;
@@ -24,6 +25,9 @@ interface LiveTexture {
   readonly texture: WebGLTexture;
   /** The `beginFrame` count it was last uploaded in, so a layer drawn twice uploads once. */
   uploadedInFrame: number;
+  /** What was last uploaded and its `LiveFrameVersions` version, so an unchanged clip frame is not. */
+  source: LiveFrame | null;
+  version: string | null;
 }
 
 /**
@@ -32,13 +36,14 @@ interface LiveTexture {
  * in steps (`prepareStep`): the storage with a first slice of rows, one slice per later step,
  * the mipmaps in a step of their own, then the backdrop. `texture` and `backdrop` finish
  * whatever their texture still lacks at once. A video slide's clip frame has a texture of its
- * own, keyed by the slide's poster picture and uploaded anew every frame (`live`): without
- * mipmaps, which a texture replaced 30 times a second cannot afford.
+ * own, keyed by the slide's poster picture and uploaded anew whenever the clip shows a new
+ * picture (`live`): without mipmaps, which a texture replaced 30 times a second cannot afford.
  */
 export class PictureTextures {
   readonly #gl: WebGL2RenderingContext;
   readonly #textures = new Map<PixelPicture, PictureTexture>();
   readonly #live = new Map<PixelPicture, LiveTexture>();
+  readonly #versions = new LiveFrameVersions();
   #frame = 0;
   #placeholder: WebGLTexture;
 
@@ -92,9 +97,13 @@ export class PictureTextures {
     const gl = this.#gl;
     const entry = this.#liveEntry(poster);
     gl.bindTexture(gl.TEXTURE_2D, entry.texture);
-    if (entry.uploadedInFrame !== this.#frame) {
+    const version = this.#versions.versionOf(frame);
+    const unchanged = version !== null && entry.source === frame && entry.version === version;
+    if (entry.uploadedInFrame !== this.#frame && !unchanged) {
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, frame);
       entry.uploadedInFrame = this.#frame;
+      entry.source = frame;
+      entry.version = version;
     }
     return entry.texture;
   }
@@ -148,7 +157,7 @@ export class PictureTextures {
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     setLinearClamped(gl);
-    const entry = { texture, uploadedInFrame: -1 };
+    const entry = { texture, uploadedInFrame: -1, source: null, version: null };
     this.#live.set(poster, entry);
     return entry;
   }
