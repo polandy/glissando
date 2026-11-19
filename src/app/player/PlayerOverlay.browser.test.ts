@@ -206,4 +206,32 @@ describe("PlayerOverlay", () => {
 
     expect(counter.textContent).toBe("2 / 2");
   });
+
+  it("hints that a clip was refused, keeps playing and drops the hint after a while", async () => {
+    const slide = OPENED_PICTURE_SHOW.slides[0];
+    if (slide === undefined) throw new Error("the fixture has no slide");
+    const scheduler = new FakeScheduler();
+    const mounted = mountWithTranslator(PlayerOverlay, {
+      slideshow: {
+        ...OPENED_PICTURE_SHOW,
+        slides: [{ ...slide, video: { src: "v.mp4", startMs: 0, endMs: 1000, volume: 1 } }, slide],
+      },
+      openPicture: async () => redPng(),
+      readVideo: async () => new Blob(["not a video"], { type: "video/mp4" }),
+      onClose: () => undefined,
+      scheduler,
+    });
+    destroy = mounted.destroy;
+
+    const hint = await whenRendered(mounted.target, ".clip-notice");
+
+    expect(hint.textContent).toContain("Ein Video konnte nicht abgespielt werden");
+    expect(hint.getAttribute("role")).toBe("status");
+    expect(mounted.target.querySelector(".card-layer")).toBeNull();
+    expect(playButton(mounted.target).getAttribute("aria-label")).toBe("Pause");
+
+    scheduler.advance(6000);
+    flushSync();
+    expect(mounted.target.querySelector(".clip-notice")).toBeNull();
+  });
 });

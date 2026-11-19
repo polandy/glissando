@@ -6,8 +6,10 @@ import type { Slideshow } from "./slideshow";
 import { duckFactorFor } from "./video-duck";
 
 export interface PlayerMediaListeners {
-  /** The browser refused to play the music or a clip (`MusicPlaybackError`, `VideoPlaybackError`). */
+  /** The browser refused to play the music (`MusicPlaybackError`). */
   readonly onError: (error: Error) => void;
+  /** The browser refused a clip (`VideoPlaybackError`); its slide keeps the poster. */
+  readonly onClipRefused: (error: Error) => void;
   /** A clip has a frame to draw that it did not have before. */
   readonly onFrameReady: () => void;
 }

@@ -49,3 +49,6 @@ where WebCodecs exists.
 - With every `<video>` muted, a clip plays outside a gesture and catches up with the clock by
   rate; only the `AudioContext` needs the gesture that starts the show (ADR-0009). Without Web
   Audio a clip plays silent.
+- A clip the browser refuses (an unsupported codec, a refused `play()`) does not end the show: its
+  slide keeps the poster, the overlay hints at it, and the clock runs on — a slideshow in front of
+  an audience does not stop for one codec.

@@ -27,6 +27,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   #ready = false;
   #destroyed = false;
   #error: Error | null = null;
+  #skippedClips = 0;
   readonly #captionInset: CaptionInset;
   readonly #loop: PlaybackLoop<Picture>;
 
@@ -37,6 +38,10 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     this.#deps = dependencies;
     this.#media = new PlayerMedia(slideshow, dependencies, {
       onError: (error) => this.#fail(error),
+      onClipRefused: () => {
+        this.#skippedClips += 1;
+        this.#emit("clipskipped");
+      },
       // Playback draws the next frame anyway; a paused show draws the frame that arrived.
       onFrameReady: () => {
         if (this.#paused) {
@@ -122,6 +127,11 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
 
   get error(): Error | null {
     return this.#error;
+  }
+
+  /** How many clips the browser refused; their slides show the poster and the show went on. */
+  get skippedClips(): number {
+    return this.#skippedClips;
   }
 
   play(): void {
