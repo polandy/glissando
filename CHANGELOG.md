@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.11](https://github.com/polandy/glissando/compare/glissando-v0.1.10...glissando-v0.1.11) (2026-11-19)
+
+
+### Features
+
+* **compose:** measure a subject's sharpness and map it to a max Ken Burns zoom ([#396](https://github.com/polandy/glissando/issues/396)) ([a976028](https://github.com/polandy/glissando/commit/a9760287289bae9af44d9d06807fe58a64bfe862))
+
+
+### Bug Fixes
+
+* **server-library:** files from this device reach the copy's add screen, and a failed copy says why ([#394](https://github.com/polandy/glissando/issues/394)) ([a2d97d3](https://github.com/polandy/glissando/commit/a2d97d33a12859f26e0098b053186f859f6bc96a))
+
 ## [0.1.10](https://github.com/polandy/glissando/compare/glissando-v0.1.9...glissando-v0.1.10) (2026-11-19)
 
 
