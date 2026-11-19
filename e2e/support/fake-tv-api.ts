@@ -118,29 +118,35 @@ function sseLine(event: { readonly name: string; readonly data: unknown }): stri
  * Pushes each line to `tv-stream-plugin.ts` for its stream path, one after another, so the
  * browser sees them in the order the hub sent them.
  */
-function streamPusher(request: APIRequestContext): (path: string, line: string) => Promise<void> {
+function streamPusher(request: APIRequestContext): Push {
   let pushed = Promise.resolve();
-  return (path, line) => {
+  const push = (path: string, line: string) => {
     pushed = pushed.then(async () => {
       const answer = await request.post(TV_STREAM_PUSH_PATH, { params: { path, line } });
       if (!answer.ok()) throw new Error(`pushing a TV stream line failed: ${answer.status()}`);
     });
     return pushed;
   };
+  return Object.assign(push, { settled: () => pushed });
 }
 
-type Push = ReturnType<typeof streamPusher>;
+interface Push {
+  (path: string, line: string): Promise<void>;
+  /** Resolves once every line pushed so far has reached the plugin. */
+  settled(): Promise<void>;
+}
 
 /**
  * Runs the real hub and routes for a request. A stream's sink pushes every event to
  * `tv-stream-plugin.ts`, and the browser's request continues there once the replayed snapshot is in. The
- * sink's `CloseStream` is never called: to the hub it means the page went away, and the page's
- * connection stays open on the plugin.
+ * sink's own `close` is never called, since the page's connection stays open on the plugin; the
+ * returned `CloseStream` runs when the page closes.
  */
 async function answerTvApi(
   route: Route,
   handle: ReturnType<typeof createTvHandler>,
   push: Push,
+  onOpen: (page: Page, close: () => void) => void,
 ): Promise<void> {
   const request = route.request();
   const url = new URL(request.url());
@@ -155,12 +161,13 @@ async function answerTvApi(
     return route.fulfill({ status: answer.status, headers: answer.headers, body: answer.body });
   }
   let pushed = Promise.resolve();
-  answer.open({
+  const closeStream = answer.open({
     send: (event) => {
       pushed = push(path, sseLine(event));
     },
     close: () => undefined,
   });
+  onOpen(request.frame().page(), closeStream);
   await pushed;
   const target = new URL(url.toString());
   target.searchParams.set(TV_STREAM_QUERY, "1");
@@ -172,11 +179,12 @@ function attachApiRoute(
   target: Page,
   handle: ReturnType<typeof createTvHandler>,
   push: Push,
+  onOpen: (page: Page, close: () => void) => void,
   hub: TvHub,
   server: FakeGlissandoServer,
   photo: () => Uint8Array,
 ): void {
-  void target.route(TV_API_ROUTE, (route) => answerTvApi(route, handle, push));
+  void target.route(TV_API_ROUTE, (route) => answerTvApi(route, handle, push, onOpen));
   attachPageRoute(target, TV_PAGE_ROUTE, SHARE_PAGE_FILE);
   attachPageRoute(target, REMOTE_PAGE_ROUTE, REMOTE_PAGE_FILE);
   void target.route(TV_PICTURE_ROUTE, async (route) => {
@@ -211,6 +219,11 @@ export interface TvApi {
    * session, as the real service's clients do.
    */
   attachTo(target: Page): void;
+  /**
+   * Closes `target` as a TV that goes away: the hub learns its streams are gone, as the real
+   * server does when a client leaves, and the other pages' streams have their news before it returns.
+   */
+  closePage(target: Page): Promise<void>;
 }
 
 /**
@@ -225,9 +238,21 @@ export function attachTvApi(
   const hub = createTvHub({ now: Date.now, randomBytes });
   const handle = createTvHandler({ repository: tvRepositoryOf(server), hub, log: () => undefined });
   const push = streamPusher(page.context().request);
+  const openStreams = new Map<Page, (() => void)[]>();
+  const onOpen = (target: Page, close: () => void) => {
+    openStreams.set(target, [...(openStreams.get(target) ?? []), close]);
+  };
   const attachTo = (target: Page) => {
-    attachApiRoute(target, handle, push, hub, server, photo);
+    attachApiRoute(target, handle, push, onOpen, hub, server, photo);
   };
   attachTo(page);
-  return { attachTo };
+  return {
+    attachTo,
+    closePage: async (target) => {
+      for (const close of openStreams.get(target) ?? []) close();
+      openStreams.delete(target);
+      await push.settled();
+      await target.close();
+    },
+  };
 }
