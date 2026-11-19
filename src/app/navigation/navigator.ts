@@ -28,8 +28,8 @@ export class Navigator {
   readonly #history: HistoryPort;
   readonly #listeners = new Set<(route: Route) => void>();
   #route: Route;
-  /** A move the navigator started: the route it lands on, then the route to open from there. */
-  #pendingMove: { landing: Route; then: Route | null } | null = null;
+  /** A move the navigator started: the route it lands on, then the routes to open from there, each below the one before. */
+  #pendingMove: { landing: Route; then: Route[] } | null = null;
   #leaveGuard: LeaveGuard | null = null;
 
   constructor(history: HistoryPort) {
@@ -71,14 +71,25 @@ export class Navigator {
    */
   open(target: Route): void {
     const pending = this.#pendingMove;
+    const queued = pending?.then.at(-1);
+    if (pending !== null && queued !== undefined && this.#isParentOf(queued, target)) {
+      pending.then.push(target);
+      this.#setRoute(target);
+      return;
+    }
     const from = pending?.landing ?? this.#route;
     const climb = this.#climbToOpen(from, target);
     this.#setRoute(target);
     if (pending !== null) {
-      pending.then = target;
+      pending.then = [target];
     } else {
-      this.#openFrom(climb, target);
+      this.#openFrom(climb, [target]);
     }
+  }
+
+  #isParentOf(parent: Route, child: Route): boolean {
+    const childsParent = parentOf(child);
+    return childsParent !== null && sameRoute(childsParent, parent);
   }
 
   /** One screen up; the route follows when the history move lands. */
@@ -115,13 +126,13 @@ export class Navigator {
     return { parent, stepsDown };
   }
 
-  /** Pushes `target` now, or climbs down to its parent first and pushes once there. */
-  #openFrom(climb: { parent: Route; stepsDown: number }, target: Route): void {
+  /** Pushes `targets` now, or climbs down to the first one's parent first and pushes once there. */
+  #openFrom(climb: { parent: Route; stepsDown: number }, targets: Route[]): void {
     if (climb.stepsDown === 0) {
-      this.#history.push(target);
+      for (const target of targets) this.#history.push(target);
       return;
     }
-    this.#pendingMove = { landing: climb.parent, then: target };
+    this.#pendingMove = { landing: climb.parent, then: targets };
     this.#history.go(-climb.stepsDown);
   }
 
@@ -144,8 +155,9 @@ export class Navigator {
     const pending = this.#pendingMove;
     if (pending !== null) {
       this.#pendingMove = null;
-      if (pending.then !== null) {
-        this.#openFrom(this.#climbToOpen(pending.landing, pending.then), pending.then);
+      const [first] = pending.then;
+      if (first !== undefined) {
+        this.#openFrom(this.#climbToOpen(pending.landing, first), pending.then);
       }
       return;
     }
@@ -164,7 +176,7 @@ export class Navigator {
       this.#history.push(this.#route);
       return;
     }
-    this.#pendingMove = { landing: this.#route, then: null };
+    this.#pendingMove = { landing: this.#route, then: [] };
     this.#history.go(stepsBack);
   }
 

@@ -15,7 +15,7 @@ export interface ServerCopyFlowsPorts {
   readonly serverLibrary: Pick<ServerLibrary, "keepCopy" | "saveOnServer">;
   readonly deviceStore: Pick<LibraryStore, "listSlideshows">;
   readonly toaster: Pick<Toaster, "show">;
-  /** Opens a slideshow's screen, the copy's from a toast's "Open". */
+  /** Opens a slideshow's screen: the copy's from a toast's "Open", or before its add screen. */
   open(slideshowId: string): void;
   /** Takes files from this device into a new copy's add screen. */
   addFiles(copy: StoredSlideshow, files: readonly File[]): void;
@@ -99,7 +99,10 @@ export class ServerCopyFlows {
   async #keepCopyAndAdd(serverSlideshow: StoredSlideshow, files: readonly File[]): Promise<void> {
     const copy = await (this.#copying.get(serverSlideshow.id) ??
       this.#startCopy(serverSlideshow, false));
-    if (copy !== null) this.#ports.addFiles(copy, files);
+    if (copy === null) return;
+    // The navigator opens an add screen only from its slideshow's screen.
+    this.#ports.open(copy.id);
+    this.#ports.addFiles(copy, files);
   }
 
   #startCopy(

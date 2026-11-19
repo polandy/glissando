@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import type { ImmichFace } from "../immich/immich-client";
-import { PictureNotDownloadedError } from "../import/picture-source";
+import { ImmichUnavailableError, type ImmichFace } from "../immich/immich-client";
 import { storedFocus } from "../library/focus-pass-fixtures";
 import type { StoredFocus } from "../library/picture-focus";
 import { MediaNotFoundError } from "../library/library-store";
 import type { StoredCard, StoredSlideshow } from "../library/stored-slideshow";
 import { MemoryLibraryStore } from "../library/testing/memory-store";
 import { keepCopyOnDevice } from "./keep-copy";
+import { PictureMissingFromImmichError } from "./server-slideshow-store";
 import { decodeAsText, FakeImmichMedia } from "./testing/fake-immich-media";
 import { linkedPicture, serverSlideshow } from "./testing/server-store-harness";
 
@@ -188,7 +188,7 @@ describe("keepCopyOnDevice", () => {
     expect(progress).toEqual([0, 0.25, 0.5, 0.75, 1]);
   });
 
-  it("keeps nothing when a picture cannot be downloaded, e.g. one no longer in Immich", async () => {
+  it("keeps nothing and names the picture when one is no longer in Immich", async () => {
     const { store, immich, keep } = setUp();
     immich.add("asset-1");
     const kept = serverSlideshow({ id: "kept", title: "Kept" });
@@ -198,8 +198,20 @@ describe("keepCopyOnDevice", () => {
       keep(serverSlideshow({ pictures: [linkedPicture("asset-1"), linkedPicture("asset-gone")] })),
     );
 
-    expect(error).toBeInstanceOf(PictureNotDownloadedError);
+    expect(error).toBeInstanceOf(PictureMissingFromImmichError);
+    expect((error as PictureMissingFromImmichError).pictureId).toBe("asset-gone");
     expect(await store.listSlideshows()).toEqual([kept]);
     expect(await rejection(store.pictureBlob("id-2"))).toBeInstanceOf(MediaNotFoundError);
+  });
+
+  it("keeps nothing and says Immich is not answering when it is not", async () => {
+    const { store, immich, keep } = setUp();
+    immich.add("asset-1");
+    immich.unavailable = "unreachable";
+
+    const error = await rejection(keep(serverSlideshow({ pictures: [linkedPicture("asset-1")] })));
+
+    expect(error).toBeInstanceOf(ImmichUnavailableError);
+    expect(await store.listSlideshows()).toEqual([]);
   });
 });

@@ -18,3 +18,6 @@ it on this device; the server slideshow stays as it is (ADR-0055).
 - **All or nothing**: a copy that fails (a picture no longer in Immich, Immich or the Glissando
   server not answering) creates nothing, drops the files and shows Keep a copy's coral toast,
   without "Try again". The server slideshow never changes.
+- **Cases**: E2E-150 adds a file to a server slideshow through the sheet and finds it in the
+  copy, the server slideshow unchanged; E2E-151 meets a picture no longer in Immich and keeps
+  nothing.

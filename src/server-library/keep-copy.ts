@@ -1,8 +1,13 @@
 import { FOCUS_DETECTOR_VERSION } from "../focus/focus-detector-version";
 import { cardFromManifest, cardToManifest } from "../glissando-file/manifest-card";
 import { uniqueTitle } from "../glissando-file/unique-title";
-import type { ImmichPhoto } from "../immich/immich-client";
+import {
+  ImmichRequestFailedError,
+  ImmichUnavailableError,
+  type ImmichPhoto,
+} from "../immich/immich-client";
 import { immichPictureSource, type ImmichPictureReaders } from "../import/immich-picture-source";
+import { PictureNotDownloadedError } from "../import/picture-source";
 import type { LibraryStore, SlideshowStore } from "../library/library-store";
 import type {
   StoredCard,
@@ -10,6 +15,9 @@ import type {
   StoredPicture,
   StoredSlideshow,
 } from "../library/stored-slideshow";
+import { PictureMissingFromImmichError } from "./server-slideshow-store";
+
+const HTTP_NOT_FOUND = 404;
 
 export interface KeepCopyPorts {
   /** The device's store the copy goes into. */
@@ -46,8 +54,8 @@ export interface KeepCopyOptions {
  * focus is the server's own stored focus where the server has one (it may be richer than a live
  * faces lookup, e.g. confirmed or found by scenery), else Immich's faces. All or nothing, as
  * `writeGlissandoFile`: every media id is claimed before its media is written and the record is
- * saved last, so a failure (e.g. `PictureNotDownloadedError` for a picture no longer in Immich)
- * keeps nothing.
+ * saved last, so a failure (`PictureMissingFromImmichError` for a picture no longer in Immich,
+ * `ImmichUnavailableError` while Immich is not answering) keeps nothing.
  */
 export async function keepCopyOnDevice(
   slideshow: StoredSlideshow,
@@ -77,7 +85,7 @@ export async function keepCopyOnDevice(
     const serverFocus = await ports.server.pictureFocus(assetIds);
     const pictures: StoredPicture[] = [];
     for (const picture of slideshow.pictures) {
-      const { decoded, focus } = await immichPictureSource(photoOf(picture), ports.immich).read();
+      const { decoded, focus } = await downloaded(picture, ports.immich);
       const stored =
         picture.immichAssetId !== undefined ? serverFocus.get(picture.immichAssetId) : undefined;
       const toSave =
@@ -124,6 +132,20 @@ export async function keepCopyOnDevice(
     } catch (cleanUpError) {
       ports.log(cleanUpError);
     }
+    throw error;
+  }
+}
+
+/** A server picture read from Immich, its failure told as the app tells Immich's errors. */
+async function downloaded(picture: StoredPicture, readers: ImmichPictureReaders) {
+  try {
+    return await immichPictureSource(photoOf(picture), readers).read();
+  } catch (error) {
+    const cause = error instanceof PictureNotDownloadedError ? error.cause : error;
+    if (cause instanceof ImmichRequestFailedError && cause.status === HTTP_NOT_FOUND) {
+      throw new PictureMissingFromImmichError(picture.id, { cause });
+    }
+    if (cause instanceof ImmichUnavailableError) throw cause;
     throw error;
   }
 }
