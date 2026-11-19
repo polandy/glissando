@@ -2,8 +2,17 @@
 import { expect, test } from "@playwright/test";
 import { ALL_FORMATS, BlobSource, Input } from "mediabunny";
 import { readFileSync } from "node:fs";
-import { createSlideshowWithMusic, GERMAN_BROWSER } from "./support/app";
+import {
+  chooseFiles,
+  createSlideshowWithMusic,
+  editsStored,
+  expectSlideshowScreen,
+  GERMAN_BROWSER,
+  openImport,
+} from "./support/app";
+import { CARD_SLIDE_MS } from "../src/compose/card-slide";
 import { openApp } from "./support/browser";
+import { generatedClip } from "./support/clip";
 import { silentTrack } from "./support/media";
 import { chooseShareRow, deliverByDownload } from "./support/share";
 
@@ -97,4 +106,65 @@ test("E2E-100 the video sheet notes that the Opus sound does not play on Apple d
       "Läuft aus diesem Browser nicht auf iPhone, iPad oder Apple TV. Dafür in Safari erstellen.",
     ),
   ).toBeVisible();
+});
+
+const CLIP_SECONDS = 3;
+const CLIP_COLOUR = "#4db6ac";
+const CARD_TITLE = "Sommerurlaub";
+/** The opening card is a slide of its own before a clip, which is never lengthened for it. */
+const MIN_CLIP_AND_CARD_SECONDS = CLIP_SECONDS + CARD_SLIDE_MS / 1000;
+
+test("E2E-142 a slideshow with a clip and a title card saved as a video downloads as an MP4 of the whole show, card included", async ({
+  page,
+  browserName,
+}, testInfo) => {
+  test.skip(
+    browserName !== "chromium",
+    "Only Chromium's test build encodes the H.264 clip the case imports and exports",
+  );
+  test.slow();
+  await deliverByDownload(page);
+  await openApp(page);
+  const clip = await generatedClip(page, "clip.mp4", CLIP_COLOUR, CLIP_SECONDS);
+  await openImport(page);
+  await chooseFiles(page, page.getByRole("button", { name: "Bilder auswählen" }), [clip]);
+  await expect(page.getByText("1 Bilder", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Weiter" }).click();
+  await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
+  await expectSlideshowScreen(page);
+
+  await page.getByRole("button", { name: "Titelbild", exact: true }).click();
+  const card = page.getByRole("dialog");
+  await card.getByRole("textbox", { name: "Titel", exact: true }).fill(CARD_TITLE);
+  await expect(card.getByText(CARD_TITLE)).toBeVisible();
+  await editsStored(page);
+  await card.getByRole("button", { name: "Fertig" }).click();
+  await expect(card).toBeHidden();
+
+  await chooseShareRow(page, /^Video/);
+  const sheet = page.getByRole("dialog", { name: "Video" });
+  const small = sheet.getByRole("radio", { name: /^Klein/ });
+  await expect(small).toHaveAttribute("aria-disabled", "false");
+  await small.click();
+  await sheet.getByRole("button", { name: "Video erstellen" }).click();
+
+  const done = page.getByRole("dialog", { name: "Video ist fertig" });
+  await expect(done).toBeVisible({ timeout: 0 });
+  const download = page.waitForEvent("download");
+  await done.getByRole("button", { name: "Herunterladen" }).click();
+  const file = await download;
+
+  const saved = testInfo.outputPath(file.suggestedFilename());
+  await file.saveAs(saved);
+  const input = new Input({
+    source: new BlobSource(new Blob([new Uint8Array(readFileSync(saved))])),
+    formats: ALL_FORMATS,
+  });
+  const video = await input.getPrimaryVideoTrack();
+  if (video === null) {
+    throw new Error("the video lacks a video track");
+  }
+  expect(video.displayWidth).toBe(1280);
+  expect(video.displayHeight).toBe(720);
+  expect(await video.computeDuration()).toBeGreaterThanOrEqual(MIN_CLIP_AND_CARD_SECONDS);
 });

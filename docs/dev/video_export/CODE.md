@@ -21,5 +21,6 @@ the stored slideshow for the run) and `browser-video-export-device.ts` (the brow
   frame count, audio track). E2E-030 runs the sheet from the info panel to "done" at 720p,
   downloads the file and reads it back (name, `ftyp`, size, both tracks' duration); Chromium
   only, since Playwright's Firefox encodes no preset and its WebKit has no origin private file
-  system.
+  system. E2E-142 exports a clip with an opening title card and checks the MP4 is at least as long
+  as the clip plus the card's slide (Chromium only: the clip is H.264).
   All test pictures are generated or public domain.
