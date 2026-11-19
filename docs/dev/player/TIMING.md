@@ -99,6 +99,8 @@ amd`, the default): it renders on real hardware without a display. Performance w
 A change made for speed is measured first, on the reference and, for anything about memory or a
 weak GPU, on a phone.
 
+- **What a frame may do is a test, not a measurement**: `FRAME_WORK_BUDGET` caps the GL calls of a
+  prepared frame in CI (see `TESTS.md`); the probe measures what those calls cost on the reference.
 - **A software renderer measures nothing about Glissando.** The pinned CI image has no GPU:
   Chromium draws with SwiftShader, headless Firefox gets no WebGL2 context and falls back to the
   DOM renderer. Vulkan (`--gpu nvidia`) can fall back to SwiftShader headless as well. The probe

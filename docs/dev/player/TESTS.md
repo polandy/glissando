@@ -10,6 +10,12 @@
   upload call sends; the worker decode, EXIF orientation included, runs in all three engines.
   Headless Firefox in the CI image has no WebGL, so it tests the DOM fallback
   only.
+- **A frame's work is budgeted by counting, never by timing.** `webgl-frame-budget.browser.test.ts`
+  draws a prepared still frame, each transition effect and a visible card frame through a context
+  that counts every GL call (`testing/counting-gl.ts`) and holds each against
+  `FRAME_WORK_BUDGET` (`testing/frame-work-budget.ts`): one draw, one program, no upload,
+  mipmap, texture allocation or deletion, no framebuffer switch unless a card shows. Moving work
+  from `prepare` into the draw turns it red on any machine; lowering a number by one does too.
 - A video slide's clip is faked in the unit tests (`testing/fake-videos.ts`: `FakeVideo`,
   `FakeVideos`, `FakeVideoFrames`); the renderers' browser tests draw a canvas as the live frame
   (no encoded fixture), and `browser/video-playback.ts` is tested against a fake element.
