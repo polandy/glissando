@@ -1,3 +1,4 @@
+// Spec: docs/dev/tv_remote/SESSIONS.md
 import { expect, test, type Page } from "@playwright/test";
 import { GERMAN_BROWSER } from "./support/app";
 import { SESSION_IDLE_MS } from "../server/tv/tv-hub";
