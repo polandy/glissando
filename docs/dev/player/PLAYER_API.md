@@ -34,19 +34,19 @@ caption and card fonts, `document.fonts` without it.
 Video slides (VIDEO_SLIDES.md) play through the optional `PlayerDependencies.openVideo(src,
 volume): VideoPlayback` port (`seek`, `play`, `follow`, `pause`, `setVolume`, `frame`,
 `onFrameReady`, `dispose`); `createBrowserPlayer` supplies one `<video>` element per clip
-(`browser/video-playback.ts`, `browser/open-video.ts`). A refused clip is a `VideoPlaybackError` in
-an `error` event, and the show pauses, like a refused music start.
+(`browser/video-playback.ts`, `browser/open-video.ts`). A refused clip is a `VideoPlaybackError`: the player emits
+`clipskipped`, counts it in `skippedClips`, and the show goes on with the slide's poster.
 
 The player:
 
 - `play()`, `pause()`, `currentTime` (seconds, settable to seek, clamped), `duration`,
-  `paused`, `ended`, `ready` (first frame shown), `error`.
+  `paused`, `ended`, `ready` (first frame shown), `error`, `skippedClips`.
 - `startAt(seconds)`: seeks like `currentTime` and fades the music in over `START_FADE_IN_MS` (1000 ms, `music-gain.ts`) from that play time, as a pure function of play time (`startFadeGainAt`); any later seek (`currentTime`) or replay from the end clears it. Calling it again (a restart after a failed picture) fades in again.
 - `renderAt(seconds): Promise<void>` (paused only, for the video export): pauses, moves to
   `seconds` (clamped), waits until that frame's pictures are loaded, draws it, prepares the
   upcoming pictures and resolves; rejects with the load's error, emits no events.
 - Events: `canplay`, `play`, `playing`, `waiting`, `pause`, `seeked`, `timeupdate` (every drawn
-  frame), `ended`, `error`.
+  frame), `ended`, `error`, `clipskipped`.
 - `captionInset` (CSS pixels, ≥ 0, default 0) lifts every caption from the bottom, e.g. above
   controls laid over the player while they show. Setting it glides the captions there over
   `CAPTION_GLIDE_MS` (300 ms, CSS `ease`; the app fades its controls in the same time), starting
@@ -77,7 +77,7 @@ Behaviour:
   only when it is resumed synchronously in a user gesture, and lets a media element play outside
   a gesture (a track reaching its place on a frame) only once it has played inside one, hence the
   priming: the app unlocks the context in the Play tap that opens the player, in the player's
-  play control, and every `play()` of a track unlocks it too. A refused `play()` of any track is
+  play control, and every `play()` of a track unlocks it too. A refused `play()` of a music track is
   an `error` and pauses; a start interrupted by a pause (a quick seek) is not a refusal.
 - **Pictures** are loaded for the slides on screen plus the next `picturesAhead`; all others are
   released, so memory stays bounded. When a frame needs a picture that is not loaded yet, time
