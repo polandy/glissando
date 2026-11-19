@@ -134,8 +134,8 @@ type Push = ReturnType<typeof streamPusher>;
 /**
  * Runs the real hub and routes for a request. A stream's sink pushes every event to
  * `tv-stream-plugin.ts`, and the browser's request continues there once the replayed snapshot is in. The
- * sink's `CloseStream` is never called: to the hub it means the page went away, and the page's
- * connection stays open on the plugin.
+ * sink's own `close` is never called, since the page's connection stays open on the plugin; the
+ * returned `CloseStream` runs when the page closes.
  */
 async function answerTvApi(
   route: Route,
@@ -155,12 +155,14 @@ async function answerTvApi(
     return route.fulfill({ status: answer.status, headers: answer.headers, body: answer.body });
   }
   let pushed = Promise.resolve();
-  answer.open({
+  const closeStream = answer.open({
     send: (event) => {
       pushed = push(path, sseLine(event));
     },
     close: () => undefined,
   });
+  // The real server calls this once the client has gone; here that is the page closing.
+  request.frame().page().once("close", closeStream);
   await pushed;
   const target = new URL(url.toString());
   target.searchParams.set(TV_STREAM_QUERY, "1");
