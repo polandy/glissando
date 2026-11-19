@@ -29,7 +29,7 @@ export function subjectSharpness(grey: GreyImage, box: FocusBox): number {
  */
 export function maxZoomForSharpness(score: number): number {
   if (!Number.isFinite(score)) {
-    throw new RangeError(`sharpness must be a finite number ≥ 0, got ${score}`);
+    throw new RangeError(`sharpness must be a finite number, got ${score}`);
   }
   const zoomToFloor =
     (Math.max(0, score) / BLURRY_SHARPNESS_FLOOR) ** (1 / SHARPNESS_FALL_EXPONENT);
