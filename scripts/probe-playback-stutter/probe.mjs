@@ -68,6 +68,8 @@ const cpus = flag("--cpus", "");
 const networkKbps = Number(flag("--network-kbps", "0"));
 const pictureDelayMs = Number(flag("--picture-delay-ms", "0"));
 const OPEN_TIMEOUT_MS = 180_000;
+// Exit status of a run stopped before playing on a software or missing WebGL2 renderer.
+const SOFTWARE_RENDERER_EXIT = 3;
 
 const GPU_FLAGS = {
   nvidia: [
@@ -165,7 +167,7 @@ if (softwareReason) {
   if (!allowSoftwareGl) {
     console.error("probe: stopped; pass --allow-software-gl to measure anyway (TIMING.md)");
     await browser.close();
-    process.exit(3);
+    process.exit(SOFTWARE_RENDERER_EXIT);
   }
 }
 if (serverTitle) {
