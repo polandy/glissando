@@ -9,6 +9,7 @@ import {
 import { openApp } from "./support/browser";
 import { centreOf, drag } from "./support/pointer";
 import { clickTrackWav } from "./support/media";
+import { showMusicDetails } from "./support/switch";
 
 test.use(GERMAN_BROWSER);
 
@@ -190,6 +191,11 @@ test("E2E-124 the picture editor says a picture whose length follows the music s
   const lengthSlider = timingSection.getByRole("slider", { name: "Bilddauer" });
   await openApp(page);
   await createSlideshowWithMusic(page, clickTrackWav("Takt.wav", 20, 120), { fill: true });
+  // The found beat moves the picture changes onto it, so the length is read only after that.
+  await page.getByRole("button", { name: /^Musik Takt\.wav/ }).click();
+  await showMusicDetails(page);
+  await expect(page.getByText("120 Schläge pro Minute", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Zurück", exact: true }).click();
 
   await page
     .getByRole("button", { name: "Bild 2, aufgenommen am 14.07.2025", exact: true })

@@ -30,4 +30,5 @@ loaded device does makes the music seek over and over.
 
 The music plays without gaps while pictures are prepared. On a loaded device a song may stay off
 the beat by what its seek or its slow clock left — up to the next stall or start — rather than
-stutter. E2E-132 replays the seek storm with a music element that starts and seeks late.
+stutter. E2E-132 replays the seek storm with a music element that starts and seeks late, playing on
+the held page clock so the case does not depend on how fast the machine plays it.
