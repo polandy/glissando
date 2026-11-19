@@ -1,13 +1,13 @@
 # ADR-0058: Server pictures are prepared a few at a time, with a pre-roll
 
-**Status:** accepted (option C of issue #349, decided by recommendation; the owner confirms there)
+**Status:** accepted (option C of issue #349, owner decision)
 
 ## Context
 
 A server slideshow's pictures were prepared one after another in play order (ADR-0027). One
 slow Immich answer then delayed every following picture by the same amount, and since 1440
 played right after the two measured pictures, the cache held two or three pictures when the
-show began: a single slow answer made a picture late (ADR-0057 says what the player does then).
+show began: a single slow answer made a picture late (the player then holds the show, ADR-0057).
 Measured with `scripts/probe-playback-stutter/probe.mjs --picture-delay-ms 3000` on 2 s slides,
 the preparation fell one more second behind per slide until every picture arrived after its
 slot.
