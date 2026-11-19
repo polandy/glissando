@@ -7,6 +7,7 @@ import type { PreparedSlide, RenderFrame, SlideRenderer } from "../ports";
 import type { CardStyle, TransitionEffect } from "../slideshow";
 import { bindFrame } from "./bind-frame";
 import { CaptionTextures } from "./caption-textures";
+import { EmptyCardTexture } from "./empty-card-texture";
 import { CardRenderTarget } from "./card-render-target";
 import { renderCardLayer } from "./card-pass";
 import { CardItemProgram } from "./card-item-program";
@@ -54,6 +55,8 @@ export class WebGlRenderer implements SlideRenderer<PixelPicture> {
    * for the renderer's lifetime; never reallocated per frame (`card-render-target.ts`). */
   readonly #fromCardTarget: CardRenderTarget;
   readonly #toCardTarget: CardRenderTarget;
+  /** Stands in for the card of a layer that has none (`card-pass.ts`). */
+  readonly #emptyCard: EmptyCardTexture;
   readonly #cardItemLayouts: CardItemLayouts;
   #mainBuffer!: WebGLBuffer;
   #captionInsetCssPixels = 0;
@@ -86,6 +89,7 @@ export class WebGlRenderer implements SlideRenderer<PixelPicture> {
     this.#cards = new CardTextures(gl, fonts, onResize);
     this.#fromCardTarget = new CardRenderTarget(gl);
     this.#toCardTarget = new CardRenderTarget(gl);
+    this.#emptyCard = new EmptyCardTexture(gl);
     canvas.addEventListener("webglcontextlost", this.#handleContextLost);
     canvas.addEventListener("webglcontextrestored", this.#handleContextRestored);
     this.#resizeObserver = drawingSize === undefined ? new ResizeObserver(onResize) : null;
@@ -126,6 +130,7 @@ export class WebGlRenderer implements SlideRenderer<PixelPicture> {
     this.#cards.recreate();
     this.#fromCardTarget.recreate();
     this.#toCardTarget.recreate();
+    this.#emptyCard.recreate();
     this.#contextLost = false;
     this.#onResize();
   };
@@ -142,21 +147,23 @@ export class WebGlRenderer implements SlideRenderer<PixelPicture> {
       frame.kind === "slide"
         ? [SINGLE_SLIDE_EFFECT, 0, frame.slide, frame.slide]
         : [frame.effect, frame.progress, frame.from, frame.to];
-    renderCardLayer(
+    const fromCard = renderCardLayer(
       gl,
       this.#cardItems,
       this.#cards,
       this.#cardItemLayouts,
       this.#fromCardTarget,
+      this.#emptyCard,
       from,
       viewport,
     );
-    renderCardLayer(
+    const toCard = renderCardLayer(
       gl,
       this.#cardItems,
       this.#cards,
       this.#cardItemLayouts,
       this.#toCardTarget,
+      this.#emptyCard,
       to,
       viewport,
     );
@@ -166,8 +173,8 @@ export class WebGlRenderer implements SlideRenderer<PixelPicture> {
       {
         pictures: this.#pictures,
         captions: this.#captions,
-        fromCard: this.#fromCardTarget,
-        toCard: this.#toCardTarget,
+        fromCard,
+        toCard,
       },
       { from, to },
       {
@@ -229,6 +236,7 @@ export class WebGlRenderer implements SlideRenderer<PixelPicture> {
     this.#cardItems.dispose();
     this.#fromCardTarget.dispose();
     this.#toCardTarget.dispose();
+    this.#emptyCard.dispose();
     this.#programs.forEach(({ program }) => this.#gl.deleteProgram(program));
     this.#gl.deleteBuffer(this.#mainBuffer);
     // Without this the context lives until garbage collection, and a phone caps the live ones.
