@@ -107,3 +107,54 @@ test("E2E-052 a guest on the share page scans the QR, and the remote pauses and 
   await remote.getByRole("button", { name: "Nächstes Bild" }).click();
   await expect(remote.getByText("Bild 2 von 3 · Pausiert", { exact: true })).toBeVisible();
 });
+
+test("E2E-145 a second phone that enters a code already claimed is told it matches no TV, and the first stays connected", async ({
+  page,
+}) => {
+  let jpeg: Uint8Array | null = null;
+  const server = await fakeGlissandoServer(page, () => {
+    if (jpeg === null) throw new Error("a photo was asked for before the case made one");
+    return jpeg;
+  });
+  await openApp(page);
+  jpeg = (await pictureTakenOn(page, "photo.jpg", "2019-07-02", "#4db6ac")).buffer;
+  await createServerSlideshow(page);
+
+  const tv = await page.context().newPage();
+  server.attachPage(tv);
+  await tv.goto("/tv");
+  await expect(tvCode(tv)).toHaveText(new RegExp(`^.{${TV_CODE_LENGTH}}$`));
+  const code = (await tvCode(tv).textContent()) ?? "";
+
+  const enterCode = async (phone: Page) => {
+    await phone.getByRole("button", { name: /^Auf dem Fernseher zeigen/ }).click();
+    const sheet = phone.getByRole("dialog", { name: "Auf dem Fernseher zeigen" });
+    await sheet
+      .getByRole("group", { name: "Code vom Fernseher" })
+      .getByRole("textbox")
+      .first()
+      .fill(code);
+    await sheet.getByRole("button", { name: "Verbinden" }).click();
+    return sheet;
+  };
+
+  const firstSheet = await enterCode(page);
+  await expect(
+    firstSheet.getByText(`Mit Fernseher ${code} verbunden`, { exact: true }),
+  ).toBeVisible();
+  await expect(tv.getByRole("heading", { name: /Handy verbunden/ })).toBeVisible();
+
+  const secondPhone = await page.context().newPage();
+  server.attachPage(secondPhone);
+  await openApp(secondPhone);
+  await createServerSlideshow(secondPhone);
+  await secondPhone.getByRole("button", { name: "Weitere Einstellungen" }).click();
+  const secondSheet = await enterCode(secondPhone);
+
+  await expect(secondSheet.getByText("Dieser Code passt zu keinem Fernseher")).toBeVisible();
+  await expect(secondSheet.getByText(/^Mit Fernseher .* verbunden$/)).toBeHidden();
+  await expect(
+    firstSheet.getByText(`Mit Fernseher ${code} verbunden`, { exact: true }),
+  ).toBeVisible();
+  await expect(tv.getByRole("heading", { name: /Handy verbunden/ })).toBeVisible();
+});

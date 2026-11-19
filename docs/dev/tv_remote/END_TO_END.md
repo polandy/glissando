@@ -11,9 +11,10 @@
 - Browser tests: `share.html` at `/tv` and at `/s/<token>` against a fake API (pairing card,
   a `show` event plays, commands move the player and are reported, the QR chip), and
   `remote.html` against a fake stream (states, the scrubber, a 409).
-- Two e2e cases (`e2e/tv-remote.spec.ts`) drive a phone page and a TV page against the fake
+- Three e2e cases (`e2e/tv-remote.spec.ts`) drive a phone page and a TV page against the fake
   server (`e2e/support/fake-glissando-server.ts`), which runs the real hub and routes in the
   test's process: way A claims by code, chooses, presses pause on the remote and the TV reports
-  `paused`; way B opens the remote from the share page's button, plays, pauses and skips. A
+  `paused`; way B opens the remote from the share page's button, plays, pauses and skips; a second phone that enters a code the first phone already claimed is answered "That code
+  doesn't match a TV" while the first stays connected. A
   stream is held open by `vite preview` (`e2e/support/tv-stream-plugin.ts`, registered only when the Playwright web server sets `GLISSANDO_E2E_TV_STREAM=1`), since a fulfilled
   route always ends. All test pictures are generated.
