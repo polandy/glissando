@@ -6,7 +6,8 @@ import { VideoClips } from "./video-clips";
 import { VideoFrames } from "./video-frames";
 
 export interface PlayerVideoListeners {
-  readonly onError: (error: Error) => void;
+  /** The browser refused a clip; its slide keeps the poster. */
+  readonly onClipRefused: (error: Error) => void;
   /** A clip has a frame to draw that it did not have before. */
   readonly onFrameReady: () => void;
 }

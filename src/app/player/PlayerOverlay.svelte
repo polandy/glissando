@@ -13,6 +13,7 @@
   import Icon from "../components/Icon.svelte";
   import { browserScheduler, type Scheduler } from "../../ui-kit/scheduler";
   import PlayerCaption from "./PlayerCaption.svelte";
+  import PlayerClipNotice from "./PlayerClipNotice.svelte";
   import PlayerCard from "./PlayerCard.svelte";
   import type { PlayerFailure } from "./player-failure";
   import { failureOfPlayerError } from "./player-error";
@@ -288,6 +289,8 @@
       </div>
     </div>
   </div>
+
+  <PlayerClipNotice {player} {scheduler} />
 
   <PlayerCard {failure} {ended} onPlayAgain={togglePlay} {onClose} />
 </div>

@@ -428,6 +428,7 @@ export const en: Catalogue = {
   "player.again": "Again",
   "player.pictureError": "A picture could not be loaded.",
   "player.playbackError": "The slideshow could not be played.",
+  "player.clipSkipped": "A video could not be played. Its first picture stays on screen.",
   ...enEditor,
   ...enAdd,
   ...enTiming,

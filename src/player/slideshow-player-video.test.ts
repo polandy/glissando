@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { VideoPlaybackError } from "./ports";
 import type { PictureSlide, Slide, Slideshow } from "./slideshow";
 import { SlideshowPlayer } from "./slideshow-player";
 import { FakeVideoFrames, FakeVideos, fakeLiveFrame, labelOf } from "./testing/fake-videos";
@@ -159,16 +158,22 @@ describe("a player with video slides", () => {
     expect(run.videos.only().calls.slice(-1)).toEqual(["pause"]);
   });
 
-  it("fails with a VideoPlaybackError when the browser refuses the clip", async () => {
+  it("goes on with the poster and announces it when the browser refuses the clip", async () => {
     const run = setUp();
     run.player.currentTime = 5;
     await run.showing("v.jpg");
+    const skipped = new Promise((resolve) =>
+      run.player.addEventListener("clipskipped", resolve, { once: true }),
+    );
     run.videos.only().refuseNextPlay(new Error("NotAllowedError"));
     run.player.play();
-    await settleMicrotasks();
-    expect(run.errors).toHaveLength(1);
-    expect(run.player.error).toBeInstanceOf(VideoPlaybackError);
-    expect(run.player.paused).toBe(true);
+    await skipped;
+    expect(run.player.skippedClips).toBe(1);
+    expect(run.player.error).toBeNull();
+    expect(run.errors).toEqual([]);
+    expect(run.player.paused).toBe(false);
+    run.advance(1000);
+    expect(run.player.currentTime).toBe(6);
   });
 
   it("puts the clip back by a hard seek when the show is seeked while playing", async () => {

@@ -3,7 +3,8 @@ import type { Slide } from "./slideshow";
 import { createClipPlan, type ClipTarget } from "./video-clip-plan";
 
 export interface VideoClipsListeners {
-  readonly onError: (error: Error) => void;
+  /** The browser refused a clip; the show goes on with the slide's poster. */
+  readonly onClipRefused: (error: Error) => void;
   /** A clip has a frame to draw that it did not have before. */
   readonly onFrameReady: () => void;
 }
@@ -26,6 +27,7 @@ export class VideoClips {
   readonly #openVideo: (src: string, volume: number, endMs: number) => VideoPlayback;
   readonly #listeners: VideoClipsListeners;
   readonly #open = new Map<number, OpenClip>();
+  readonly #refused = new Set<number>();
   readonly #readyChecks = new Set<() => void>();
   #playing = false;
 
@@ -50,6 +52,9 @@ export class VideoClips {
       }
     }
     for (const target of targets) {
+      if (this.#refused.has(target.index)) {
+        continue;
+      }
       this.#placeClip(target.index, this.#clipFor(target), target);
     }
   }
@@ -77,7 +82,7 @@ export class VideoClips {
   isReady(timeMs: number): boolean {
     this.place(timeMs);
     return this.#plan(timeMs)
-      .filter((target) => target.phase !== "waiting")
+      .filter((target) => target.phase !== "waiting" && !this.#refused.has(target.index))
       .every((target) => this.#open.get(target.index)?.playback.isReady() === true);
   }
 
@@ -117,16 +122,18 @@ export class VideoClips {
   }
 
   /**
-   * A failed clip is closed and reported once, however many paths notice it; the next `place`
-   * opens it afresh. A late signal from a clip already closed is ignored.
+   * A refused clip is closed, reported once, however many paths notice it, and never reopened:
+   * its slide shows the poster. A late signal from a clip already closed is ignored.
    */
   #fail(index: number, clip: OpenClip, error: Error): void {
     if (this.#open.get(index) !== clip) {
       return;
     }
     this.#open.delete(index);
+    this.#refused.add(index);
     clip.playback.dispose();
-    this.#listeners.onError(error);
+    this.#listeners.onClipRefused(error);
+    [...this.#readyChecks].forEach((check) => check());
   }
 
   #clipFor({ index, video }: ClipTarget): OpenClip {

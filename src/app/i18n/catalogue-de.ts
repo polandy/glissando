@@ -431,6 +431,7 @@ export const de = {
   "player.again": "Nochmal",
   "player.pictureError": "Ein Bild konnte nicht geladen werden.",
   "player.playbackError": "Die Diashow konnte nicht abgespielt werden.",
+  "player.clipSkipped": "Ein Video konnte nicht abgespielt werden. Sein erstes Bild bleibt stehen.",
   ...deEditor,
   ...deAdd,
   ...deTiming,

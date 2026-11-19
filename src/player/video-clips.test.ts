@@ -34,14 +34,14 @@ function setUp(slides: readonly Slide[] = SLIDES) {
   const errors: Error[] = [];
   let frameReady = 0;
   const clips = new VideoClips(slides, videos.open, {
-    onError: (error) => errors.push(error),
+    onClipRefused: (error) => errors.push(error),
     onFrameReady: () => (frameReady += 1),
   });
   return { clips, videos, errors, frameReadyCount: () => frameReady };
 }
 
 describe("video clips", () => {
-  it("reports a clip that cannot load before it ever plays, once", () => {
+  it("reports a refused clip that cannot load before it ever plays, once", () => {
     const { clips, videos, errors } = setUp();
     clips.place(8000);
     const failure = new VideoPlaybackError(new Error("missing"));
@@ -57,30 +57,32 @@ describe("video clips", () => {
     expect(videos.only().calls).toContain("dispose");
   });
 
-  it("opens a failed clip afresh on the next play and reports it again if it fails again", () => {
-    const { clips, videos, errors } = setUp();
-    clips.place(11_000);
-    const first = new VideoPlaybackError(new Error("missing"));
-    videos.opened[0]?.fail(first);
-    clips.play(11_000);
-    const second = new VideoPlaybackError(new Error("still missing"));
-    videos.opened[1]?.fail(second);
-    expect(videos.opened).toHaveLength(2);
-    expect(errors).toEqual([first, second]);
-  });
-
-  it("resolves whenReady once the clip reopened after a failure can play on", async () => {
+  it("keeps a refused clip closed while the show goes on", () => {
     const { clips, videos } = setUp();
     clips.place(11_000);
     videos.opened[0]?.fail(new VideoPlaybackError(new Error("missing")));
+    clips.play(11_000);
+    clips.place(12_000);
+    expect(videos.opened).toHaveLength(1);
+    expect(clips.frameAt(1)).toBeUndefined();
+  });
+
+  it("counts a refused clip as ready, so the show never waits for its poster", () => {
+    const { clips, videos } = setUp();
+    clips.place(11_000);
+    videos.opened[0]?.fail(new VideoPlaybackError(new Error("missing")));
+    expect(clips.isReady(11_000)).toBe(true);
+  });
+
+  it("resolves a pending whenReady when the clip it waits for is refused", async () => {
+    const { clips, videos } = setUp();
     videos.readyOnOpen = false;
     let resolved = false;
     const pending = clips.whenReady(11_000).then(() => (resolved = true));
     await settleMicrotasks();
-    expect(videos.opened).toHaveLength(2);
     expect(resolved).toBe(false);
 
-    videos.opened[1]?.becomeReady();
+    videos.only().fail(new VideoPlaybackError(new Error("missing")));
     await pending;
     expect(resolved).toBe(true);
   });

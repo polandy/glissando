@@ -221,6 +221,18 @@
   }
 }
 
+.player .clip-notice {
+  position: absolute;
+  inset: 72px 16px auto;
+  width: fit-content;
+  max-width: calc(100% - 32px);
+  margin: 0 auto;
+  padding: 8px 14px;
+  border-radius: var(--gl-radius-small);
+  background: var(--gl-player-scrim-end);
+  font-size: var(--gl-size-meta);
+  text-align: center;
+}
 .player .card-layer {
   position: absolute;
   inset: 0;
