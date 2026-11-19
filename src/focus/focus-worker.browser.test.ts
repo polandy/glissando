@@ -10,7 +10,8 @@ import {
 
 /**
  * astronaut-128.jpg: NASA's public-domain portrait of Eileen Collins, as in find-focus.test.ts;
- * chelsea-160.jpg: Chelsea the cat, as in object-focus.test.ts.
+ * chelsea-160.jpg: Chelsea the cat, scikit-image's CC0 test picture (skimage/data/chelsea.png),
+ * scaled to 160 × 106; the cat fills the picture.
  */
 async function thumbnail(url: string): Promise<Blob> {
   return (await fetch(url)).blob();

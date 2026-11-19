@@ -6,6 +6,7 @@ import cascadeUrl from "./facefinder.bin?url";
 import type { FocusReply, FocusRequest } from "./focus-worker-protocol";
 import type { RgbaImage } from "./object-focus";
 import { parseOnnx } from "./onnx/onnx-model";
+import { runOnnx } from "./onnx/run-onnx";
 import { unpackCascade } from "./pico";
 import { messageOf, postReply } from "./post-reply";
 import objectNetworkUrl from "./yolox-nano.bin?url";
@@ -40,9 +41,10 @@ async function loadModels(): Promise<FocusModels> {
     download(cascadeUrl, "face cascade"),
     download(objectNetworkUrl, "object network"),
   ]);
+  const network = parseOnnx(new Uint8Array(objects));
   return {
     cascade: unpackCascade(new Int8Array(cascade)),
-    objects: parseOnnx(new Uint8Array(objects)),
+    objects: (input) => runOnnx(network, input),
   };
 }
 
