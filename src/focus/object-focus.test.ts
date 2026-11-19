@@ -1,63 +1,22 @@
-import { beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { decodeObjects, objectFocus, type ObjectDetection, type RgbaImage } from "./object-focus";
-import modelDataUrl from "./yolox-nano.bin?url&inline";
-import { item } from "./onnx/item";
-import type { OnnxGraph } from "./onnx/onnx-model";
-import { parseOnnx } from "./onnx/onnx-model";
 import type { Tensor } from "./onnx/tensor-ops";
-import chelseaPpmDataUrl from "./testing/chelsea-160.ppm?url&inline";
+import { CAT, cellAt, networkOutput as outputWith } from "./testing/object-network-output";
 
-/**
- * chelsea-160.ppm: Chelsea the cat, scikit-image's CC0 test picture (skimage/data/chelsea.png),
- * scaled to 160 × 106. The cat fills the picture, its head a little left of the middle.
- */
-const CHELSEA = { width: 160, height: 106 };
-
-const ANCHORS = 3549;
-const VALUES_PER_ANCHOR = 85;
-const CLASS_OFFSET = 5;
-const CAT = 15;
 const CAR = 2;
 const PERSON = 0;
 const LAST_CLASS = 79;
-const STRIDE_8_GRID = 52;
+const NETWORK_INPUT = 416;
+const PADDING_GREY = 114;
 
-let network: OnnxGraph;
-let chelsea: RgbaImage;
-
-/** Reads a binary PPM ("P6") whose header is exactly `P6\n<w> <h>\n255\n` into RGBA. */
-function rgbaFromPpm(bytes: Uint8Array, width: number, height: number): RgbaImage {
-  const header = new TextEncoder().encode(`P6\n${width} ${height}\n255\n`);
-  const data = new Uint8ClampedArray(width * height * 4).fill(255);
-  for (let pixel = 0; pixel < width * height; pixel++) {
-    for (let channel = 0; channel < 3; channel++) {
-      data[pixel * 4 + channel] = item(bytes, header.length + pixel * 3 + channel);
-    }
-  }
+function filled(
+  width: number,
+  height: number,
+  [red, green, blue]: readonly [number, number, number],
+): RgbaImage {
+  const data = new Uint8ClampedArray(width * height * 4);
+  for (let pixel = 0; pixel < width * height; pixel++) data.set([red, green, blue, 255], pixel * 4);
   return { width, height, data };
-}
-
-function blank(width: number, height: number): RgbaImage {
-  return { width, height, data: new Uint8ClampedArray(width * height * 4).fill(128) };
-}
-
-/** A network output with one detection per entry, set at a stride-8 grid cell. */
-function outputWith(
-  detections: readonly {
-    cell: number;
-    box: [number, number, number, number];
-    objectness: number;
-    classId: number;
-    score: number;
-  }[],
-): Tensor {
-  const data = new Float32Array(ANCHORS * VALUES_PER_ANCHOR);
-  for (const { cell, box, objectness, classId, score } of detections) {
-    const at = cell * VALUES_PER_ANCHOR;
-    data.set([box[0], box[1], Math.log(box[2] / 8), Math.log(box[3] / 8), objectness], at);
-    data[at + CLASS_OFFSET + classId] = score;
-  }
-  return { dims: [1, ANCHORS, VALUES_PER_ANCHOR], data };
 }
 
 // Float32 output: whole pixels, the rounding noise dropped.
@@ -66,28 +25,53 @@ const sizeOf = (object: ObjectDetection | undefined): number[] => {
   return [object.centreX, object.centreY, object.width, object.height].map(Math.round);
 };
 
-const cellAt = (column: number, row: number): number => row * STRIDE_8_GRID + column;
-
-beforeAll(async () => {
-  network = parseOnnx(new Uint8Array(await (await fetch(modelDataUrl)).arrayBuffer()));
-  const ppm = new Uint8Array(await (await fetch(chelseaPpmDataUrl)).arrayBuffer());
-  chelsea = rgbaFromPpm(ppm, CHELSEA.width, CHELSEA.height);
-});
-
 describe("objectFocus", () => {
-  it("aims at the cat that fills the picture", () => {
-    const focus = objectFocus(chelsea, network);
+  it("hands the network the picture letterboxed: a square, blue first, padded with grey", () => {
+    const inputs: Tensor[] = [];
+    const red = filled(NETWORK_INPUT / 2, NETWORK_INPUT / 4, [255, 0, 0]);
 
-    if (focus.kind !== "subject") throw new Error("expected the cat to be found");
-    const { x, y, width, height } = focus.box;
-    expect({ aroundTheMiddle: x < 0.5 && x + width > 0.5 && y < 0.5 && y + height > 0.5 }).toEqual({
-      aroundTheMiddle: true,
+    objectFocus(red, (input) => {
+      inputs.push(input);
+      return outputWith([]);
     });
-    expect(width * height).toBeGreaterThan(0.5);
+
+    const [input] = inputs;
+    if (!input) throw new Error("expected the network to run");
+    const plane = NETWORK_INPUT * NETWORK_INPUT;
+    const bottomLeft = (NETWORK_INPUT - 1) * NETWORK_INPUT;
+    expect({
+      dims: input.dims,
+      blueAndRedAtTheTopLeft: [input.data[0], input.data[2 * plane]],
+      redBelowThePicture: input.data[2 * plane + bottomLeft],
+    }).toEqual({
+      dims: [1, 3, NETWORK_INPUT, NETWORK_INPUT],
+      blueAndRedAtTheTopLeft: [0, 255],
+      redBelowThePicture: PADDING_GREY,
+    });
   });
 
-  it("finds nothing to aim at in a blank picture", () => {
-    expect(objectFocus(blank(160, 120), network)).toEqual({ kind: "none" });
+  it("aims at the object the network finds, in picture coordinates", () => {
+    const picture = filled(NETWORK_INPUT, NETWORK_INPUT, [128, 128, 128]);
+    const output = outputWith([
+      { cell: cellAt(26, 26), box: [0, 0, 208, 208], objectness: 1, classId: CAT, score: 1 },
+    ]);
+
+    expect(objectFocus(picture, () => output)).toEqual({
+      kind: "subject",
+      box: {
+        x: expect.closeTo(0.25, 6),
+        y: expect.closeTo(0.25, 6),
+        width: expect.closeTo(0.5, 6),
+        height: expect.closeTo(0.5, 6),
+      },
+      foundBy: "object",
+    });
+  });
+
+  it("finds nothing to aim at when the network finds no object", () => {
+    expect(objectFocus(filled(160, 120, [128, 128, 128]), () => outputWith([]))).toEqual({
+      kind: "none",
+    });
   });
 });
 

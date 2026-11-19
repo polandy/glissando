@@ -1,15 +1,14 @@
 import type { PictureFocus } from "../library/picture-focus";
 import { findFocus } from "./find-focus";
 import { greyFromRgba } from "./grey-image";
-import { objectFocus, type RgbaImage } from "./object-focus";
+import { objectFocus, type ObjectNetwork, type RgbaImage } from "./object-focus";
 import { sceneryFocus } from "./scenery-focus";
-import type { OnnxGraph } from "./onnx/onnx-model";
 import type { Cascade } from "./pico";
 
 /** What the detectors need loaded: the face cascade (ADR-0012) and the object network (ADR-0036). */
 export interface FocusModels {
   readonly cascade: Cascade;
-  readonly objects: OnnxGraph;
+  readonly objects: ObjectNetwork;
 }
 
 /**

@@ -1,8 +1,6 @@
 import { groupFocusBox } from "../library/group-focus-box";
 import type { FocusBox, PictureFocus } from "../library/picture-focus";
 import { item } from "./onnx/item";
-import type { OnnxGraph } from "./onnx/onnx-model";
-import { runOnnx } from "./onnx/run-onnx";
 import type { Tensor } from "./onnx/tensor-ops";
 
 /** A picture as the canvas hands it over: RGBA, row by row from the top left. */
@@ -20,6 +18,9 @@ export interface ObjectDetection {
   readonly height: number;
   readonly score: number;
 }
+
+/** The object network: the letterboxed picture in, its raw output (see `decodeObjects`) out. */
+export type ObjectNetwork = (input: Tensor) => Tensor;
 
 /** How a picture sits in the network's square input: scaled by `ratio`, the rest padded. */
 export interface Letterbox {
@@ -44,9 +45,9 @@ const NMS_OVERLAP = 0.45;
  * with every one not much smaller than it, as one box in picture coordinates; nothing when no
  * object scores high enough (ADR-0036, ADR-0029).
  */
-export function objectFocus(image: RgbaImage, network: OnnxGraph): PictureFocus {
+export function objectFocus(image: RgbaImage, network: ObjectNetwork): PictureFocus {
   const { input, letterbox } = letterboxed(image);
-  const objects = decodeObjects(runOnnx(network, input), letterbox);
+  const objects = decodeObjects(network(input), letterbox);
   const strongest = objects.reduce<ObjectDetection | undefined>(
     (best, object) => (best === undefined || weight(object) > weight(best) ? object : best),
     undefined,

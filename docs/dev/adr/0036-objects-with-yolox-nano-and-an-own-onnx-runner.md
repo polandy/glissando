@@ -49,9 +49,12 @@ constraints of ADR-0012 stand: in the browser, offline, every asset shipped by t
 - The model adds 3.7 MB to the offline cache (one file, no runtime).
 - An interpreter of our own is ours to keep right: unit tests cover each operator, and the whole
   network is checked on a picture of a cat (CC0, scikit-image's `chelsea`), whose box was
-  compared with onnxruntime's output while writing it.
+  compared with onnxruntime's output while writing it. That whole-network check runs in the
+  focus worker's browser test only: `objectFocus` takes the network as an `ObjectNetwork`
+  function, and its unit tests hand it a fake output, because a real run takes seconds of CPU
+  and would race the test timeout on a loaded machine.
 - A different network later needs only the operators it uses added to `tensor-ops.ts`; if the
   time per picture matters more than the download, onnxruntime-web can replace the runner
-  behind `objectFocus` without touching anything else.
+  behind the `ObjectNetwork` the worker hands `objectFocus` without touching anything else.
 - A result found before the object detection is outdated by its detector version and looked at
   again (ADR-0041).
