@@ -25,6 +25,22 @@ describe("Navigator, adding pictures to a slideshow", () => {
     expect(parentOf(ADD)).toEqual(SHOW);
   });
 
+  it("opens another slideshow's add screen below it while the climb to that slideshow is pending", () => {
+    const history = new FakeHistory();
+    const navigator = new Navigator(history);
+    navigator.open(SHOW);
+    const copy: Route = { screen: "slideshow", slideshowId: "s2" };
+    const copyAdd: Route = { screen: "add", slideshowId: "s2" };
+
+    navigator.open(copy);
+    navigator.open(copyAdd);
+    history.deliverAllPops();
+
+    expect(navigator.route).toEqual(copyAdd);
+    expect(history.entries).toEqual([START, copy, copyAdd]);
+    expect(history.index).toBe(2);
+  });
+
   it("returns to the slideshow after a reload, as the selection lived in memory", () => {
     const history = new FakeHistory([START, SHOW, ADD, IMMICH]);
     const navigator = new Navigator(history);

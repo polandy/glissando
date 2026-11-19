@@ -70,8 +70,9 @@ The wizard's choice and server mode: [Where a new slideshow lives](NEW_SLIDESHOW
   one stay in that one." — Cancel / "Download and keep". It runs like an import (originals
   through `decodePicture`, each picture's own focus ([FOCUS.md](FOCUS.md)), claims, all or
   nothing, title made unique, a title or closing slide over a picture kept over that picture's
-  copy; a picture no longer in Immich fails the copy —
-  `keepCopyOnDevice`), the header progress
+  copy; a picture no longer in Immich fails the copy with the coral toast "A picture is no longer
+  in Immich. Remove it, then the copy works.", Immich not answering with "Couldn't copy the
+  slideshow." and "Retry" — `keepCopyOnDevice`), the header progress
   "Copying “title” … 34 %"; done: toast "Copied to this device" with "Open". Copies of different
   slideshows run side by side, each with its own progress (`ServerCopyFlows`) in the header after
   a running export's, the line under the bar following the first of them; choosing it again

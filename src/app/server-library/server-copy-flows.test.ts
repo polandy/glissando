@@ -36,6 +36,7 @@ function setUp() {
   const opened: string[] = [];
   const errors: unknown[] = [];
   const addedTo: [string, string[]][] = [];
+  const steps: string[] = [];
   const copyAnswers: Answer[] = [];
   const saveAnswers: Answer[] = [];
   const copyOptions: KeepCopyOptions[] = [];
@@ -56,8 +57,14 @@ function setUp() {
     },
     deviceStore: { listSlideshows: () => Promise.resolve([{ ...SHOW, id: "d", title: "Taken" }]) },
     toaster: { show: (toast) => void toasts.push(toast) },
-    open: (id) => void opened.push(id),
-    addFiles: (copy, files) => void addedTo.push([copy.id, files.map(({ name }) => name)]),
+    open: (id) => {
+      opened.push(id);
+      steps.push(`open ${id}`);
+    },
+    addFiles: (copy, files) => {
+      addedTo.push([copy.id, files.map(({ name }) => name)]);
+      steps.push(`add to ${copy.id}`);
+    },
     reportError: (error) => void errors.push(error),
     log: () => undefined,
     translator: createTranslator("en"),
@@ -66,7 +73,18 @@ function setUp() {
   flows.subscribe((copies) =>
     seen.push(copies.map(({ slideshowId, fraction }) => `${slideshowId} ${String(fraction)}`)),
   );
-  return { flows, toasts, opened, errors, addedTo, copyAnswers, saveAnswers, copyOptions, seen };
+  return {
+    flows,
+    toasts,
+    opened,
+    errors,
+    addedTo,
+    steps,
+    copyAnswers,
+    saveAnswers,
+    copyOptions,
+    seen,
+  };
 }
 
 describe("keeping a copy of a server slideshow on this device", () => {
@@ -153,6 +171,15 @@ describe("adding files from this device to a server slideshow", () => {
     expect(seen).toEqual([[], ["server-1 0"], ["server-1 0.34"], []]);
     expect(addedTo).toEqual([["copy-1", ["beach.jpg", "dune.jpg"]]]);
     expect(toasts).toEqual([]);
+  });
+
+  it("opens the copy's screen before its add screen, which only opens from there", async () => {
+    const { flows, steps, copyAnswers } = setUp();
+    copyAnswers.push({ ...SHOW, id: "copy-1" });
+
+    await flows.keepCopyAndAdd(SHOW, FILES);
+
+    expect(steps).toEqual(["open copy-1", "add to copy-1"]);
   });
 
   it.each([
