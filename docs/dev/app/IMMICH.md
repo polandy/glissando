@@ -67,6 +67,8 @@ intake, the import's or the adding's):
   The album route shows "Loading the album …" while the albums load, and their failure with "Try
   again"; an album no longer in Immich reads "This album is no longer in Immich" with "Back to
   albums".
+  E2E-146 fails the photo search with a 502, reads the message with the selection kept, and tries
+  again.
 
 **Settings** shows a read-only "Immich" group: "Through this Glissando server · Immich 3.3.1 ·
 n albums" (the server's version) when available; "Not set up" with "How to set it up" (the self-hosting guide) when not;
