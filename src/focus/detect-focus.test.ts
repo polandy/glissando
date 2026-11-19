@@ -8,7 +8,10 @@ import astronautPgmDataUrl from "./testing/astronaut-128.pgm?url&inline";
 import chelseaPpmDataUrl from "./testing/chelsea-160.ppm?url&inline";
 import { CAT, cellAt, networkOutput } from "./testing/object-network-output";
 
-/** astronaut-128.pgm (a face, no object) and chelsea-160.ppm (a cat, no face): see their tests. */
+/**
+ * astronaut-128.pgm (a face, see find-focus.test.ts) and chelsea-160.ppm (scikit-image's CC0 cat
+ * picture, no face), the same pictures as the jpgs of focus-worker.browser.test.ts.
+ */
 let cascade: Cascade;
 let astronaut: RgbaImage;
 let chelsea: RgbaImage;
