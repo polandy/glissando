@@ -193,7 +193,7 @@ test("E2E-147 the TV closes its page mid-show, and the remote says the TV is not
   await expect(tv.locator("html")).toHaveAttribute("data-state", "playing");
   await expect(page.getByRole("button", { name: "Pause" })).toBeEnabled();
 
-  await tv.close();
+  await server.closeTvPage(tv);
 
   await expect(page.getByText("Der Fernseher ist nicht da", { exact: true })).toBeVisible();
   await expect(

@@ -59,6 +59,8 @@ export interface FakeGlissandoServer {
    * itself — the TV, a guest, a remote — must call this before it navigates.
    */
   attachPage(page: Page): void;
+  /** Closes a TV page so the TV hub sees the TV go, as the real server does when it leaves. */
+  closeTvPage(page: Page): Promise<void>;
 }
 
 const IMMICH_ROUTE = /\/immich\/(.*)$/;
@@ -102,6 +104,9 @@ export async function fakeGlissandoServer(
     attachPage: () => {
       throw new Error("fakeGlissandoServer has not finished setting itself up yet");
     },
+    closeTvPage: () => {
+      throw new Error("fakeGlissandoServer has not finished setting itself up yet");
+    },
   };
   const attachLibraryRoutes = async (target: Page) => {
     await target.route(IMMICH_ROUTE, (route) => answerImmich(route, server, photo));
@@ -121,6 +126,7 @@ export async function fakeGlissandoServer(
     void target.route(SHARE_API_ROUTE, (route) => answerShareApi(route, server, photo));
   };
   attachShareRoutes(page);
+  server.closeTvPage = tvApi.closePage;
   server.attachPage = (target: Page) => {
     void attachLibraryRoutes(target);
     attachShareRoutes(target);

@@ -16,6 +16,6 @@
   test's process: way A claims by code, chooses, presses pause on the remote and the TV reports
   `paused`; way B opens the remote from the share page's button, plays, pauses and skips; a second phone that enters a code the first phone already claimed is answered "That code
   doesn't match a TV" while the first stays connected; the TV page closing mid-show makes the remote say "The TV is
-  not there" with its controls disabled (the fake calls the stream's close when its page closes). A
+  not there" with its controls disabled (`closeTvPage` ends the TV's streams in the hub, as a leaving client does). A
   stream is held open by `vite preview` (`e2e/support/tv-stream-plugin.ts`, registered only when the Playwright web server sets `GLISSANDO_E2E_TV_STREAM=1`), since a fulfilled
   route always ends. All test pictures are generated.
