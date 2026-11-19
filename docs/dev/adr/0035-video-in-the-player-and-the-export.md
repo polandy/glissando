@@ -12,12 +12,12 @@ where WebCodecs exists.
 ## Decision
 
 - **Player:** a `<video>` element per clip, opened through an injected port (`openVideo`), following
-  the slide clock; its frames are uploaded to the slide's texture every frame (WebGL) or shown
-  directly (DOM). The slide clock leads; the clip is seeked to catch up and holds its last frame
-  when it stalls. The `<video>` is always muted, picture only: the clip's sound is decoded from
-  its file into an `AudioBuffer` ahead of its slide (mediabunny, as in the export) and played by
-  an `AudioBufferSourceNode` on the music's `AudioContext`, scheduled at the clip's place and
-  restarted on seek, pause and resume. A clip not decoded in time plays silent until it is.
+  the slide clock; its frame is uploaded to the slide's texture each time it shows a new picture
+  (WebGL) or shown directly (DOM). The slide clock leads; the clip is seeked to catch up and holds
+  its last frame when it stalls. The `<video>` is always muted, picture only: the clip's sound is
+  decoded from its file into an `AudioBuffer` ahead of its slide (mediabunny, as in the export) and
+  played by an `AudioBufferSourceNode` on the music's `AudioContext`, scheduled at the clip's place
+  and restarted on seek, pause and resume. A clip not decoded in time plays silent until it is.
 - **Export:** mediabunny demuxes and decodes the clip with WebCodecs, frame accurate at the export's
   frame times; the clip's audio is decoded into the same offline mix as the music.
 - **Sound:** a clip's sound is on by default; the music multiplies by a duck factor that ramps
