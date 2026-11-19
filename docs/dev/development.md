@@ -8,7 +8,7 @@ Needs Node 26.9.0 (see `engines` in `package.json`).
 npm ci            # frozen install
 npm run dev       # dev server on the LAN
 npm run build     # static app in dist/
-npm run verify    # everything CI runs
+npm run verify    # everything CI runs; steps run in parallel, the unit tests last and alone
 ```
 
 Fast unit tests: `npx vitest run --project unit <path>`. Browser tests and e2e run in the same
