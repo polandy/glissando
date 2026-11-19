@@ -3,6 +3,7 @@ import { cardItemTimingAt, drawsBlurredCopy } from "../card-timing";
 import type { PixelPicture } from "../browser/pixel-loader";
 import type { Size } from "../ken-burns";
 import type { SlideLayer } from "../ports";
+import type { EmptyCardTexture } from "./empty-card-texture";
 import type { CardRenderTarget } from "./card-render-target";
 import { CardItemProgram } from "./card-item-program";
 import type { CardTextures } from "./card-textures";
@@ -10,9 +11,10 @@ import { TEXTURE_UNITS } from "./texture-units";
 
 /**
  * Rasterises `layer`'s card, one quad per item at its own timing (ADR-0032 § Entrances), into
- * `target` at `viewport`'s resolution — left transparent where the layer has no visible card.
- * The transition shader then samples `target`'s texture exactly as it samples the layer's
- * picture, so the card carries through wipes, pushes and zooms with its own slide rather than
+ * `target` at `viewport`'s resolution, and returns the texture to sample. A layer without a
+ * visible card costs no pass at all: it gets `empty`, a transparent texel, so a picture
+ * slide never pays for a framebuffer switch and a full-viewport clear. The transition shader
+ * samples the returned texture exactly as it samples the layer's picture, so the card carries through wipes, pushes and zooms with its own slide rather than
  * fading as an overlay independent of them.
  */
 export function renderCardLayer(
@@ -21,20 +23,22 @@ export function renderCardLayer(
   cards: CardTextures,
   cardItemLayouts: CardItemLayouts,
   target: CardRenderTarget,
+  empty: EmptyCardTexture,
   layer: SlideLayer<PixelPicture>,
   viewport: Size,
-): void {
+): WebGLTexture {
+  const visual = layer.card;
+  if (visual === undefined || visual.textOpacity <= 0) {
+    return empty.texture;
+  }
   target.renderInto(viewport, () => {
-    const visual = layer.card;
-    if (visual === undefined || visual.textOpacity <= 0) {
-      return;
-    }
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     cardItems.use();
     drawCardItems(cardItems, cards, cardItemLayouts, layer, viewport);
     gl.disable(gl.BLEND);
   });
+  return target.texture;
 }
 
 /** Every item of `layer`'s card, each at its own entrance timing and the card's own

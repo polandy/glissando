@@ -44,6 +44,11 @@ picture after the ones on screen: a bounded step of the work to draw it later, s
 picture comes on screen pays nothing for it (ADR-0014). `prepare` rasterises a slide's card the
 same way, so the card's own first frame pays nothing for it either.
 
+A layer with no visible card costs the draw no card pass: no framebuffer switch and no clear of the
+full viewport. The transition shader samples a transparent one-texel texture for it instead, so a
+picture slide is drawn in one draw call. Only a layer whose card is showing is rasterised into its
+screen-sized target (ADR-0032).
+
 ## A late picture
 
 A picture that is not loaded when its slide comes on screen holds the show (ADR-0057): the clock

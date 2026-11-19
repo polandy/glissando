@@ -5,7 +5,6 @@ import { bindCaption } from "./bind-overlays";
 import { bindLayer, fromUniforms, toUniforms } from "./bind-layer";
 import { bindLook } from "./bind-look";
 import type { CaptionTextures } from "./caption-textures";
-import type { CardRenderTarget } from "./card-render-target";
 import type { PictureTextures } from "./picture-textures";
 import type { EffectProgram } from "./shader-programs";
 import { TEXTURE_UNITS } from "./texture-units";
@@ -14,8 +13,9 @@ import { TEXTURE_UNITS } from "./texture-units";
 export interface FrameTextures {
   readonly pictures: PictureTextures;
   readonly captions: CaptionTextures;
-  readonly fromCard: CardRenderTarget;
-  readonly toCard: CardRenderTarget;
+  /** Each layer's card texture from `renderCardLayer`. */
+  readonly fromCard: WebGLTexture;
+  readonly toCard: WebGLTexture;
 }
 
 /** The frame's own values, apart from its layers. */
@@ -67,15 +67,14 @@ export function bindFrame(
   bindLook(gl, uniforms, frame.look);
 }
 
-/** Binds a layer's rendered card texture (or none, drawn transparent by `renderCardLayer`) to
- * the main program's `sampler` uniform. */
+/** Binds a layer's card texture to the main program's `sampler` uniform. */
 function bindCardTexture(
   gl: WebGL2RenderingContext,
   unit: number,
-  target: CardRenderTarget,
+  texture: WebGLTexture,
   sampler: WebGLUniformLocation | null,
 ): void {
   gl.activeTexture(gl.TEXTURE0 + unit);
-  gl.bindTexture(gl.TEXTURE_2D, target.texture);
+  gl.bindTexture(gl.TEXTURE_2D, texture);
   gl.uniform1i(sampler, unit);
 }
