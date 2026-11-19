@@ -46,14 +46,18 @@ export async function decodedFrameAt(
 }
 
 /**
- * The element's frame at `atMs`, drawn only after a seek there has completed: an element whose
- * metadata is loaded may already report a current frame it has not painted yet.
+ * The element's frame at `atMs`, drawn only once the seek there has completed and its frame has
+ * been presented: a completed seek may precede the paint, and a canvas then reads black.
  */
 export async function seekedFrameAt(video: HTMLVideoElement, atMs: number): Promise<ClipFrame> {
-  await new Promise<void>((resolve) => {
+  const presented = new Promise<void>((resolve) =>
+    video.requestVideoFrameCallback(() => resolve()),
+  );
+  const seeked = new Promise<void>((resolve) => {
     video.onseeked = () => resolve();
-    video.currentTime = atMs / MILLISECONDS_PER_SECOND;
   });
+  video.currentTime = atMs / MILLISECONDS_PER_SECOND;
+  await Promise.all([seeked, presented]);
   return { source: video, width: video.videoWidth, height: video.videoHeight };
 }
 

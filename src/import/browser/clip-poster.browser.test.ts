@@ -38,6 +38,35 @@ describe("decodedFrameAt", () => {
 });
 
 describe("seekedFrameAt", () => {
+  it("waits for the frame of the seek to be presented, not only for the seek to complete", async () => {
+    let presented: (() => void) | undefined;
+    const element = {
+      videoWidth: PATTERN_WIDTH,
+      videoHeight: PATTERN_HEIGHT,
+      onseeked: null as (() => void) | null,
+      requestVideoFrameCallback(callback: () => void) {
+        presented = callback;
+      },
+      set currentTime(_seconds: number) {
+        queueMicrotask(() => element.onseeked?.());
+      },
+    };
+    let settled = false;
+
+    const framed = seekedFrameAt(element as unknown as HTMLVideoElement, 0).then((frame) => {
+      settled = true;
+      return frame;
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(presented).toBeDefined();
+    expect(settled).toBe(false);
+
+    presented?.();
+    await expect(framed).resolves.toMatchObject({ width: PATTERN_WIDTH });
+  });
+
   // WebKit-GTK paints a <video> into a canvas black however long it is waited for.
   it.skipIf(server.browser === "webkit")(
     "draws a painted frame from an element that has only loaded its metadata",
