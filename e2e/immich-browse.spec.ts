@@ -55,12 +55,14 @@ function pictures(): { jpeg: ImmichAsset; heic: ImmichAsset } {
 interface BrowseTraffic {
   readonly searches: SearchBody[];
   readonly folderReads: string[];
+  /** While true, the fake Immich's searches fail like a server that cannot reach Immich. */
+  unreachable: boolean;
 }
 
 /** Answers `/immich/` like an Immich that has favourites, two months, one person and a folder. */
 async function fakeImmich(page: Page): Promise<BrowseTraffic> {
   const { jpeg, heic } = pictures();
-  const traffic: BrowseTraffic = { searches: [], folderReads: [] };
+  const traffic: BrowseTraffic = { searches: [], folderReads: [], unreachable: false };
   await page.route("**/immich/**", async (route: Route) => {
     const request = route.request();
     const url = new URL(request.url());
@@ -86,6 +88,7 @@ async function fakeImmich(page: Page): Promise<BrowseTraffic> {
       return route.fulfill({ json: [jpeg] });
     }
     if (path === "api/search/metadata") {
+      if (traffic.unreachable) return route.fulfill({ status: 502 });
       traffic.searches.push(request.postDataJSON() as SearchBody);
       return route.fulfill({ json: { assets: { items: [heic, jpeg], nextPage: null } } });
     }
@@ -158,4 +161,25 @@ test("E2E-130 a person's pictures are asked for by that person; a folder opens t
   await page.getByRole("button", { name: "2019" }).click();
   await expect.poll(() => traffic.folderReads).toContain(FOLDER_PATH);
   await expect(page.getByRole("button", { name: pictures().jpeg.originalFileName })).toBeVisible();
+});
+
+test("E2E-146 an Immich the server cannot reach says it isn't answering and keeps the pictures chosen; Try again lists them once Immich answers", async ({
+  page,
+}) => {
+  const traffic = await openBrowser(page);
+  const { jpeg } = pictures();
+  const tile = page.getByRole("button", { name: jpeg.originalFileName, exact: true });
+  await tile.click();
+  await expect(tile).toHaveAttribute("aria-pressed", "true");
+
+  traffic.unreachable = true;
+  await page.getByRole("button", { name: "Favoriten", exact: true }).click();
+  await expect(page.getByText("Immich antwortet nicht")).toBeVisible();
+  await expect(page.getByText("Schon gewählte Bilder bleiben gewählt.")).toBeVisible();
+  await expect(page.getByRole("group", { name: "Auswahl" })).toContainText("1 gewählt");
+
+  traffic.unreachable = false;
+  await page.getByRole("button", { name: "Erneut versuchen" }).click();
+  await expect(tile).toBeVisible();
+  await expect(page.getByText("Immich antwortet nicht")).toHaveCount(0);
 });
