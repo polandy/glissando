@@ -62,16 +62,24 @@ jobs:
       - run: deploy/test-image.sh
 
   # Each engine runs in its own job, the Vitest browser tests apart from the Playwright cases,
-  # so the slowest of the six bounds the run instead of their sum.
+  # so the slowest job bounds the run instead of their sum; the slowest Playwright engines
+  # (Chromium, WebKit) are split in two shards.
   browser:
     needs: changes
     if: needs.changes.outputs.code == 'true'
     strategy:
       fail-fast: false
       matrix:
-        engine: [chromium, firefox, webkit]
-        suite: [vitest, playwright]
-    name: ${{ matrix.suite }} (${{ matrix.engine }})
+        include:
+          - { suite: vitest, engine: chromium }
+          - { suite: vitest, engine: firefox }
+          - { suite: vitest, engine: webkit }
+          - { suite: playwright, engine: chromium, shard: 1/2 }
+          - { suite: playwright, engine: chromium, shard: 2/2 }
+          - { suite: playwright, engine: firefox }
+          - { suite: playwright, engine: webkit, shard: 1/2 }
+          - { suite: playwright, engine: webkit, shard: 2/2 }
+    name: ${{ matrix.suite }} (${{ matrix.engine }}${{ matrix.shard && format(' {0}', matrix.shard) || '' }})
     timeout-minutes: 20
     runs-on: ubuntu-24.04
     container:
@@ -92,11 +100,11 @@ jobs:
       - if: matrix.suite == 'vitest'
         run: npx vitest run --project "browser (${{ matrix.engine }}*)"
       - if: matrix.suite == 'playwright'
-        run: npx playwright test --project ${{ matrix.engine }}
+        run: npx playwright test --project ${{ matrix.engine }} ${{ matrix.shard && format('--shard={0}', matrix.shard) || '' }}
       - if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: report-${{ matrix.suite }}-${{ matrix.engine }}
+          name: report-${{ matrix.suite }}-${{ matrix.engine }}${{ matrix.shard && format('-{0}', strategy.job-index) || '' }}
           path: |
             playwright-report/
             test-results/
