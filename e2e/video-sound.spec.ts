@@ -15,6 +15,7 @@ import { VIDEO_DUCK_RAMP_DOWN_MS, VIDEO_DUCK_VOLUME } from "../src/player/video-
 
 test.use(GERMAN_BROWSER);
 
+const MS_PER_SECOND = 1000;
 const CLIP_SECONDS = 3;
 const CLIP_COLOUR = "#4db6ac";
 /** Before the clip, which takes the file's own date, so the picture plays first. */
@@ -26,7 +27,7 @@ const FRAME_MS = 250;
 /** 13 s: past the picture (about 7 s on the found beat) and the clip, into the end card. */
 const PLAY_FRAMES = 52;
 /** At least the clip's own frames are compared. */
-const MIN_FRAMES = (CLIP_SECONDS * 1000) / FRAME_MS;
+const MIN_FRAMES = (CLIP_SECONDS * MS_PER_SECOND) / FRAME_MS;
 const TRACK_SECONDS = 30;
 const BEATS_PER_MINUTE = 120;
 /** Gains are products of a few factors, equal to well within this. */
@@ -65,17 +66,14 @@ async function probeMusicGain(page: Page): Promise<void> {
   });
 }
 
-/**
- * Waits in the music editor until the song's beat and loudness are found: both re-time or
- * re-level the show, so the two runs compared must both come after them.
- */
+/** Waits until the song's beat and loudness are found, which re-time and re-level the show. */
 async function songAnalysed(page: Page): Promise<void> {
   await page.getByRole("button", { name: /^Musik Takt\.wav/ }).click();
   await showMusicDetails(page);
   await expect(
     page.getByText(`${BEATS_PER_MINUTE} Schläge pro Minute`, { exact: true }),
   ).toBeVisible();
-  const volume = page.locator('section[aria-labelledby="music-volume"]');
+  const volume = page.getByRole("region", { name: "Lautstärke", exact: true });
   await expect(volume.getByTestId("section-state")).toHaveText("Gleich laut wie die anderen Songs");
   await expect(
     page.getByRole("list", { name: "Songs" }).getByTestId("volume-badge"),
@@ -104,10 +102,7 @@ async function playThrough(page: Page): Promise<GainProbe["log"]> {
   return log;
 }
 
-/**
- * The ducked run's gain over the unducked one's at each moment since its play, where the
- * unducked music is heard at all.
- */
+/** The ducked run's gain over the unducked one's, per moment since play, where music is heard. */
 function duckRatios(
   ducked: GainProbe["log"],
   unducked: GainProbe["log"],
