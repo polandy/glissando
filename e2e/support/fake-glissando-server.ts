@@ -59,6 +59,8 @@ export interface FakeGlissandoServer {
    * itself — the TV, a guest, a remote — must call this before it navigates.
    */
   attachPage(page: Page): void;
+  /** Moves the TV hub's clock on, so a TV session idles out without the case waiting for it. */
+  advanceTvTime(ms: number): void;
   /** Closes a TV page so the TV hub sees the TV go, as the real server does when it leaves. */
   closeTvPage(page: Page): Promise<void>;
 }
@@ -104,6 +106,9 @@ export async function fakeGlissandoServer(
     attachPage: () => {
       throw new Error("fakeGlissandoServer has not finished setting itself up yet");
     },
+    advanceTvTime: () => {
+      throw new Error("fakeGlissandoServer has not finished setting itself up yet");
+    },
     closeTvPage: () => {
       throw new Error("fakeGlissandoServer has not finished setting itself up yet");
     },
@@ -132,6 +137,7 @@ export async function fakeGlissandoServer(
     attachShareRoutes(target);
     tvApi.attachTo(target);
   };
+  server.advanceTvTime = tvApi.advanceTime;
   return server;
 }
 

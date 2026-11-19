@@ -219,6 +219,8 @@ export interface TvApi {
    * session, as the real service's clients do.
    */
   attachTo(target: Page): void;
+  /** Moves the hub's clock on, so a session idles out without the case waiting for it. */
+  advanceTime(ms: number): void;
   /**
    * Closes `target` as a TV that goes away: the hub learns its streams are gone, as the real
    * server does when a client leaves, and the other pages' streams have their news before it returns.
@@ -235,7 +237,8 @@ export function attachTvApi(
   server: FakeGlissandoServer,
   photo: () => Uint8Array,
 ): TvApi {
-  const hub = createTvHub({ now: Date.now, randomBytes });
+  let advancedMs = 0;
+  const hub = createTvHub({ now: () => Date.now() + advancedMs, randomBytes });
   const handle = createTvHandler({ repository: tvRepositoryOf(server), hub, log: () => undefined });
   const push = streamPusher(page.context().request);
   const openStreams = new Map<Page, (() => void)[]>();
@@ -248,6 +251,9 @@ export function attachTvApi(
   attachTo(page);
   return {
     attachTo,
+    advanceTime: (ms) => {
+      advancedMs += ms;
+    },
     closePage: async (target) => {
       for (const close of openStreams.get(target) ?? []) close();
       openStreams.delete(target);
