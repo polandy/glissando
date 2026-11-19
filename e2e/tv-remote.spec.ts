@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { GERMAN_BROWSER } from "./support/app";
+import { SESSION_IDLE_MS } from "../server/tv/tv-hub";
 import { openApp } from "./support/browser";
 import { fakeGlissandoServer } from "./support/fake-glissando-server";
 import { pictureTakenOn } from "./support/media";
@@ -106,4 +107,41 @@ test("E2E-052 a guest on the share page scans the QR, and the remote pauses and 
 
   await remote.getByRole("button", { name: "Nächstes Bild" }).click();
   await expect(remote.getByText("Bild 2 von 3 · Pausiert", { exact: true })).toBeVisible();
+});
+
+test("E2E-144 a code whose TV never connected idles out, and the phone is told it matches no TV", async ({
+  page,
+}) => {
+  let jpeg: Uint8Array | null = null;
+  const server = await fakeGlissandoServer(page, () => {
+    if (jpeg === null) throw new Error("a photo was asked for before the case made one");
+    return jpeg;
+  });
+  await openApp(page);
+  jpeg = (await pictureTakenOn(page, "photo.jpg", "2019-07-02", "#4db6ac")).buffer;
+  await createServerSlideshow(page);
+
+  // A TV page opens its stream at once; a session made by the API alone is a TV that never came.
+  const code = await page.evaluate(async () => {
+    const answer = await fetch("/api/tv/sessions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{}",
+    });
+    return ((await answer.json()) as { code: string }).code;
+  });
+  expect(code).toHaveLength(TV_CODE_LENGTH);
+  server.advanceTvTime(SESSION_IDLE_MS);
+
+  await page.getByRole("button", { name: /^Auf dem Fernseher zeigen/ }).click();
+  const sheet = page.getByRole("dialog", { name: "Auf dem Fernseher zeigen" });
+  const boxes = sheet.getByRole("group", { name: "Code vom Fernseher" }).getByRole("textbox");
+  await boxes.first().fill(code);
+  await sheet.getByRole("button", { name: "Verbinden" }).click();
+
+  await expect(sheet.getByText("Dieser Code passt zu keinem Fernseher")).toBeVisible();
+  await expect(sheet.getByText(/^Mit Fernseher .* verbunden$/)).toBeHidden();
+
+  await sheet.getByRole("button", { name: "Neu eingeben" }).click();
+  await expect(boxes.first()).toHaveValue("");
 });

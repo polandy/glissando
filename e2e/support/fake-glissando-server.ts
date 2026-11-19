@@ -59,6 +59,8 @@ export interface FakeGlissandoServer {
    * itself — the TV, a guest, a remote — must call this before it navigates.
    */
   attachPage(page: Page): void;
+  /** Moves the TV hub's clock on, so a TV session idles out without the case waiting for it. */
+  advanceTvTime(ms: number): void;
 }
 
 const IMMICH_ROUTE = /\/immich\/(.*)$/;
@@ -102,6 +104,9 @@ export async function fakeGlissandoServer(
     attachPage: () => {
       throw new Error("fakeGlissandoServer has not finished setting itself up yet");
     },
+    advanceTvTime: () => {
+      throw new Error("fakeGlissandoServer has not finished setting itself up yet");
+    },
   };
   await page.route(IMMICH_ROUTE, (route) => answerImmich(route, server, photo));
   await page.route(LIBRARY_ROUTE, (route) => answerLibrary(route, server));
@@ -122,6 +127,7 @@ export async function fakeGlissandoServer(
     attachShareRoutes(target);
     tvApi.attachTo(target);
   };
+  server.advanceTvTime = tvApi.advanceTime;
   return server;
 }
 

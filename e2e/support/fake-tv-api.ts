@@ -211,6 +211,8 @@ export interface TvApi {
    * session, as the real service's clients do.
    */
   attachTo(target: Page): void;
+  /** Moves the hub's clock on, so a session idles out without the case waiting for it. */
+  advanceTime(ms: number): void;
 }
 
 /**
@@ -222,12 +224,18 @@ export function attachTvApi(
   server: FakeGlissandoServer,
   photo: () => Uint8Array,
 ): TvApi {
-  const hub = createTvHub({ now: Date.now, randomBytes });
+  let advancedMs = 0;
+  const hub = createTvHub({ now: () => Date.now() + advancedMs, randomBytes });
   const handle = createTvHandler({ repository: tvRepositoryOf(server), hub, log: () => undefined });
   const push = streamPusher(page.context().request);
   const attachTo = (target: Page) => {
     attachApiRoute(target, handle, push, hub, server, photo);
   };
   attachTo(page);
-  return { attachTo };
+  return {
+    attachTo,
+    advanceTime: (ms) => {
+      advancedMs += ms;
+    },
+  };
 }
