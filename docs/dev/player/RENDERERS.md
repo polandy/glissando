@@ -41,7 +41,10 @@
   backdrop; both renderers draw it under the picture's crop, fit, caption and card rules.
   - **WebGL**: `PictureTextures.live` re-uploads the frame (`texImage2D`, no mipmaps, linear,
     clamped) at most once per rendered frame into a texture per poster, deleted on `forget`,
-    `dispose` and context loss; a layer without a frame draws the poster's texture.
+    `dispose` and context loss; a layer without a frame draws the poster's texture. A `<video>`
+    is uploaded only when its picture changed (`live-frame-versions.ts`): a playing clip once per
+    frame it presents (`requestVideoFrameCallback`), a paused one after a seek. A playing clip
+    that has reported no presented frame yet, or any other source, is uploaded every frame.
   - **DOM**: `dom-live-video.ts` shows the clip's `<video>` right after the poster `<img>` with the
     poster's inline style (`object-fit: fill`), under the caption; frames that are no video element
     leave the poster.
