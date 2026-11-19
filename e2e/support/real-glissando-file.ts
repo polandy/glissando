@@ -47,7 +47,7 @@ function pngChunk(type: string, data: Uint8Array): Uint8Array<ArrayBuffer> {
 }
 
 /** A real, decodable greyscale PNG of `width`×`height`, flat grey: the browser's own codec reads it. */
-function tinyPng(width: number, height: number): Uint8Array<ArrayBuffer> {
+export function tinyPng(width: number, height: number): Uint8Array<ArrayBuffer> {
   const rowBytes = 1 + width;
   const raw = new Uint8Array(rowBytes * height);
   for (let row = 0; row < height; row++) {

@@ -2,14 +2,17 @@
 import { expect, test, type Page } from "@playwright/test";
 import { captionPicture, chooseFiles, createSlideshow, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
+import { generatedClip } from "./support/clip";
 import { holdPictureStore } from "./support/hold-pictures";
 import { textFile, toneFixture } from "./support/media";
+import { olderFileWithClip } from "./support/older-glissando-file";
 import { exportedFileWithRealMedia } from "./support/real-glissando-file";
 import { chooseShareRow } from "./support/share";
 
 test.use(GERMAN_BROWSER);
 
 const TITLE = "Juli 2025";
+const OLDER_CLIP_SECONDS = 2;
 
 function status(page: Page, text: string) {
   return page.getByRole("status").filter({ hasText: text });
@@ -104,6 +107,26 @@ test("E2E-133 a file whose song's length the audio element cannot read opens aga
 
   await expect(page.getByRole("heading", { name: "Herbst in Wien" })).toBeVisible();
   await expect(status(page, "„Herbst in Wien“ geöffnet")).toBeVisible();
+});
+
+test("E2E-143 a file an older version wrote, with a clip slide, opens and keeps its clip", async ({
+  page,
+  browserName,
+}) => {
+  test.skip(
+    browserName !== "chromium",
+    "Only Chromium's test build encodes the H.264 clip the file holds",
+  );
+  await openApp(page);
+  const clip = await generatedClip(page, "clip.mp4", "#4db6ac", OLDER_CLIP_SECONDS);
+  const older = await olderFileWithClip(clip, OLDER_CLIP_SECONDS * 1000, "Format 14.glissando");
+  await chooseFiles(page, page.getByRole("button", { name: "Datei öffnen" }), [older]);
+
+  await expect(page.getByRole("heading", { name: "Format version 14" })).toBeVisible();
+  await expect(status(page, "„Format version 14“ geöffnet")).toBeVisible();
+  const tile = page.getByRole("button", { name: /^Bild 1, aufgenommen am .*, Clip von 0:02, /u });
+  await expect(tile).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Bild 2, aufgenommen am / })).toBeVisible();
 });
 
 test("E2E-024 a .glissando file double-clicked on the desktop opens in the installed app", async ({
