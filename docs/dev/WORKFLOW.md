@@ -13,6 +13,10 @@ here; this file is the full text.
 - **A held page clock moves with `page.clock.fastForward`**, never `runFor`, while the player
   runs: `runFor` steps every animation frame in between, and each is a software-rendered WebGL
   frame in the CI image — 2.5 s of page time took ~26 s of real time.
+- **A case that measures how far media played** plays it on the held page clock too: a stand-in
+  element whose position follows `performance.now` (E2E-132), never a real element's playback.
+- **A value read once to compare** is read only after what changes it has landed — e.g. the
+  found beat, which re-times the pictures (E2E-124).
 - **An absence needs a positive signal** — assert what must still be there before what is gone.
 - **Prove it can fail**: break the behaviour and watch exactly that case go red.
 - **Every e2e file opens with `// Spec: docs/dev/<section>.md`** — the spec section its cases
