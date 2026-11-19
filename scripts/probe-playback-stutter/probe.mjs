@@ -4,29 +4,37 @@
 // slideshow from the start screen), presses play and records for a while: long tasks and
 // main-thread blocks, animation-frame gaps, the music element's clock (gaps where it stops
 // advancing while playing), its pause/stall/seek events, every texture upload and
-// createImageBitmap on the main thread with its size, and a CDP CPU profile.
+// createImageBitmap on the main thread with its size, each frame's draw, program, framebuffer and
+// texture-delete calls and its GPU time (where the browser has a timer query), and a CDP CPU profile.
 // Instrumentation is injected from outside; src/ is untouched. Pass your own file; nothing of
 // it is written anywhere. See docs/dev/player/TIMING.md (Measuring stutter).
 //
 //   npx vite build --minify false && npx vite preview --port 4211 &
 //   node scripts/probe-playback-stutter/probe.mjs <url> <file.glissando> [--seconds 60] [--cpu-slowdown N]
-//        [--gpu nvidia|amd|swiftshader|default] [--viewport phone|tv|4k|mac]
+//        [--gpu amd|nvidia|swiftshader|default] [--viewport phone|tv|4k|mac]
 //        [--browser host|chromium|firefox|webkit] [--cpus 0-3] [--headed] [--out file.json]
 //        [--server <title>]  plays the server slideshow of that title at <url> instead of a file
 //        [--network-kbps N]  throttles the network once the show is on (Chromium)
 //        [--picture-delay-ms N]  once the show is on, every Immich picture answers N ms later
 //                                than the preparation measured, so pictures are late
+//        [--software-video-decode]  decodes clips in software (Chromium)
+//        [--allow-software-gl]  measures on a software renderer instead of stopping
 // --browser host is the host's Chrome on its GPU; the others are Playwright's own builds (in the
 // CI image: scripts/ci-image.sh). The CPU slowdown and the profile need a Chromium. --cpus pins
 // the whole browser to those cores with taskset, so the workers are throttled too.
+// The probe stops before playing when the page's WebGL2 renderer is software or missing, and
+// warns when the show did not play: neither run measures Glissando.
 //
 // Prints one JSON summary line and the top self-time functions of the CPU profile.
-/* global process, console, window, setTimeout, StorageManager, Element */
+/* global process, console, window, document, setTimeout, StorageManager, Element */
 import { chromium, devices, firefox, webkit } from "@playwright/test";
 import { chmodSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { instrument } from "./instrument.mjs";
+import { instrumentGl } from "./instrument-gl.mjs";
+import { summarizeFrameWork } from "./frame-work.ts";
+import { showRunWarnings, softwareRendererReason } from "./run-check.ts";
 import { printTopSelfTime, summarize } from "./summarize.mjs";
 
 const args = process.argv.slice(2);
@@ -34,7 +42,7 @@ const flag = (name, fallback) => {
   const index = args.indexOf(name);
   return index >= 0 ? args[index + 1] : fallback;
 };
-const BOOLEAN_FLAGS = new Set(["--headed"]);
+const BOOLEAN_FLAGS = new Set(["--headed", "--software-video-decode", "--allow-software-gl"]);
 const positional = args.filter(
   (arg, i) =>
     !arg.startsWith("--") && (!args[i - 1]?.startsWith("--") || BOOLEAN_FLAGS.has(args[i - 1])),
@@ -43,21 +51,25 @@ const [url, filePath = ""] = positional;
 const serverTitle = flag("--server", null);
 if (!url || (!filePath && !serverTitle)) {
   console.error(
-    "usage: probe-playback-stutter.mjs <url> [file.glissando] [--server <title>] [--seconds 60] [--cpu-slowdown N] [--gpu nvidia|amd|swiftshader|default] [--viewport phone|tv|4k|mac] [--browser host|chromium|firefox|webkit] [--cpus 0-3] [--headed] [--out f.json]",
+    "usage: probe-playback-stutter.mjs <url> [file.glissando] [--server <title>] [--seconds 60] [--cpu-slowdown N] [--gpu amd|nvidia|swiftshader|default] [--viewport phone|tv|4k|mac] [--browser host|chromium|firefox|webkit] [--cpus 0-3] [--headed] [--out f.json]",
   );
   process.exit(2);
 }
 const seconds = Number(flag("--seconds", "60"));
 const slowdown = Number(flag("--cpu-slowdown", "1"));
-const gpu = flag("--gpu", "nvidia");
+const gpu = flag("--gpu", "amd");
 const viewport = flag("--viewport", "phone");
 const headed = args.includes("--headed");
+const softwareVideoDecode = args.includes("--software-video-decode");
+const allowSoftwareGl = args.includes("--allow-software-gl");
 const outFile = flag("--out", "");
 const browserKind = flag("--browser", "host");
 const cpus = flag("--cpus", "");
 const networkKbps = Number(flag("--network-kbps", "0"));
 const pictureDelayMs = Number(flag("--picture-delay-ms", "0"));
 const OPEN_TIMEOUT_MS = 180_000;
+// Exit status of a run stopped before playing on a software or missing WebGL2 renderer.
+const SOFTWARE_RENDERER_EXIT = 3;
 
 const GPU_FLAGS = {
   nvidia: [
@@ -67,6 +79,7 @@ const GPU_FLAGS = {
     "--disable-vulkan-surface",
   ],
   amd: ["--use-gl=angle", "--use-angle=gl-egl", "--ignore-gpu-blocklist"],
+  // Vulkan reaches the GPU only with a display: headless, Chrome falls back to SwiftShader.
   default: [],
   swiftshader: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"],
 };
@@ -90,6 +103,7 @@ const browser = await engine.launch({
     ...(headed || browserKind !== "host" ? [] : ["--headless=new"]),
     ...(browserKind === "host" ? GPU_FLAGS[gpu] : []),
     ...(isChromium ? ["--autoplay-policy=no-user-gesture-required"] : []),
+    ...(isChromium && softwareVideoDecode ? ["--disable-accelerated-video-decode"] : []),
   ],
   ...(browserKind === "firefox"
     ? {
@@ -118,6 +132,7 @@ const context = await browser.newContext({
   ...(pictureDelayMs > 0 ? { serviceWorkers: "block" } : {}),
 });
 await context.addInitScript(instrument);
+await context.addInitScript(instrumentGl);
 await context.addInitScript(() => {
   StorageManager.prototype.persisted = () => Promise.resolve(true);
   Element.prototype.requestFullscreen = () => Promise.reject(new TypeError("fullscreen refused"));
@@ -140,6 +155,21 @@ if (pictureDelayMs > 0) {
   });
 }
 await page.goto(url);
+const pageRenderer = await page.evaluate(() => {
+  const gl = document.createElement("canvas").getContext("webgl2");
+  if (!gl) return null;
+  const info = gl.getExtension("WEBGL_debug_renderer_info");
+  return String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER));
+});
+const softwareReason = softwareRendererReason(pageRenderer);
+if (softwareReason) {
+  console.error(`probe: ${softwareReason}`);
+  if (!allowSoftwareGl) {
+    console.error("probe: stopped; pass --allow-software-gl to measure anyway (TIMING.md)");
+    await browser.close();
+    process.exit(SOFTWARE_RENDERER_EXIT);
+  }
+}
 if (serverTitle) {
   await page
     .getByRole("region", { name: "Auf deinem Glissando-Server" })
@@ -202,6 +232,8 @@ const data = await page.evaluate(() => {
     outputTimestamps: p.outputTimestamps,
     renderCapacity: p.renderCapacity,
     hasRenderCapacity: Boolean(p.context?.renderCapacity),
+    frameWork: p.frameWork,
+    gpuFrames: p.gpuFrames,
   };
 });
 await browser.close();
@@ -214,7 +246,20 @@ const run = {
   seconds,
   file: serverTitle ?? filePath.split("/").pop(),
 };
-const summary = summarize(data, playStart, run);
+const summary = {
+  ...summarize(data, playStart, run),
+  ...summarizeFrameWork({
+    work: data.frameWork,
+    gpu: data.gpuFrames,
+    pictureStarts: data.pictureStarts.map((s) => s.t),
+    playStart,
+  }),
+};
+summary.warnings = showRunWarnings({
+  pictureStartsAfterPlay: summary.pictureStarts,
+  musicPlaying: summary.musicPlaying,
+});
+for (const warning of summary.warnings) console.error(`probe: ${warning}`);
 console.log(JSON.stringify(summary));
 if (outFile) writeFileSync(outFile, JSON.stringify({ summary, data, playStart }, null, 1));
 if (profile) printTopSelfTime(profile);
