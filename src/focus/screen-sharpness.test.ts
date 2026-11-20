@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { blurred, checkerboard, greyImage } from "../culling/testing/grey-scenes";
 import { sharpness } from "../culling/sharpness";
-import { screenSize, subjectSharpness } from "./screen-sharpness";
+import { screenSize, sharpestTile, subjectSharpness } from "./screen-sharpness";
 
 const WHOLE_PICTURE = { x: 0, y: 0, width: 1, height: 1 };
 const LEFT_HALF = { x: 0, y: 0, width: 0.5, height: 1 };
@@ -16,6 +16,22 @@ function sharpLeftSoftRight() {
     x < 32 ? (SHARP_HALF.pixels[y * 32 + x] ?? 0) : (SOFT_HALF.pixels[y * 32 + x - 32] ?? 0),
   );
 }
+
+describe("sharpestTile, a picture without a subject judged by its sharpest part", () => {
+  it("is the sharp tile's score, however plain the rest", () => {
+    const sharpCorner = greyImage(96, 96, (x, y) =>
+      x < 32 && y < 32 ? (SHARP_HALF.pixels[y * 32 + x] ?? 0) : 128,
+    );
+    const corner = { x: 0, y: 0, width: 1 / 3, height: 1 / 3 };
+
+    expect(sharpestTile(sharpCorner)).toBe(subjectSharpness(sharpCorner, corner));
+    expect(sharpestTile(sharpCorner)).toBeGreaterThan(sharpness(sharpCorner));
+  });
+
+  it("is zero for a plain picture", () => {
+    expect(sharpestTile(greyImage(96, 96, () => 128))).toBe(0);
+  });
+});
 
 describe("subjectSharpness, the sharpness inside the subject's box", () => {
   it("over the whole picture is the picture's sharpness", () => {
