@@ -53,11 +53,12 @@ export const GLISSANDO_FORMAT_ID = "glissando";
  * (`docs/dev/player/TRIP_CHAPTERS.md`), version 18 the slideshow's colour grade, `look`
  * (ADR-0044), version 19 the slideshow's mood (ADR-0045), version 20 the slideshow's energy
  * pacing, `energyPacing` (ADR-0046), version 21 the slideshow's music repeat, `repeatMusic`
- * (ADR-0047), version 22 a picture's found focus, `focus` (ADR-0053).
+ * (ADR-0047), version 22 a picture's found focus, `focus` (ADR-0053), version 23 that focus's measured
+ * sharpness, `focus.focus.sharpness` (ADR-0061).
  *
  * Every version is read; `manifest-migrations.ts` reshapes an older slideshow (ADR-0054).
  */
-export const GLISSANDO_FORMAT_VERSION = 22;
+export const GLISSANDO_FORMAT_VERSION = 23;
 export const OLDEST_READABLE_FORMAT_VERSION = 1;
 /** The first version that carries a picture's chosen motion. */
 export const OWN_KEN_BURNS_FROM_VERSION = 2;
@@ -99,6 +100,8 @@ export const ENERGY_PACING_FROM_VERSION = 20;
 export const REPEAT_MUSIC_FROM_VERSION = 21;
 /** The first version that carries a picture's found focus. */
 export const FOCUS_FROM_VERSION = 22;
+/** The first version that carries a found focus's sharpness. */
+export const SHARPNESS_FROM_VERSION = 23;
 export const MANIFEST_ENTRY_NAME = "glissando.json";
 
 export interface ManifestPicture {

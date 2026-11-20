@@ -10,11 +10,13 @@ import {
   checkSampleTrack,
   InvalidOwnMusicError,
 } from "../library/own-music";
+import type { StoredFocus } from "../library/picture-focus";
 import { readStoredFocus } from "../library/read-stored-focus";
 import type { Place } from "../places/nearest-place";
 import {
   CAPTION_FROM_VERSION,
   FOCUS_FROM_VERSION,
+  SHARPNESS_FROM_VERSION,
   MUSIC_TRIM_FROM_VERSION,
   MUSIC_VOLUME_FROM_VERSION,
   OWN_KEN_BURNS_FROM_VERSION,
@@ -53,7 +55,11 @@ export function pictureKeys(version: number): string[] {
   ];
 }
 
-export function readPictureFields(picture: JsonObject, path: string): PictureFields {
+export function readPictureFields(
+  picture: JsonObject,
+  path: string,
+  version: number,
+): PictureFields {
   const { kenBurns, caption, durationMs, transition, alone, place, focus } = picture;
   if (alone !== undefined && alone !== true) {
     throw new DocumentFormatError(`${path}.alone`, "true or absent", alone);
@@ -74,7 +80,7 @@ export function readPictureFields(picture: JsonObject, path: string): PictureFie
       : { transition: readOwnTiming(checkTransitionChoice, transition, path) }),
     ...(alone === true ? { alone: true } : {}),
     ...(place === undefined ? {} : { place: readPlace(place, `${path}.place`) }),
-    ...(focus === undefined ? {} : { focus: readStoredFocus(focus, `${path}.focus`) }),
+    ...(focus === undefined ? {} : { focus: readFocusOf(focus, `${path}.focus`, version) }),
   };
 }
 
@@ -177,4 +183,16 @@ export function readOwnMusic<Fields>(path: string, read: () => Fields): Fields {
     }
     throw error;
   }
+}
+
+function readFocusOf(value: unknown, path: string, version: number): StoredFocus {
+  const stored = readStoredFocus(value, path);
+  if (version < SHARPNESS_FROM_VERSION && stored.focus.sharpness !== undefined) {
+    throw new DocumentFormatError(
+      `${path}.focus.sharpness`,
+      `absent before format version ${SHARPNESS_FROM_VERSION}`,
+      stored.focus.sharpness,
+    );
+  }
+  return stored;
 }

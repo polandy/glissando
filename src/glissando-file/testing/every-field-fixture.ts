@@ -139,11 +139,12 @@ export const EVERY_FIELD_FOCUS: ReadonlyMap<string, StoredFocus> = new Map([
         kind: "subject",
         box: { x: 0.2, y: 0.1, width: 0.3, height: 0.4 },
         foundBy: "immich-faces",
+        sharpness: 182.25,
       },
       detector: FOCUS_DETECTOR_VERSION,
     },
   ],
-  [SECOND_PICTURE.id, { focus: { kind: "scenery" }, detector: FOCUS_DETECTOR_VERSION }],
+  [SECOND_PICTURE.id, { focus: { kind: "scenery", sharpness: 64 }, detector: FOCUS_DETECTOR_VERSION }],
 ]);
 
 /** A store holding every medium and focus `EVERY_FIELD_SLIDESHOW` names. */

@@ -157,7 +157,7 @@ function readPicture(value: unknown, path: string, version: number): PictureAsRe
   return {
     file: readText(picture["file"], `${path}.file`),
     ...(thumbnail === undefined ? {} : { thumbnail: readText(thumbnail, `${path}.thumbnail`) }),
-    ...readPictureFields(picture, path),
+    ...readPictureFields(picture, path, version),
     ...(immichAssetId === undefined
       ? {}
       : { immichAssetId: readText(immichAssetId, `${path}.immichAssetId`) }),

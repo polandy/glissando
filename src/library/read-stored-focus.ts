@@ -12,7 +12,7 @@ import {
 } from "./picture-focus";
 
 const STORED_FOCUS_KEYS = ["focus", "detector"] as const;
-const FOCUS_KEYS = ["kind", "box", "foundBy"] as const;
+const FOCUS_KEYS = ["kind", "box", "foundBy", "sharpness"] as const;
 const BOX_KEYS = ["x", "y", "width", "height"] as const;
 const FOCUS_KINDS = ["subject", "scenery", "none"] as const;
 
@@ -32,11 +32,15 @@ export function readStoredFocus(value: unknown, path: string): StoredFocus {
 function readPictureFocus(value: unknown, path: string): PictureFocus {
   const focus = readObject(value, path, FOCUS_KEYS);
   const { kind, box, foundBy } = focus;
+  const sharpness =
+    focus["sharpness"] === undefined
+      ? {}
+      : { sharpness: readSharpness(focus["sharpness"], `${path}.sharpness`) };
   if (kind === "scenery" || kind === "none") {
     if (box !== undefined || foundBy !== undefined) {
-      throw new DocumentFormatError(path, `only "kind" for ${kind}`, focus);
+      throw new DocumentFormatError(path, `only "kind" and "sharpness" for ${kind}`, focus);
     }
-    return { kind };
+    return { kind, ...sharpness };
   }
   if (kind !== "subject") {
     throw new DocumentFormatError(`${path}.kind`, `one of ${FOCUS_KINDS.join(", ")}`, kind);
@@ -45,7 +49,16 @@ function readPictureFocus(value: unknown, path: string): PictureFocus {
     kind: "subject",
     box: readFocusBox(box, `${path}.box`),
     foundBy: readSubjectFinder(foundBy, `${path}.foundBy`),
+    ...sharpness,
   };
+}
+
+/** A variance of the Laplacian: never negative. */
+function readSharpness(value: unknown, path: string): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    throw new DocumentFormatError(path, "a finite number of at least 0", value);
+  }
+  return value;
 }
 
 function readFocusBox(value: unknown, path: string): FocusBox {

@@ -1,5 +1,5 @@
 import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
-import { ownMusicFields } from "../glissando-file/glissando-manifest";
+import { GLISSANDO_FORMAT_VERSION, ownMusicFields } from "../glissando-file/glissando-manifest";
 import { cardFromManifest, cardToManifest } from "../glissando-file/manifest-card";
 import { DocumentFormatError, readObject, readText } from "../glissando-file/document-values";
 import {
@@ -114,7 +114,7 @@ function refuseRepeatedMusicIds(songs: readonly ServerMusic[], path: string): vo
 function readPicture(value: unknown, path: string, keys: readonly string[]): ServerPicture {
   const picture = readObject(value, path, keys);
   return {
-    ...readPictureFields(picture, path),
+    ...readPictureFields(picture, path, GLISSANDO_FORMAT_VERSION),
     immichAssetId: readText(picture["immichAssetId"], `${path}.immichAssetId`),
   };
 }
