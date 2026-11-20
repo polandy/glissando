@@ -156,6 +156,9 @@ export async function loadWasmKernels(bytes: BufferSource): Promise<WasmKernels>
       const { group, strides, pads } = attributes;
       const geometry = convGeometry(input.dims, kernel.dims, attributes);
       const { outChannels, outHeight, outWidth } = geometry;
+      if (bias && bias.data.length !== outChannels) {
+        throw new RangeError(`conv: bias ${bias.dims} does not fit ${outChannels} output channels`);
+      }
       const inputs = bias ? [input, kernel, bias] : [input, kernel];
       return run(inputs, [1, outChannels, outHeight, outWidth], ({ addresses, out }) =>
         module.conv(

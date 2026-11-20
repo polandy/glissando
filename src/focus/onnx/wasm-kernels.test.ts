@@ -188,6 +188,14 @@ describe("the WASM convolution kernels", () => {
     expect(() => kernels.conv(image, kernel, undefined, padded)).toThrow(RangeError);
   });
 
+  it("refuse a bias that is not one value per output channel", () => {
+    const kernel = seededTensor([5, 6, 3, 3], 19, [-1, 1]);
+    const short = seededTensor([4], 20, [-1, 1]);
+
+    expect(kernels.conv(image, kernel, undefined, padded).dims).toEqual([1, 5, 9, 13]);
+    expect(() => kernels.conv(image, kernel, short, padded)).toThrow(RangeError);
+  });
+
   it("free each call's tensors, so repeated calls do not grow the memory", () => {
     const kernel = seededTensor([6, 1, 3, 3], 18, [-1, 1]);
     const depthwise = { ...padded, group: 6 };
