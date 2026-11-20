@@ -103,3 +103,13 @@ export const IDLE: FocusPassState = {
 export function isOutdated(record: StoredFocus | undefined): boolean {
   return record === undefined || record.detector < FOCUS_DETECTOR_VERSION;
 }
+
+/** Immich's faces gave this focus and nothing measured its sharpness on screen yet (ADR-0061). */
+export function isUnmeasured(record: StoredFocus | undefined): boolean {
+  return (
+    record !== undefined &&
+    record.focus.kind === "subject" &&
+    record.focus.foundBy === "immich-faces" &&
+    record.focus.sharpness === undefined
+  );
+}

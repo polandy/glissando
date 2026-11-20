@@ -1,6 +1,12 @@
 import type { FocusPassQueue } from "./focus-pass-queue";
-import { isOutdated, type FocusPassPorts } from "./focus-pass-types";
+import { isOutdated, isUnmeasured, type FocusPassPorts } from "./focus-pass-types";
 import type { StoredFocus } from "./picture-focus";
+
+/** The device pass, which sees the picture as shown, measures a focus Immich's faces gave. */
+function measuresKnownFocus(ports: FocusPassPorts): boolean {
+  const { store } = ports;
+  return store.detectionInput === undefined && store.playbackPictureBlob !== undefined;
+}
 
 /**
  * Queues every picture with no current focus that the pass has not taken up yet; a slideshow
@@ -24,10 +30,13 @@ export async function scanForOutdatedFocus(
       throw error;
     }
     for (const picture of slideshow.pictures) {
-      if (queue.takenUpAlready(picture.id) || !isOutdated(stored.get(picture.id))) {
+      const record = stored.get(picture.id);
+      const outdated = isOutdated(record);
+      const measureOnly = !outdated && measuresKnownFocus(ports) && isUnmeasured(record);
+      if (queue.takenUpAlready(picture.id) || !(outdated || measureOnly)) {
         continue;
       }
-      queue.enqueueBackground(slideshow.id, picture.id, stored.has(picture.id));
+      queue.enqueueBackground(slideshow.id, picture.id, stored.has(picture.id), measureOnly);
     }
   }
 }
@@ -58,4 +67,5 @@ export async function takeUpForcedPictures(
     }
   }
   queue.bringToFront(candidates);
+  queue.detectAnew(candidates);
 }

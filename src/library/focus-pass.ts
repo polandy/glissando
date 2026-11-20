@@ -223,9 +223,19 @@ export class FocusPass {
     return false;
   }
 
-  /** What to look at: the store's own input, else its thumbnail and the picture as shown. */
+  /**
+   * What to look at: the store's own input, a focus Immich's faces gave with the picture as shown,
+   * else its thumbnail and the picture as shown.
+   */
   async #readInput(pictureId: string): Promise<DetectionInput> {
     const { store } = this.#ports;
+    if (this.#queue.isMeasureOnly(pictureId) && store.playbackPictureBlob !== undefined) {
+      const record = (await store.pictureFocus([pictureId])).get(pictureId);
+      if (record !== undefined) {
+        const display = await store.playbackPictureBlob(pictureId);
+        return { kind: "known", focus: record.focus, display };
+      }
+    }
     if (store.detectionInput !== undefined) {
       return store.detectionInput(pictureId);
     }

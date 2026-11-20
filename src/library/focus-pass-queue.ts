@@ -21,6 +21,8 @@ export class FocusPassQueue {
   readonly #slideshowsOf = new Map<string, Set<string>>();
   /** This pass's currently-failed pictures, by slideshow; outlives a slideshow's own progress. */
   readonly #failedBySlideshow = new Map<string, Set<string>>();
+  /** Queued pictures whose current focus is only measured, not detected anew (ADR-0061). */
+  readonly #measureOnly = new Set<string>();
   /** Pending `lookAgain` requests, each a batch of picture ids taken up ahead of the queue. */
   #forcedRequests: string[][] = [];
   #rescanRequested = false;
@@ -59,7 +61,15 @@ export class FocusPassQueue {
   }
 
   /** Adds a picture a background scan found outdated to the back of the queue. */
-  enqueueBackground(slideshowId: string, pictureId: string, hadRecord: boolean): void {
+  enqueueBackground(
+    slideshowId: string,
+    pictureId: string,
+    hadRecord: boolean,
+    measureOnly = false,
+  ): void {
+    if (measureOnly) {
+      this.#measureOnly.add(pictureId);
+    }
     this.#takenUp.add(pictureId);
     this.addToProgress(slideshowId, pictureId, hadRecord);
     this.#queue.push(pictureId);
@@ -117,6 +127,17 @@ export class FocusPassQueue {
       this.#queue = this.#queue.filter((queued) => queued !== id);
       this.#queue.unshift(id);
       this.#queued.add(id);
+    }
+  }
+
+  isMeasureOnly(pictureId: string): boolean {
+    return this.#measureOnly.has(pictureId);
+  }
+
+  /** A `lookAgain` wants a fresh detection, so these are no longer only measured. */
+  detectAnew(pictureIds: readonly string[]): void {
+    for (const id of pictureIds) {
+      this.#measureOnly.delete(id);
     }
   }
 
@@ -179,6 +200,7 @@ export class FocusPassQueue {
     this.#queue = [];
     this.#queued.clear();
     this.#takenUp.clear();
+    this.#measureOnly.clear();
     this.#progress.clear();
     this.#forcedRequests = [];
   }
