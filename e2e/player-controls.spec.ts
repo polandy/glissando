@@ -37,6 +37,12 @@ test("E2E-136 the seek bar jumps to the picture at the chosen time", async ({ pa
   await expect(seekBar(page)).toHaveAttribute("aria-valuetext", "0:20");
 });
 
+/** A click without the pointer move `mouse.click` sends first, which would reveal the controls. */
+async function tapInPlace(page: Page): Promise<void> {
+  await page.mouse.down();
+  await page.mouse.up();
+}
+
 test("E2E-137 a tap hides and shows the controls, and playing hides them after 2.5 s", async ({
   page,
 }) => {
@@ -59,9 +65,9 @@ test("E2E-137 a tap hides and shows the controls, and playing hides them after 2
   // The pointer rests on the picture: a tap hides the controls, a second tap brings them back.
   await page.mouse.move(100, 200);
   await expect(controls).toBeVisible();
-  await page.mouse.click(100, 200);
+  await tapInPlace(page);
   await expect(player(page, TITLE)).toHaveCSS("cursor", "none");
-  await page.mouse.click(100, 200);
+  await tapInPlace(page);
   await expect(controls).toBeVisible();
   await expect(player(page, TITLE)).toHaveCSS("cursor", "auto");
 });
