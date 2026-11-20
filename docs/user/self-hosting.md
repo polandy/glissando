@@ -213,12 +213,14 @@ phone". The TV and the remote talk through your Glissando server, so both need t
 - "^/api/tv/sessions$"
 - "^/api/share/[A-Za-z0-9_-]{22}/tv$"
 - "^/api/tv/[A-Za-z0-9_-]{22}/(events|state|show(/[0-9]+/pictures/[0-9]+|/songs/[0-9]+)?)$"
-- "^/api/tv/remote/[A-Za-z0-9_-]{22}/(events|command)$"
+- "^/api/tv/remote/[A-Za-z0-9_-]{22}(/events|/command)?$"
 ```
 
 The TV and the remote hold a connection open to the server; a proxy in front must not buffer it
 (Traefik and Caddy don't). Whoever holds the TV's page or the remote's address can see and
-control only that TV, until it is closed or "Disconnect" is pressed.
+control only that TV, until it is closed or "Disconnect" is pressed, and for 12 hours at most;
+after that the TV shows a new code. Up to 100 TVs can wait or play at once, and a TV paired with
+a remote that is open is never pushed out by a new one.
 
 ## Troubleshooting
 

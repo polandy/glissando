@@ -103,19 +103,17 @@ export function createRemoteApi(secret: string, ports: RemoteApiPorts): RemoteAp
     });
   }
 
-  /** Asks whether the session still stands before the stream opens again. */
+  /** Asks the status route whether the session still stands before the stream opens again. */
   async function probe(listener: (event: RemoteStreamEvent) => void): Promise<void> {
-    const abort = new AbortController();
     let response: Response;
     try {
-      response = await ports.fetch(eventsUrl, { signal: abort.signal });
+      response = await ports.fetch(base);
     } catch (error: unknown) {
       ports.reportError(error);
       ports.schedule(() => probe(listener), RECONNECT_DELAY_MS);
       return;
     }
     if (response.ok) {
-      abort.abort();
       openStream(listener);
     } else if ((await errorCode(response)) === NO_SUCH_TV) {
       listener({ type: "end" });

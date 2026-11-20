@@ -64,6 +64,12 @@ stream_carries "the bound TV's stream opens with a snapshot" "$WORK/bound-stream
 request "$LIBRARY" POST "/api/tv/remote/$bound_secret/command" "${JSON[@]}" --data-binary '{"type":"pause"}'
 expect_equal "the remote's command is accepted" 204 "$STATUS"
 stream_carries "the command reaches the TV's stream" "$WORK/bound-stream" '"type":"pause"'
+request "$LIBRARY" GET "/api/tv/remote/$bound_secret"
+expect_equal "the remote's status answers 204, never stored" "204 no-store" \
+	"$STATUS $(header_value Cache-Control)"
+head -c 5000 /dev/zero | tr '\0' ' ' >"$WORK/large-body"
+request "$LIBRARY" POST /api/tv/sessions "${JSON[@]}" --data-binary "@$WORK/large-body"
+expect_equal "a TV request over 4 KiB answers 413" 413 "$STATUS"
 
 request "$LIBRARY" GET "/r/$bound_secret"
 expect_equal "/r/<secret> answers remote.html, revalidated, without a referrer" \
@@ -82,6 +88,7 @@ tv_probes=(
 	"GET /api/tv/%2e%2e/share/$token"
 	"DELETE /api/tv/sessions"
 	"GET /api/tv/remote/$bound_secret/command"
+	"POST /api/tv/remote/$bound_secret"
 	"GET /r/${bound_secret}A"
 	"POST /r/$bound_secret"
 	"GET /tv/extra"

@@ -10,7 +10,12 @@ import { evictionCandidate, type Session } from "./tv-session";
  */
 
 export const SESSION_IDLE_MS = 15 * 60 * 1000;
+/** A session ends this long after it was made, even with its TV and remote there. */
+export const SESSION_MAX_LIFETIME_MS = 12 * 60 * 60 * 1000;
+/** Each session holds one TV stream, so this caps the open TV streams too. */
 export const MAX_SESSIONS = 100;
+/** One more remote stream of a session closes its oldest. */
+export const MAX_REMOTE_STREAMS = 4;
 
 type NoData = Readonly<Record<string, never>>;
 const NO_DATA: NoData = {};
@@ -88,7 +93,8 @@ export function createTvHub({ now, randomBytes }: TvHubDependencies) {
   };
 
   const isExpired = (session: Session) =>
-    session.tv === undefined && now() - session.tvLeftAt >= SESSION_IDLE_MS;
+    now() - session.createdAt >= SESSION_MAX_LIFETIME_MS ||
+    (session.tv === undefined && now() - session.tvLeftAt >= SESSION_IDLE_MS);
 
   const sweep = (): void => {
     for (const session of [...byTvKey.values()]) {
@@ -96,7 +102,7 @@ export function createTvHub({ now, randomBytes }: TvHubDependencies) {
     }
   };
 
-  const add = (session: Omit<Session, "tvKey" | "remotes" | "tvLeftAt">) => {
+  const add = (session: Omit<Session, "tvKey" | "remotes" | "createdAt" | "tvLeftAt">) => {
     sweep();
     if (byTvKey.size >= MAX_SESSIONS) {
       const candidate = evictionCandidate([...byTvKey.values()]);
@@ -108,6 +114,7 @@ export function createTvHub({ now, randomBytes }: TvHubDependencies) {
       ...session,
       tvKey: newKey(),
       remotes: new Set(),
+      createdAt: time,
       tvLeftAt: time,
     };
     byTvKey.set(made.tvKey, made);
@@ -208,10 +215,15 @@ export function createTvHub({ now, randomBytes }: TvHubDependencies) {
       };
     },
 
-    /** Replays a `snapshot` first. */
+    /** Replays a `snapshot` first; past `MAX_REMOTE_STREAMS`, the oldest stream is closed. */
     connectRemote(remoteSecret: string, sink: EventSink<RemoteEvent>): CloseStream | undefined {
       const session = live(bySecret, remoteSecret);
       if (session === undefined) return undefined;
+      const [oldest] = session.remotes;
+      if (oldest !== undefined && session.remotes.size >= MAX_REMOTE_STREAMS) {
+        session.remotes.delete(oldest);
+        oldest.close();
+      }
       session.remotes.add(sink);
       if (session.remotes.size === 1) {
         session.tv?.send({ name: "remote", data: { present: true } });

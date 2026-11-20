@@ -28,8 +28,8 @@ base64url characters shows the ended card without opening a stream.
   dragging.
 - **Stream**: a stream event that does not read is reported and dropped. When the browser has
   given up on the `EventSource` (`CLOSED`), the page waits `RECONNECT_DELAY_MS` and probes the
-  events URL with a GET: 404 `noSuchTv` ends the remote, a 2xx reopens the stream (the probe is
-  aborted, so the TV may see the remote present for a moment), anything else probes again.
+  status route `GET /api/tv/remote/{remoteSecret}`, which opens no stream: 404 `noSuchTv` ends
+  the remote, a 2xx reopens the stream, anything else probes again.
 - **Commands** go out as POSTs; a 409 `tvAway` becomes the "The TV is not there" state; a 404
   `noSuchTv` ends the remote; any other failure is shown on the page as an error with "Try
   again", which resends the failed command.

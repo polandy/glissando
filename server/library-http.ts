@@ -10,6 +10,8 @@ const KIB = 1024;
 export const MAX_DOCUMENT_BYTES = 2 * MIB;
 /** A `StoredFocus` is a handful of numbers and short strings; this is generous for one. */
 export const MAX_FOCUS_BYTES = 4 * KIB;
+/** A TV request is a code, an id, a command or a playback state; this is generous for one. */
+export const MAX_TV_REQUEST_BYTES = 4 * KIB;
 
 export const LIBRARY_PATH = "/api/library";
 export const SLIDESHOWS_PATH = `${LIBRARY_PATH}/slideshows`;
@@ -18,6 +20,9 @@ export const MUSIC_PATH = `${LIBRARY_PATH}/music`;
 export const FOCUS_PATH_PART = "focus";
 /** The public share API, no sign-in (`docs/dev/SHARE_LINK.md`). */
 export const SHARE_PATH = "/api/share";
+/** The TV remote's public API and the signed-in phone's part of it (`docs/dev/tv_remote/`). */
+export const TV_PATH = "/api/tv";
+export const LIBRARY_TV_PATH = `${LIBRARY_PATH}/tv`;
 /** Asked by Caddy's forward_auth on loopback only; Caddy routes no outside request here. */
 export const SHARE_PICTURE_CHECK_PATH = "/internal/share-picture";
 
@@ -58,6 +63,9 @@ export interface LibraryResponse {
 
 /** The most bytes a request to `path` may carry. */
 export function maxBodyBytes(path: string): number {
+  if ([TV_PATH, LIBRARY_TV_PATH, SHARE_PATH].some((base) => path.startsWith(`${base}/`))) {
+    return MAX_TV_REQUEST_BYTES;
+  }
   if (path === MUSIC_PATH) {
     return MAX_MUSIC_BYTES;
   }

@@ -76,7 +76,7 @@ handle @tvStream {
 
 @tvRead {
 	method GET HEAD
-	path_regexp ^/api/tv/[A-Za-z0-9_-]{22}/show(/songs/[0-9]+)?$
+	path_regexp ^/api/tv/(remote/[A-Za-z0-9_-]{22}|[A-Za-z0-9_-]{22}/show(/songs/[0-9]+)?)$
 }
 handle @tvRead {
 	log_name share

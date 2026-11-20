@@ -9,12 +9,13 @@ import {
   errorResponse,
   HTTP_STATUS,
   jsonResponse,
-  LIBRARY_PATH,
-  MAX_DOCUMENT_BYTES,
+  LIBRARY_TV_PATH,
+  MAX_TV_REQUEST_BYTES,
   notFound,
   readJsonBody,
   segmentsUnder,
   SHARE_PATH,
+  TV_PATH,
   type ErrorCode,
   type LibraryRequest,
   type LibraryResponse,
@@ -35,8 +36,6 @@ import { redactTvSecrets } from "./tv-redaction";
  * a stream out, so it is tested without sockets.
  */
 
-const TV_PATH = "/api/tv";
-const LIBRARY_TV_PATH = `${LIBRARY_PATH}/tv`;
 /** Asked by Caddy's forward_auth on loopback only, as the share picture check is. */
 const TV_PICTURE_CHECK_PATH = "/internal/tv-picture";
 
@@ -81,7 +80,11 @@ export function isTvPath(path: string): boolean {
   return token !== undefined && part === TV_PART && beyond.length === 0;
 }
 
-const noContent = (): LibraryResponse => ({ status: HTTP_STATUS.noContent, headers: {}, body: "" });
+const noContent = (headers: Readonly<Record<string, string>> = {}): LibraryResponse => ({
+  status: HTTP_STATUS.noContent,
+  headers,
+  body: "",
+});
 const noSuchTv = () =>
   errorResponse(HTTP_STATUS.notFound, "noSuchTv", "no TV session has this key or secret");
 const tvFull = () =>
@@ -92,7 +95,7 @@ const tvFull = () =>
   );
 const notShown = () =>
   errorResponse(HTTP_STATUS.notFound, "notShown", "the TV is showing no slideshow yet");
-const tooLargeDetail = `a TV request is at most ${MAX_DOCUMENT_BYTES} bytes`;
+const tooLargeDetail = `a TV request is at most ${MAX_TV_REQUEST_BYTES} bytes`;
 
 /** `request`'s JSON body read by `reader`, or the response refusing it with `badCode`. */
 function readBody<Value>(
@@ -201,6 +204,9 @@ export function createTvHandler({ repository, hub, log }: TvHandlerDependencies)
       ? streamAnswer((sink) => hub.connectRemote(remoteSecret, sink) ?? endedStream(sink))
       : noSuchTv();
 
+  const remoteStatus = (remoteSecret: string): TvAnswer =>
+    hub.hasRemoteSecret(remoteSecret) ? noContent(SECRET_HEADERS) : noSuchTv();
+
   const report =
     (tvKey: string): TvHandler =>
     (request) => {
@@ -231,6 +237,7 @@ export function createTvHandler({ repository, hub, log }: TvHandlerDependencies)
     const [first, second, third, fourth, ...beyond] = segmentsUnder(TV_PATH, path);
     if (first === SESSIONS_PART && second === undefined) return { POST: createSession };
     if (first === REMOTE_PART && second !== undefined && fourth === undefined) {
+      if (third === undefined) return { GET: () => remoteStatus(second) };
       if (third === EVENTS_PART) return { GET: () => remoteEvents(second) };
       if (third === COMMAND_PART) return { POST: command(second) };
       return {};

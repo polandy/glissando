@@ -77,6 +77,7 @@ export function tvHarness() {
     library,
     advanceClock,
     logged,
+    handle,
     answer,
     send,
     openStream,

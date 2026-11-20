@@ -55,6 +55,7 @@ already stores slideshows (ADR-0018) and serves them to recipients without a sig
 - The owner's proxy configuration grows by the public prefixes `/api/tv/`, `/tv` and `/r/`; the
   self-hosting guide documents them for Authelia. The claim and show routes stay under
   `/api/library/`.
-- The service keeps at most 100 sessions; the one whose TV has been away the longest is dropped
-  for a new one, and while every TV is there a new one is refused (503). A
-  session ends 15 minutes after its TV's stream last closed.
+- The service keeps at most 100 sessions. A claimed session with a remote connected is never
+  dropped for a new one; of the others, the one whose TV has been away the longest goes, else the
+  oldest. While every session is such a pairing, a new one is refused (503). A session ends
+  15 minutes after its TV's stream last closed, and 12 hours after it was made in any case.
