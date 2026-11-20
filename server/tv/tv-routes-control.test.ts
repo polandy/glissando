@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { tvHarness } from "./testing/tv-routes-harness";
 import { playingState } from "./testing/tv-hub-harness";
+import { MAX_DOCUMENT_BYTES, MAX_TV_REQUEST_BYTES, maxBodyBytes } from "../library-http";
 import { MAX_SESSIONS } from "./tv-hub";
 import { isTvPath } from "./tv-routes";
 
@@ -29,11 +30,15 @@ describe("making a session", () => {
     expect([response.status, response.json["error"]]).toEqual([404, "notShared"]);
   });
 
-  it("answers 503 tvFull while MAX_SESSIONS TVs are watching, on either way", () => {
+  it("answers 503 tvFull while MAX_SESSIONS pairings are in use, on either way", () => {
     const tv = tvHarness();
     const token = tv.shareSlideshow();
-    const made = Array.from({ length: MAX_SESSIONS }, () => tv.send("POST", "/api/tv/sessions"));
-    made.forEach((response) => tv.openStream(`/api/tv/${String(response.json["tvKey"])}/events`));
+    const made = Array.from({ length: MAX_SESSIONS }, () =>
+      tv.send("POST", `/api/share/${token}/tv`),
+    );
+    made.forEach((response) =>
+      tv.openStream(`/api/tv/remote/${String(response.json["remoteSecret"])}/events`),
+    );
     expect(made.every((response) => response.status === 201)).toBe(true);
     const wayA = tv.send("POST", "/api/tv/sessions");
     const wayB = tv.send("POST", `/api/share/${token}/tv`);
@@ -194,5 +199,49 @@ describe("routing and logs", () => {
     ["/api/tvs", false],
   ])("counts %s as a TV path: %s", (path, expected) => {
     expect(isTvPath(path)).toBe(expected);
+  });
+});
+
+describe("the remote's status", () => {
+  it("GET /api/tv/remote/{remoteSecret} answers 204 and opens no stream", () => {
+    const tv = tvHarness();
+    const { tvKey, remoteSecret } = tv.claimedSession();
+    const tvStream = tv.openStream(`/api/tv/${tvKey}/events`);
+    const response = tv.send("GET", `/api/tv/remote/${remoteSecret}`);
+    expect([response.status, response.headers["cache-control"]]).toEqual([204, "no-store"]);
+    expect(tvStream.names()).toEqual(["snapshot"]);
+  });
+
+  it("answers 404 noSuchTv once the session is gone", () => {
+    const response = tvHarness().send("GET", `/api/tv/remote/${UNKNOWN_KEY}`);
+    expect([response.status, response.json["error"]]).toEqual([404, "noSuchTv"]);
+  });
+});
+
+describe("a TV or public share request's body", () => {
+  it.each([
+    "/api/tv/sessions",
+    `/api/tv/${UNKNOWN_KEY}/state`,
+    `/api/tv/remote/${UNKNOWN_KEY}/command`,
+    "/api/library/tv/claim",
+    `/api/library/tv/${UNKNOWN_KEY}/show`,
+    `/api/share/${UNKNOWN_KEY}/tv`,
+    `/api/share/${UNKNOWN_KEY}`,
+  ])("%s is at most MAX_TV_REQUEST_BYTES", (path) => {
+    expect(maxBodyBytes(path)).toBe(MAX_TV_REQUEST_BYTES);
+  });
+
+  it("is far below a slideshow's", () => {
+    expect(MAX_TV_REQUEST_BYTES).toBeLessThan(MAX_DOCUMENT_BYTES / 100);
+  });
+
+  it("past the limit is refused with 413 tooLarge", () => {
+    const response = tvHarness().handle({
+      method: "POST",
+      path: "/api/tv/sessions",
+      headers: { "content-type": "application/json" },
+      body: { kind: "tooLarge" },
+    });
+    expect(response.status).toBe(413);
   });
 });

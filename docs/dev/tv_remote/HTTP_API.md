@@ -1,7 +1,9 @@
 # The HTTP API
 
 All bodies are JSON and every write needs `Content-Type: application/json` (415 `notJson`), as
-in server_library/HTTP_API.md. Errors are `{ "error", "detail" }`.
+in server_library/HTTP_API.md. Errors are `{ "error", "detail" }`. A body under `/api/tv/`,
+`/api/library/tv/` or `/api/share/` is at most `MAX_TV_REQUEST_BYTES` (4 KiB, 413 `tooLarge`
+above): these requests carry a code, an id, a command or a playback state, and most are public.
 
 ## Private (under `/api/library/tv/`, behind the owner's sign-in)
 
@@ -24,6 +26,7 @@ carrying a key or secret is `Cache-Control: no-store`.
 | `GET /api/tv/{tvKey}/show`                             | Way A: the share document of the chosen slideshow, as `GET /api/share/{token}`; 404 `notShown` until one is chosen, once it is deleted, and always in way B |
 | `GET /api/tv/{tvKey}/show/{revision}/pictures/{n}`     | The picture, through Caddy as a shared one; 404 `notShown` or `noSuchPicture`                                                                               |
 | `GET /api/tv/{tvKey}/show/songs/{n}`                   | The song's bytes; 404 `notShown` or `noSuchSong`                                                                                                            |
+| `GET /api/tv/remote/{remoteSecret}`                    | 204 while the session stands, opening no stream (the remote's reconnect probe); 404 `noSuchTv`                                                              |
 | `GET /api/tv/remote/{remoteSecret}/events`             | The remote's stream (below); 404 `noSuchTv`                                                                                                                 |
 | `POST /api/tv/remote/{remoteSecret}/command` `Command` | 204; 400 `invalidCommand`; 404 `noSuchTv`; 409 `tvAway` (no TV stream is open)                                                                              |
 
@@ -41,7 +44,8 @@ it stops.
   `remote` `{ "present": boolean }` (the first remote stream opened or the last closed) and
   `end` `{}` (the session ended; the TV makes a new one). The TV opening a second stream closes the first.
 - **Remote stream**: first `snapshot` `{ "tvPresent", "state": PlaybackState | null }`, then
-  `state` `<PlaybackState>`, `tv` `{ "present": boolean }` and `end` `{}`.
+  `state` `<PlaybackState>`, `tv` `{ "present": boolean }` and `end` `{}`. A fifth remote stream
+  of a session closes the oldest without `end` (SESSIONS.md, Presence).
 
 ## Command
 

@@ -14,16 +14,25 @@ database never sees them, and a restart of the service ends them all.
 - **Source of a slideshow**: way A has none until the signed-in phone chooses one
   (`slideshowId`); way B is bound to a share token for its whole life and never changes it.
 - **Presence**: `tvPresent` is true while the TV's event stream is open. Each remote stream is
-  counted; a session needs neither once it is made.
-- **Lifetime**: a session ends when `disconnect` arrives (also while the TV is away), or
+  counted; a session needs neither once it is made. A session holds one TV stream (a second
+  closes the first) and at most `MAX_REMOTE_STREAMS` (4) remote streams: one more closes the
+  oldest without `end`, so a remote that left without closing its connection frees its place.
+  The remote stays present for the TV throughout.
+- **Lifetime**: a session ends when `disconnect` arrives (also while the TV is away),
   `SESSION_IDLE_MS` (15 min) after the TV's stream last closed (or after the session was made,
-  when the TV never opened one). The hub checks lazily on each request; there is no timer. At
-  most `MAX_SESSIONS` (100) live; one more drops the session whose TV has been away the longest.
-  While every TV is there, none is dropped and `create`/`createBound` make none: making a session
-  is public, and must never end a pairing in use.
+  when the TV never opened one), and at the latest `SESSION_MAX_LIFETIME_MS` (12 h) after it was
+  made, even with its TV and remote there; the TV then makes a new one. The hub checks lazily on
+  each request; there is no timer.
+- **Full hub**: at most `MAX_SESSIONS` (100) live, so at most as many TV streams are open. Making
+  a session is public, so a claimed session with a remote stream open (a pairing in use) is never
+  dropped. One more session drops, of the others, the one whose TV has been away the longest, else
+  the oldest one whose TV is there: TV streams held open without a remote cannot lock the hub.
+  While every session is a pairing in use, `create`/`createBound` make none (503 `tvFull`) until
+  one ends.
 - **What the hub does**: `create`/`createBound(token)`, `claim(code)`,
   `show(secret, slideshowId)`, `connectTv(tvKey, sink)` (replays a `snapshot` first),
-  `connectRemote(secret, sink)` (replays a `snapshot` first), `command(secret, command)`,
+  `connectRemote(secret, sink)` (replays a `snapshot` first; past the cap it closes the oldest),
+  `command(secret, command)`,
   `report(tvKey, state)`, and the lookups `sourceOf(tvKey)` and `hasRemoteSecret(secret)`. A
   sink is `{ send(event), close() }`; the hub closes it when the session ends or the TV opens a
   second stream, and `connect…` returns the idempotent close the HTTP layer calls when the

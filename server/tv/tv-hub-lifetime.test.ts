@@ -1,11 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  createTvHub,
-  MAX_SESSIONS,
-  SESSION_IDLE_MS,
-  type RemoteEvent,
-  type TvEvent,
-} from "./tv-hub";
+import { SESSION_IDLE_MS, SESSION_MAX_LIFETIME_MS, type RemoteEvent, type TvEvent } from "./tv-hub";
 import { claimedSession, hubHarness, recordingSink, made } from "./testing/tv-hub-harness";
 
 describe("a session's lifetime", () => {
@@ -41,36 +35,30 @@ describe("a session's lifetime", () => {
     advanceClock(SESSION_IDLE_MS);
     expect(hub.claim(code)).toBeUndefined();
   });
-});
 
-describe("at most MAX_SESSIONS sessions", () => {
-  const fill = (hub: ReturnType<typeof createTvHub>, advanceClock: (ms: number) => void) =>
-    Array.from({ length: MAX_SESSIONS }, () => {
-      advanceClock(1);
-      return made(hub.create()).tvKey;
-    });
-
-  it("drops the session whose TV has been away the longest for one more", () => {
+  it("ends at the maximum lifetime, even with its TV and remote there", () => {
     const { hub, advanceClock } = hubHarness();
-    const keys = fill(hub, advanceClock);
-    const closes = keys.map((key) => hub.connectTv(key, recordingSink<TvEvent>().sink));
-    closes[7]?.();
+    const { tvKey, remoteSecret } = claimedSession(hub);
+    const tv = recordingSink<TvEvent>();
+    hub.connectTv(tvKey, tv.sink);
+    const remote = recordingSink<RemoteEvent>();
+    hub.connectRemote(remoteSecret, remote.sink);
+    advanceClock(SESSION_MAX_LIFETIME_MS - 1);
+    expect(hub.sourceOf(tvKey)).toBeDefined();
     advanceClock(1);
-    closes[3]?.();
-    made(hub.create());
-    expect(hub.sourceOf(keys[3] ?? "")).toBeDefined();
-    expect(hub.sourceOf(keys[7] ?? "")).toBeUndefined();
-    expect(keys.filter((key) => hub.sourceOf(key) !== undefined)).toHaveLength(MAX_SESSIONS - 1);
+    expect(hub.sourceOf(tvKey)).toBeUndefined();
+    expect(hub.hasRemoteSecret(remoteSecret)).toBe(false);
+    expect([tv.events.at(-1), tv.sink.closed]).toEqual([{ name: "end", data: {} }, true]);
+    expect([remote.events.at(-1), remote.sink.closed]).toEqual([{ name: "end", data: {} }, true]);
   });
 
-  it("refuses one more while every TV is there, ending none of them", () => {
+  it("counts the maximum lifetime from when the session was made, not from a reconnect", () => {
     const { hub, advanceClock } = hubHarness();
-    const keys = fill(hub, advanceClock);
-    const tvs = keys.map(() => recordingSink<TvEvent>());
-    keys.forEach((key, index) => hub.connectTv(key, tvs[index]?.sink ?? recordingSink().sink));
-    expect(hub.create()).toBeUndefined();
-    expect(hub.createBound("token")).toBeUndefined();
-    expect(keys.filter((key) => hub.sourceOf(key) !== undefined)).toHaveLength(MAX_SESSIONS);
-    expect(tvs.some((tv) => tv.sink.closed)).toBe(false);
+    const { tvKey } = made(hub.create());
+    advanceClock(SESSION_MAX_LIFETIME_MS - 1);
+    hub.connectTv(tvKey, recordingSink<TvEvent>().sink)?.();
+    hub.connectTv(tvKey, recordingSink<TvEvent>().sink);
+    advanceClock(1);
+    expect(hub.sourceOf(tvKey)).toBeUndefined();
   });
 });

@@ -142,18 +142,18 @@ describe("the remote stream the browser gave up on", () => {
     const { events, sources, calls } = await givenUp([
       json(404, { error: "noSuchTv", detail: "" }),
     ]);
-    expect(calls[0]?.url).toBe(`/api/tv/remote/${SECRET}/events`);
+    expect(calls[0]?.url).toBe(`/api/tv/remote/${SECRET}`);
     expect(events).toEqual([{ type: "lost" }, { type: "end" }]);
     expect(sources).toHaveLength(1);
   });
 
-  it("opens the stream again once the server answers, and drops the probe", async () => {
+  it("asks the status route, not the stream, and opens the stream again on 204", async () => {
     const { sources, calls } = await givenUp([
-      () => Promise.resolve(new Response("", { status: 200 })),
+      () => Promise.resolve(new Response(null, { status: 204 })),
     ]);
+    expect(calls.map(({ url }) => url)).toEqual([`/api/tv/remote/${SECRET}`]);
     expect(sources).toHaveLength(2);
     expect(sources[0]?.closed).toBe(true);
-    expect(calls[0]?.init?.signal?.aborted).toBe(true);
   });
 
   it("tries again later while the server does not answer", async () => {
