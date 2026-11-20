@@ -1,4 +1,4 @@
-import { SOFT_ON_SCREEN_SHARPNESS } from "../focus/screen-sharpness";
+import { SHARPNESS_FALL_EXPONENT, SOFT_ON_SCREEN_SHARPNESS } from "../focus/screen-sharpness";
 import type { PictureFocus } from "../library/picture-focus";
 import type { Size } from "../player/ken-burns";
 import { MIN_KEN_BURNS_ZOOM, type Easing, type KenBurns } from "../player/slideshow";
@@ -39,9 +39,6 @@ export const SCENERY_ZOOM_TIGHT = 1.35;
 /** The group's box grown by this factor is the room its frame keeps around the people. */
 const GROUP_MARGIN = 1.15;
 
-/** Magnifying by z stretches every edge z-fold, so the Laplacian shrinks by z² and its variance by z⁴. */
-const SHARPNESS_FALL_EXPONENT = 4;
-
 /** Today's unscaled Ken Burns motion: a mood's own strength takes its place (ADR-0045). */
 export const DEFAULT_KEN_BURNS_STRENGTH = 1;
 
@@ -65,7 +62,8 @@ export function autoKenBurns(
 ): KenBurns {
   const zoomsIn = index % 2 === 0;
   const pansRight = index % 2 === 0;
-  const sharpZoom = focus?.sharpness === undefined ? Infinity : maxZoomForSharpness(focus.sharpness);
+  const sharpZoom =
+    focus?.sharpness === undefined ? Infinity : maxZoomForSharpness(focus.sharpness);
   if (focus?.kind === "scenery" && pansHorizontally) {
     return sceneryKenBurns(pansRight, strength, sharpZoom);
   }

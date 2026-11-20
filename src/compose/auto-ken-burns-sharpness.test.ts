@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SOFT_ON_SCREEN_SHARPNESS } from "../focus/screen-sharpness";
+import { SHARPNESS_FALL_EXPONENT, SOFT_ON_SCREEN_SHARPNESS } from "../focus/screen-sharpness";
 import type { PictureFocus } from "../library/picture-focus";
 import { framingAt } from "../player/ken-burns";
 import { MIN_KEN_BURNS_ZOOM } from "../player/slideshow";
@@ -17,7 +17,7 @@ const SWEEP_PROGRESS_SAMPLES = [0, 0.25, 0.5, 0.75, 1];
 
 /** The sharpness that reaches the soft-on-screen floor exactly at `zoom`. */
 function sharpnessSoftAt(zoom: number): number {
-  return SOFT_ON_SCREEN_SHARPNESS * zoom ** 4;
+  return SOFT_ON_SCREEN_SHARPNESS * zoom ** SHARPNESS_FALL_EXPONENT;
 }
 
 function subject(sharpness?: number): PictureFocus {
@@ -35,7 +35,7 @@ function largestZoom(index: number, focus: PictureFocus, strength?: number): num
 }
 
 describe("maxZoomForSharpness, how far a picture may zoom before its softness shows", () => {
-  // Zoom z divides the Laplacian's variance by z⁴; the cap stops where it meets the floor.
+  // Zoom z divides the score by z to the fall exponent; the cap stops where it meets the floor.
   it.each([2, 3])("lets a picture zoom to %d where it reaches the soft-on-screen floor", (zoom) => {
     expect(maxZoomForSharpness(sharpnessSoftAt(zoom))).toBeCloseTo(zoom, 10);
   });

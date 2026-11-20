@@ -17,7 +17,7 @@ export interface Bound {
 /** About 4K, in either orientation. */
 export const DISPLAY_BOUND: Bound = { longEdge: 3840, shortEdge: 2160 };
 export const THUMBNAIL_BOUND: Bound = { longEdge: 480, shortEdge: 480 };
-const DISPLAY_JPEG_QUALITY = 0.9;
+export const DISPLAY_JPEG_QUALITY = 0.9;
 const THUMBNAIL_JPEG_QUALITY = 0.8;
 const STORED_PICTURE_TYPE = "image/jpeg";
 

@@ -6,12 +6,16 @@ import { greyFromRgba, type GreyImage } from "./grey-image";
 const SCREEN = { longEdge: 1920, shortEdge: 1080 } as const;
 
 /**
- * Below this sharpness, measured at screen size, a picture looks soft on screen. Calibrated on
- * generated scenes at display size, see `screen-sharpness.browser.test.ts` (ADR-0061).
+ * At or below this sharpness on screen a picture looks soft: about a sharp picture's score zoomed
+ * twofold. Calibrated in `screen-sharpness.browser.test.ts` (ADR-0061).
  */
-export const SOFT_ON_SCREEN_SHARPNESS = 50;
+export const SOFT_ON_SCREEN_SHARPNESS = 20;
 
-const WHOLE_PICTURE: FocusBox = { x: 0, y: 0, width: 1, height: 1 };
+/** Zooming by z divides the score by about z to this power, measured in `screen-sharpness.browser.test.ts`. */
+export const SHARPNESS_FALL_EXPONENT = 2;
+
+/** A picture without a subject is judged by its sharpest tile of this grid, so a plain sky does not count. */
+const TILES_PER_SIDE = 3;
 
 /** The sharpness of the part of `grey` inside `box`, so a soft background does not count. */
 export function subjectSharpness(grey: GreyImage, box: FocusBox): number {
@@ -60,5 +64,18 @@ export async function screenSharpness(display: Blob, focus: PictureFocus): Promi
   } finally {
     bitmap.close();
   }
-  return subjectSharpness(grey, focus.kind === "subject" ? focus.box : WHOLE_PICTURE);
+  return focus.kind === "subject" ? subjectSharpness(grey, focus.box) : sharpestTile(grey);
+}
+
+/** The sharpness of `grey`'s sharpest tile. */
+export function sharpestTile(grey: GreyImage): number {
+  const side = 1 / TILES_PER_SIDE;
+  let sharpest = 0;
+  for (let row = 0; row < TILES_PER_SIDE; row++) {
+    for (let column = 0; column < TILES_PER_SIDE; column++) {
+      const box = { x: column * side, y: row * side, width: side, height: side };
+      sharpest = Math.max(sharpest, subjectSharpness(grey, box));
+    }
+  }
+  return sharpest;
 }
