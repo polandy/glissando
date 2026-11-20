@@ -102,8 +102,8 @@ Option 4.
   third-party licences (`build/committed-licenses.ts`), its version checked against
   `rust-toolchain.toml` by a unit test.
 - **Speed is measured, not gated**: a timing test would race on a loaded runner. A script under
-  `scripts/` times the network per picture in the host Chrome on the real GPU, at 1× and 4×, and
-  the numbers go into this ADR when it is accepted.
+  `scripts/object-network-timing/run.mjs` times one 416 px run per picture in the host Chrome at
+  1× and 4× CPU throttle and prints the table below; its numbers are in the Consequences.
 
 ## Consequences
 
@@ -112,6 +112,19 @@ Option 4.
   and 1–4 min instead of about 28 min for 300 pictures without faces.
 - First measured in Node 26 on the desktop, not in a browser: one 416 px run takes 79 ms
   through `wasm-runner.ts` against 1.51 s through `runOnnx`, the outputs within 2.8e-5.
+- Measured with that script on the desktop, Chrome 156, 30 runs of the Rust kernels and 3 of the
+  TypeScript runner, milliseconds per picture:
+
+  | runner       | CPU throttle | min  | median | p95  |
+  | ------------ | ------------ | ---- | ------ | ---- |
+  | Rust kernels | 1×           | 69   | 73     | 94   |
+  | Rust kernels | 4×           | 300  | 315    | 375  |
+  | TypeScript   | 1×           | 1276 | 1304   | 1328 |
+  | TypeScript   | 4×           | 5106 | 5181   | 5293 |
+
+  The kernels run in 73 ms against 1.3 s (18×), inside the expected 55–180 ms; at 4× they take
+  0.3 s, the low end of the phone estimate.
+
 - The bump arena holds every activation of a run until the run ends, so the worker's module
   memory grows to about 100 MB on the first picture (4.7 MB of it weights) and stays there,
   since WASM memory never shrinks; the JS runner frees each activation after its last reader.

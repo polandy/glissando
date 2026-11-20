@@ -23,6 +23,7 @@
     "build",
     "server",
     "scripts/unused-exports",
+    "scripts/object-network-timing",
     "scripts/probe-playback-stutter",
     "*.config.ts"
   ],
