@@ -54,7 +54,10 @@ Option 4.
   target `wasm32-unknown-unknown` with `+simd128`, plain `extern "C"` exports and no
   wasm-bindgen. Tensors live in the module's linear memory: the weights are copied in once when
   the worker loads the network, activations come from a bump allocator reset at the start of
-  each run. The TypeScript glue is one small file next to `run-onnx.ts`.
+  each run. The graph walk of `run-onnx.ts` is generic over where a tensor lives; the glue
+  next to it binds the module's exports (`wasm-module.ts`), runs each operator on tensors in
+  the arena (`wasm-operators.ts`) and walks the graph with SiLU fused (`fuse-silu.ts`) in
+  `wasm-runner.ts`.
 - **Size budget: 50–150 KB** of raw `.wasm`. A unit test fails above 150 KB.
 - **Built like ADR-0020's libav.js.** `scripts/build-object-kernels.sh` runs `cargo test`, then
   `cargo build --locked --offline --release`, in the official `rust` image pinned by `@sha256:`
@@ -100,6 +103,11 @@ Option 4.
 - Expected 55–180 ms per picture on the desktop (lower end: onnxruntime-web's measurement;
   upper end: the 7.7× same-algorithm factor), so about 0.2–0.7 s on a phone instead of 5–6 s,
   and 1–4 min instead of about 28 min for 300 pictures without faces.
+- First measured in Node 26 on the desktop, not in a browser: one 416 px run takes 79 ms
+  through `wasm-runner.ts` against 1.51 s through `runOnnx`, the outputs within 2.8e-5.
+- The bump arena holds every activation of a run until the run ends, so the worker's module
+  memory grows to about 100 MB on the first picture (4.7 MB of it weights) and stays there,
+  since WASM memory never shrinks; the JS runner frees each activation after its last reader.
 - The offline cache grows by at most 150 KB; the model file is unchanged.
 - A second toolchain: Rust joins CI as one pinned image and one job. Upgrading it is a reviewed
   bump of the image digest and the toolchain file with a rebuilt, re-hashed `.wasm`.
