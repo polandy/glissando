@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Builds the object network's kernels of ADR-0060 (wasm/object-kernels/) into
+# src/focus/onnx/object-kernels.wasm, after their Rust tests pass. With --check it only rebuilds
+# and fails unless the result is byte for byte the committed file (the CI job `object-kernels`).
+set -euo pipefail
+
+RUST_VERSION=1.100.0
+# rust:1.100.0-slim (multi-platform index); it carries the host target only.
+RUST_IMAGE=rust@sha256:6f14b2b4b278ec0d50aa1d69541c304ce0f95e0f6268487aa9924af1c2e9aebe
+WASM_STD=rust-std-$RUST_VERSION-wasm32-unknown-unknown
+WASM_STD_SHA256=19b7954d650fc0d22767eceb76b8e03d07ce0d6a9f4234f33c32a17ee8d6d7b9
+TARGET=wasm32-unknown-unknown
+
+repo="$(cd "$(dirname "$0")/.." && pwd)"
+committed="$repo/src/focus/onnx/object-kernels.wasm"
+check=false
+[[ "${1:-}" == --check ]] && check=true
+work="$(mktemp -d)"
+trap 'rm -rf "$work"' EXIT
+
+curl --silent --show-error --fail --location \
+  "https://static.rust-lang.org/dist/$WASM_STD.tar.xz" -o "$work/$WASM_STD.tar.xz"
+echo "$WASM_STD_SHA256  $work/$WASM_STD.tar.xz" | sha256sum --check --quiet -
+tar -xJf "$work/$WASM_STD.tar.xz" -C "$work"
+mkdir -p "$work/out"
+
+# The image's toolchain is read-only to a non-root user, so the wasm32 target joins it in a
+# sysroot of links.
+docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -e CARGO_HOME=/tmp/cargo \
+  -v "$repo/wasm/object-kernels:/src:ro" -v "$work/$WASM_STD/rust-std-$TARGET:/wasm-std:ro" \
+  -v "$work/out:/out" -w /src "$RUST_IMAGE" sh -euc "
+    toolchain=\$(rustc --print sysroot)
+    mkdir -p /tmp/sysroot/lib/rustlib
+    ln -s \"\$toolchain/lib/rustlib/x86_64-unknown-linux-gnu\" /tmp/sysroot/lib/rustlib/
+    ln -s /wasm-std/lib/rustlib/$TARGET /tmp/sysroot/lib/rustlib/
+    cargo test --quiet --locked --offline --target-dir /tmp/target
+    CARGO_ENCODED_RUSTFLAGS=\$(printf '%s\037%s' --sysroot=/tmp/sysroot -Ctarget-feature=+simd128) \
+      cargo build --quiet --locked --offline --release --target $TARGET --target-dir /tmp/target
+    cp /tmp/target/$TARGET/release/object_kernels.wasm /out/"
+
+if $check; then
+  if ! cmp --silent "$work/out/object_kernels.wasm" "$committed"; then
+    echo "src/focus/onnx/object-kernels.wasm is not what wasm/object-kernels/ builds to:" >&2
+    sha256sum "$work/out/object_kernels.wasm" "$committed" >&2
+    exit 1
+  fi
+else
+  install -m 644 "$work/out/object_kernels.wasm" "$committed"
+fi
+sha256sum "$committed"
