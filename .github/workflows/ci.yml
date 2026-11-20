@@ -61,6 +61,16 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: deploy/test-image.sh
 
+  # The committed object kernels must be what their Rust source builds to (ADR-0060).
+  object-kernels:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    timeout-minutes: 10
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: scripts/build-object-kernels.sh --check
+
   # Each engine runs in its own job, the Vitest browser tests apart from the Playwright cases,
   # so the slowest job bounds the run instead of their sum; the slowest Playwright engines
   # (Chromium, WebKit) are split in two shards.

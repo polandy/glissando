@@ -1,6 +1,6 @@
 # ADR-0060: The object network's kernels run as a small own Rust module compiled to WebAssembly
 
-**Status:** proposed
+**Status:** accepted
 
 ## Context
 
@@ -55,11 +55,15 @@ Option 4.
   the worker loads the network, activations come from a bump allocator reset at the start of
   each run. The TypeScript glue is one small file next to `run-onnx.ts`.
 - **Size budget: 50–150 KB** of raw `.wasm`. A unit test fails above 150 KB.
-- **Built like ADR-0020's libav.js.** `scripts/build-object-kernels.sh` builds it in the official
-  `rust` image pinned by `@sha256:` with a pinned toolchain (`rust-toolchain.toml`) and
-  `cargo build --locked --offline --release`. The `.wasm` is committed under `src/focus/`, pinned
-  by sha256 in a unit test. A CI job rebuilds it in the same image and fails unless the hash
-  matches the committed file, so the committed binary is provably the source's.
+- **Built like ADR-0020's libav.js.** `scripts/build-object-kernels.sh` runs `cargo test`, then
+  `cargo build --locked --offline --release`, in the official `rust` image pinned by `@sha256:`
+  with a pinned toolchain (`rust-toolchain.toml`). The image carries only the host target, so the
+  script fetches the same release's `rust-std` for `wasm32-unknown-unknown` from
+  static.rust-lang.org, pinned by sha256, and links it into a sysroot (the image's toolchain is
+  read-only to the non-root build user). The `.wasm` is committed as
+  `src/focus/onnx/object-kernels.wasm`, pinned by sha256 in a unit test. The CI job
+  `object-kernels` runs the script with `--check`, which fails unless the rebuild is byte for
+  byte the committed file, so the committed binary is provably the source's.
 - **The JS interpreter stays as the fallback and the reference.** The worker picks the WASM
   runner only when a SIMD probe module passes `WebAssembly.validate` and the module
   instantiates; otherwise, and on any error while instantiating, it builds today's `runOnnx`
