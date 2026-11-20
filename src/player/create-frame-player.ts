@@ -21,6 +21,8 @@ export interface FramePlayer {
   /** Settles once every style the slideshow's cards use can be drawn; wait for it, alongside
    * `captionFontLoaded`, before the first frame (ADR-0032). Settles at once without a card. */
   readonly cardFontsLoaded: Promise<void>;
+  /** True once the WebGL context is lost: the canvas then holds no frame worth keeping. */
+  isContextLost(): boolean;
   /** Destroys the player and gives the WebGL context back: a page holds only a few at once. */
   dispose(): void;
 }
@@ -76,6 +78,7 @@ export function createFramePlayer(
     canvas,
     captionFontLoaded: renderer.captionFontLoaded,
     cardFontsLoaded,
+    isContextLost: () => gl.isContextLost(),
     dispose: () => {
       player.destroy();
     },

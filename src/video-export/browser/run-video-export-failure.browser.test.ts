@@ -7,7 +7,11 @@ import {
   type VideoChunkOutput,
 } from "./encoders";
 import type { ExportTarget } from "./file-targets";
-import { runVideoExportWith, type ExportEncoders } from "./run-video-export";
+import {
+  runVideoExportWith,
+  type ExportEncoders,
+  type RunVideoExportOptions,
+} from "./run-video-export";
 import { generatedPicture, generatedTone, GENERATED_SLIDESHOW } from "../testing/generated-media";
 import type { AudioEncoderPort, VideoEncoderPort } from "../ports";
 
@@ -92,7 +96,13 @@ function recordingTarget() {
   return { target, trace };
 }
 
-async function runWith(encoders: ExportEncoders, target: ExportTarget) {
+const CONTEXT_LOST_AFTER_FRAME = 3;
+
+async function runWith(
+  encoders: ExportEncoders,
+  target: ExportTarget,
+  onProgress?: RunVideoExportOptions["onProgress"],
+) {
   const capabilities = await probeVideoExport({ withAudio: true });
   if (!capabilities.supported) {
     throw new Error(`this engine cannot export: ${capabilities.reason}`);
@@ -115,6 +125,7 @@ async function runWith(encoders: ExportEncoders, target: ExportTarget) {
     audioCodec: capabilities.audioCodec,
     target,
     signal: new AbortController().signal,
+    ...(onProgress === undefined ? {} : { onProgress }),
   });
 }
 
@@ -158,5 +169,29 @@ describe("runVideoExport when an encoder cannot be built", () => {
     expect(trace.aborted).toBe(true);
     expect(trace.discarded).toBe(true);
     expect(built.video?.closed).toBe(true);
+  });
+});
+
+describe("runVideoExport when the WebGL context is lost mid-export", () => {
+  it("resolves as failed and leaves no file behind instead of writing black frames", async () => {
+    const { target, trace } = recordingTarget();
+    const framesSeen: number[] = [];
+    const encoders: ExportEncoders = {
+      video: (config, output) => new WebCodecsVideoEncoder(config, output),
+      audio: (config, output) => new WebCodecsAudioEncoder(config, output),
+    };
+
+    const result = await runWith(encoders, target, ({ framesDone }, preview) => {
+      framesSeen.push(framesDone);
+      if (framesDone === CONTEXT_LOST_AFTER_FRAME) {
+        preview.getContext("webgl2")?.getExtension("WEBGL_lose_context")?.loseContext();
+      }
+    });
+
+    expect(framesSeen).toContain(CONTEXT_LOST_AFTER_FRAME);
+    expect(result.kind).toBe("failed");
+    expect(Math.max(...framesSeen)).toBe(CONTEXT_LOST_AFTER_FRAME);
+    expect(trace.closed).toBe(false);
+    expect(trace.discarded).toBe(true);
   });
 });

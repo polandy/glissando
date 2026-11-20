@@ -11,4 +11,7 @@ duration })`, encode, close.
   drawing size and pixel ratio 1, `captionInset` 0, the caption font and every style the
   slideshow's cards use (ADR-0032) awaited before frame 0. No DOM fallback: without WebGL2 the
   export is unsupported.
+- **A lost WebGL context** ends the export as failed (the sheet's "failed" state), the partial
+  file discarded: a frame drawn after the loss would be black. It never resumes, not even after
+  `webglcontextrestored`.
 - **Backpressure:** before each encode, while `encodeQueueSize` > 2, wait for `dequeue`.
