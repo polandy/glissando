@@ -3,10 +3,11 @@ import type { PictureFocus } from "./picture-focus";
 /** Finds where a picture's people sit, from its stored thumbnail (see ADR-0012). */
 export interface FocusDetector {
   /**
-   * Rejects when the thumbnail cannot be decoded, with `FocusDetectorGoneError` once the detector
-   * can search no picture any more.
+   * Given `display`, the picture as shown, the focus also carries its sharpness on screen
+   * (ADR-0061). Rejects when a picture cannot be decoded, with `FocusDetectorGoneError` once the
+   * detector can search no picture any more.
    */
-  detect(thumbnail: Blob): Promise<PictureFocus>;
+  detect(thumbnail: Blob, display?: Blob): Promise<PictureFocus>;
 }
 
 /**

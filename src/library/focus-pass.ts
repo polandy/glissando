@@ -170,8 +170,10 @@ export class FocusPass {
   /** Looks at one picture; resolves true when a `pausesOn` error means the pass should pause. */
   async #lookAt(pictureId: string): Promise<boolean> {
     let input: PictureFocus | Blob;
+    let display: Blob | undefined;
     try {
       input = await this.#readInput(pictureId);
+      display = input instanceof Blob ? await this.#readDisplay(pictureId) : undefined;
     } catch (error) {
       if (error instanceof MediaNotFoundError) {
         return false;
@@ -192,7 +194,7 @@ export class FocusPass {
       focus = input;
     } else {
       try {
-        focus = await this.#ports.detector.detect(input);
+        focus = await this.#ports.detector.detect(input, display);
       } catch (error) {
         if (error instanceof FocusDetectorGoneError) {
           // Every later detection would fail alike: the pass ends, the rest waits for the next.
@@ -227,6 +229,14 @@ export class FocusPass {
     return store.detectionInput !== undefined
       ? store.detectionInput(pictureId)
       : store.thumbnailBlob(pictureId);
+  }
+
+  /** The picture as shown, to measure its sharpness on, where the store can read it (ADR-0061). */
+  #readDisplay(pictureId: string): Promise<Blob | undefined> {
+    const { store } = this.#ports;
+    return store.playbackPictureBlob !== undefined
+      ? store.playbackPictureBlob(pictureId)
+      : Promise.resolve(undefined);
   }
 
   #setFailed(pictureId: string, failed: boolean): void {

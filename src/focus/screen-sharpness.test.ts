@@ -44,10 +44,22 @@ describe("subjectSharpness, the sharpness inside the subject's box", () => {
 });
 describe("screenSize, a picture as large as it fills a Full HD screen at zoom 1", () => {
   it.each([
-    [{ width: 3840, height: 2160 }, { width: 1920, height: 1080 }],
-    [{ width: 2880, height: 2160 }, { width: 1920, height: 1440 }],
-    [{ width: 1080, height: 1920 }, { width: 1080, height: 1920 }],
-    [{ width: 960, height: 540 }, { width: 1920, height: 1080 }],
+    [
+      { width: 3840, height: 2160 },
+      { width: 1920, height: 1080 },
+    ],
+    [
+      { width: 2880, height: 2160 },
+      { width: 1920, height: 1440 },
+    ],
+    [
+      { width: 1080, height: 1920 },
+      { width: 1080, height: 1920 },
+    ],
+    [
+      { width: 960, height: 540 },
+      { width: 1920, height: 1080 },
+    ],
   ])("draws %o at %o", (picture, onScreen) => {
     expect(screenSize(picture)).toEqual(onScreen);
   });

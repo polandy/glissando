@@ -79,6 +79,18 @@ describe("WorkerFocusDetector", () => {
     await expect(detection).resolves.toEqual(FACE);
   });
 
+  it("sends the display rendition beside the thumbnail, when there is one", () => {
+    const { detector, workers } = detectorWithFakeWorker();
+    const display = new Blob(["display"]);
+
+    void detector.detect(new Blob(["thumbnail"]));
+    void detector.detect(new Blob(["thumbnail"]), display);
+    const [worker] = workers;
+
+    expect(worker?.requestAt(0).display).toBeUndefined();
+    expect(worker?.requestAt(1).display).toBe(display);
+  });
+
   it("runs every detection in one worker", async () => {
     const { detector, workers } = detectorWithFakeWorker();
 

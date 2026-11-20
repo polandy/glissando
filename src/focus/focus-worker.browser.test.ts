@@ -67,6 +67,16 @@ describe("the focus worker", () => {
     expect(focus.kind).toBe("subject");
   });
 
+  it("measures the sharpness on screen only when handed the picture as shown", async () => {
+    const portrait = await thumbnail(astronautJpegUrl);
+
+    const measured = await detector().detect(portrait, portrait);
+    const unmeasured = await detector().detect(portrait);
+
+    expect(measured.sharpness).toBeGreaterThan(0);
+    expect(unmeasured.sharpness).toBeUndefined();
+  });
+
   it("finds the object in a thumbnail without a face", async () => {
     const focus = await detector().detect(await thumbnail(chelseaJpegUrl));
 
