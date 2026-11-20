@@ -99,7 +99,7 @@ export function openSqliteRepository(
         throw error;
       }
     },
-    // One unreadable document (e.g. an older formatVersion) must not hide every other slideshow.
+    // One unreadable document (e.g. a newer formatVersion) must not hide every other slideshow.
     listSlideshows: () =>
       listSlideshows.all().flatMap((row) => {
         try {

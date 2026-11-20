@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { describeLibraryRepositoryContract } from "./repository-contract";
 import { openSqliteRepository } from "./sqlite-repository";
 import { NewerSqliteSchemaError, SQLITE_SCHEMA_VERSION } from "./sqlite-schema";
+import { SERVER_DOCUMENT_FORMAT_VERSION } from "../src/server-library/server-document";
+import { without } from "../src/server-library/server-document-fixtures";
 import { sampleDocument } from "./testing/library-harness";
 
 const IN_MEMORY = ":memory:";
@@ -74,9 +76,43 @@ describe("openSqliteRepository", () => {
     });
     database
       .prepare(`INSERT INTO slideshows (id, revision, created_at, document) VALUES (?, ?, ?, ?)`)
-      .run("show-old", 1, 2000, JSON.stringify({ ...sampleDocument(), formatVersion: 1 }));
+      .run("show-newer", 1, 2000, JSON.stringify({ ...sampleDocument(), formatVersion: 99 }));
 
     expect(repository.listSlideshows().map(({ id }) => id)).toEqual(["show-a"]);
-    expect(logged).toEqual([expect.stringMatching(/show-old.*formatVersion/)]);
+    expect(logged).toEqual([expect.stringMatching(/show-newer.*formatVersion/)]);
+  });
+
+  it("lists a document of an older format version as the current version", () => {
+    const database = new DatabaseSync(IN_MEMORY);
+    const repository = openSqliteRepository(database, ignoreLog);
+    const { slideshow } = sampleDocument();
+    const versionOneShow = {
+      ...without(slideshow, "songs"),
+      pictures: slideshow.pictures.map((picture) => without(picture, "colours")),
+      music: {
+        musicId: "music-1",
+        fileName: "track.m4a",
+        durationMs: 60000,
+        mimeType: "audio/mp4",
+      },
+    };
+    database
+      .prepare(`INSERT INTO slideshows (id, revision, created_at, document) VALUES (?, ?, ?, ?)`)
+      .run(
+        "show-old",
+        1,
+        2000,
+        JSON.stringify({ ...sampleDocument(), formatVersion: 1, slideshow: versionOneShow }),
+      );
+
+    expect(repository.listSlideshows()).toMatchObject([
+      {
+        id: "show-old",
+        document: {
+          formatVersion: SERVER_DOCUMENT_FORMAT_VERSION,
+          slideshow: { songs: [{ musicId: "music-1" }] },
+        },
+      },
+    ]);
   });
 });
