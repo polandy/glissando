@@ -8,6 +8,7 @@ import {
   GERMAN_BROWSER,
 } from "./support/app";
 import { openApp } from "./support/browser";
+import { holdObjectNetwork } from "./support/hold-object-network";
 import { centreOf, drag } from "./support/pointer";
 import { clickTrackWav } from "./support/media";
 import { showMusicDetails } from "./support/switch";
@@ -41,6 +42,8 @@ test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes b
   const endToggle = frames.getByRole("button", { name: /^Ende/ });
   const startFrameBox = page.getByRole("application", { name: /^Startrahmen/ });
   const endFrameBox = page.getByRole("application", { name: /^Endrahmen/ });
+  // Held, the focus search never ends, so the motion stays the centred one asserted below.
+  await holdObjectNetwork(page);
   await openApp(page);
   // The second picture zooms out: its start frame is inside the picture, free to move.
   await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"], 2);
@@ -52,6 +55,7 @@ test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes b
   ).toHaveText("Bild 2");
   await expect(stateIs("Automatisch")).toBeVisible();
   await expect(startToggle).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("status").filter({ hasText: "Fokus wird gesucht" })).toBeVisible();
 
   await drag(page, await onPicture(page, 0.55, 0.5), await onPicture(page, 0.5, 0.45));
   await expect(stateIs("Gewählt")).toBeVisible();
