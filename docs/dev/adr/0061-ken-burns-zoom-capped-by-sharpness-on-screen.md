@@ -49,5 +49,6 @@ screen size still looks sharp.
   it could be.
 - The first pass after the update looks at every picture again, on the device and on the server.
 - A server picture costs one more preview download where Immich's faces gave its focus.
-- A device picture imported from Immich with faces stores that focus as current, unmeasured,
-  and stays uncapped (`TODO.md`).
+- A device picture imported from Immich with faces (or kept from a server slideshow) stores
+  that focus unmeasured; the device pass measures it on the picture as shown, keeping the focus,
+  and does not detect anew. A look-again detects anew.
