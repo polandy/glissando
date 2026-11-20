@@ -89,8 +89,8 @@ describe("a .glissando file carries each picture's focus", () => {
       formatVersion: number;
     };
 
-    expect(FOCUS_FROM_VERSION).toBe(GLISSANDO_FORMAT_VERSION);
-    expect(written.formatVersion).toBe(FOCUS_FROM_VERSION);
+    expect(FOCUS_FROM_VERSION).toBe(22);
+    expect(written.formatVersion).toBe(GLISSANDO_FORMAT_VERSION);
     const older = JSON.stringify({ ...written, formatVersion: FOCUS_FROM_VERSION - 1 });
     expect(readManifest(older).kind).toBe("damaged");
   });

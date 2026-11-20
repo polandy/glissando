@@ -1,4 +1,10 @@
-import { encodeJpeg, fitWithin, THUMBNAIL_BOUND } from "../../import/downscale";
+import {
+  DISPLAY_BOUND,
+  DISPLAY_JPEG_QUALITY,
+  encodeJpeg,
+  fitWithin,
+  THUMBNAIL_BOUND,
+} from "../../import/downscale";
 
 /**
  * Generated photo-like scenes, drawn on a canvas and stored as the import stores a thumbnail:
@@ -27,6 +33,16 @@ export async function sceneThumbnail(options: SceneOptions): Promise<Blob> {
   const bitmap = await createImageBitmap(canvas);
   try {
     return await encodeJpeg(bitmap, fitWithin(bitmap, THUMBNAIL_BOUND), THUMBNAIL_QUALITY);
+  } finally {
+    bitmap.close();
+  }
+}
+
+/** Draws the scene at full size and encodes it as the display rendition the import stores. */
+export async function sceneDisplay(options: SceneOptions): Promise<Blob> {
+  const bitmap = await createImageBitmap(drawScene(options));
+  try {
+    return await encodeJpeg(bitmap, fitWithin(bitmap, DISPLAY_BOUND), DISPLAY_JPEG_QUALITY);
   } finally {
     bitmap.close();
   }

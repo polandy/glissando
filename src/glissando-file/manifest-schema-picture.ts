@@ -72,6 +72,9 @@ const FOCUS_BOX_SCHEMA: JsonSchema = {
   additionalProperties: false,
 };
 
+/** The subject's, else the whole picture's, sharpness on screen (ADR-0061). */
+const SHARPNESS_SCHEMA: JsonSchema = { type: "number", minimum: 0 };
+
 /** The focus found on the picture and the detector version that found it (ADR-0053). */
 const STORED_FOCUS_SCHEMA: JsonSchema = {
   type: "object",
@@ -84,13 +87,14 @@ const STORED_FOCUS_SCHEMA: JsonSchema = {
             kind: { const: "subject" },
             box: FOCUS_BOX_SCHEMA,
             foundBy: { enum: SUBJECT_FINDERS },
+            sharpness: SHARPNESS_SCHEMA,
           },
           required: ["kind", "box", "foundBy"],
           additionalProperties: false,
         },
         {
           type: "object",
-          properties: { kind: { enum: ["scenery", "none"] } },
+          properties: { kind: { enum: ["scenery", "none"] }, sharpness: SHARPNESS_SCHEMA },
           required: ["kind"],
           additionalProperties: false,
         },

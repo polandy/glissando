@@ -85,7 +85,10 @@ export function readShareAnswer(json: unknown): ShareAnswer {
 function readPicture(value: unknown, path: string, index: number): StoredPicture {
   const keys = pictureKeys(GLISSANDO_FORMAT_VERSION).filter((key) => key !== NAME_KEY);
   const id = pictureKey(index);
-  return { ...readPictureFields(named(readObject(value, path, keys), id), path), id };
+  return {
+    ...readPictureFields(named(readObject(value, path, keys), id), path, GLISSANDO_FORMAT_VERSION),
+    id,
+  };
 }
 
 function readSong(value: unknown, path: string, index: number): StoredMusic {

@@ -33,7 +33,7 @@ other slideshow. A self-hosted Glissando has no demo.
    Enter to create the slideshow; you can change the title later on the slideshow screen. Each card
    in the library shows when the slideshow was created.
 4. **Play.** Motion and transitions are chosen for you — people stay in frame, scenery gets a slow
-   sweep, changes follow the beat.
+   sweep, a soft picture is zoomed in less, changes follow the beat.
 
 For a different feel, tap Mood beside Music and Look on the slideshow's screen (on a phone: Play first, then these three as one row of buttons with More settings below them, then the pictures). The Mood button shows only a short phrase; its sheet lists what it sets. **Calm** shows each
 picture longer, with soft crossfades and gentle motion; **Lively** changes pictures quickly with

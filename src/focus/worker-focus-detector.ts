@@ -39,8 +39,10 @@ export class WorkerFocusDetector implements FocusDetector {
     });
   }
 
-  detect(thumbnail: Blob): Promise<PictureFocus> {
-    return this.#client.request((id) => ({ id, thumbnail }));
+  detect(thumbnail: Blob, display?: Blob): Promise<PictureFocus> {
+    return this.#client.request((id) =>
+      display === undefined ? { id, thumbnail } : { id, thumbnail, display },
+    );
   }
 }
 

@@ -8,6 +8,7 @@ import type { ObjectNetwork, RgbaImage } from "./object-focus";
 import { parseOnnx, type OnnxGraph } from "./onnx/onnx-model";
 import { unpackCascade } from "./pico";
 import { messageOf, postReply } from "./post-reply";
+import { screenSharpness } from "./screen-sharpness";
 import objectNetworkUrl from "./yolox-nano.bin?url";
 
 /** Builds what runs the parsed object network: the Rust kernels or the TypeScript runner (ADR-0060). */
@@ -26,7 +27,7 @@ export function serveFocusRequests(loadObjectNetwork: LoadObjectNetwork): void {
 }
 
 async function answer(
-  { id, thumbnail }: FocusRequest,
+  { id, thumbnail, display }: FocusRequest,
   models: Promise<FocusModels>,
 ): Promise<FocusReply> {
   let loaded: FocusModels;
@@ -36,7 +37,13 @@ async function answer(
     return { id, kind: "unavailable", message: messageOf(error) };
   }
   try {
-    return { id, kind: "found", focus: detectFocus(await pixelsOf(thumbnail), loaded) };
+    const focus = detectFocus(await pixelsOf(thumbnail), loaded);
+    if (display === undefined) return { id, kind: "found", focus };
+    return {
+      id,
+      kind: "found",
+      focus: { ...focus, sharpness: await screenSharpness(display, focus) },
+    };
   } catch (error) {
     return { id, kind: "failed", message: messageOf(error) };
   }

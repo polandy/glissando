@@ -93,6 +93,7 @@ const NEWEST_FIELD: Readonly<Record<number, (show: StoredSlideshow) => unknown>>
   20: (show) => show.energyPacing,
   21: (show) => show.repeatMusic,
   22: (show) => show.title,
+  23: (show) => show.title,
 };
 
 const NEWEST_VALUE: Readonly<Record<number, unknown>> = {
@@ -118,6 +119,7 @@ const NEWEST_VALUE: Readonly<Record<number, unknown>> = {
   20: true,
   21: true,
   22: "Format version 22",
+  23: "Format version 23",
 };
 
 describe("every .glissando format version opens (ADR-0054)", () => {
@@ -135,6 +137,13 @@ describe("every .glissando format version opens (ADR-0054)", () => {
 
     const focus = await store.pictureFocus(slideshow.pictures.map(({ id }) => id));
     expect([...focus.values()].map((stored) => stored.focus.kind)).toEqual(["subject", "scenery"]);
+  });
+
+  it("stores the sharpness a version 23 file's focus carries", async () => {
+    const { slideshow, store } = await openFixture(fixtureText(23));
+
+    const focus = await store.pictureFocus(slideshow.pictures.map(({ id }) => id));
+    expect([...focus.values()].map((stored) => stored.focus.sharpness)).toEqual([182.25, 64]);
   });
 
   it("opens a version 4 file's music with its length in whole milliseconds", async () => {

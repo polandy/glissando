@@ -27,11 +27,15 @@ export function serializeFocusDetector(detector: FocusDetector): SerializedFocus
     next();
   }
 
-  function detect(queue: Array<() => void>, thumbnail: Blob): Promise<PictureFocus> {
+  function detect(
+    queue: Array<() => void>,
+    thumbnail: Blob,
+    display: Blob | undefined,
+  ): Promise<PictureFocus> {
     return new Promise<PictureFocus>((resolve, reject) => {
       const start = (): void => {
         running = true;
-        detector.detect(thumbnail).then(
+        detector.detect(thumbnail, display).then(
           (focus) => {
             runNext();
             resolve(focus);
@@ -51,7 +55,7 @@ export function serializeFocusDetector(detector: FocusDetector): SerializedFocus
   }
 
   return {
-    primary: { detect: (thumbnail) => detect(primaryQueue, thumbnail) },
-    secondary: { detect: (thumbnail) => detect(secondaryQueue, thumbnail) },
+    primary: { detect: (thumbnail, display) => detect(primaryQueue, thumbnail, display) },
+    secondary: { detect: (thumbnail, display) => detect(secondaryQueue, thumbnail, display) },
   };
 }

@@ -6,16 +6,16 @@ and an older one is refused untouched with `UnmigratableLibraryError` (ADR-0059)
 adds a step, never a wipe. A slideshow record holds `songs` (ADR-0023); one holding a single
 `music` is not read:
 
-| Object store | Key      | Value                                                                                                                                       |
-| ------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `slideshows` | `id`     | the slideshow record (`StoredSlideshow`)                                                                                                    |
-| `pictures`   | media id | display and thumbnail rendition, bytes + type                                                                                               |
-| `music`      | media id | the music file, bytes + type                                                                                                                |
-| `imports`    | `id`     | a claim (import in progress or undoable removal): `startedAt`, media ids                                                                    |
-| `focus`      | media id | a picture's `StoredFocus`: its `PictureFocus` (subject box, scenery, or none, ADR-0012) and the `detector` version that found it (ADR-0041) |
-| `beats`      | media id | a track's `MusicBeats`: its beat times and tempo, or none (ADR-0021)                                                                        |
-| `videos`     | media id | a video's original file as chosen, bytes + type (ADR-0034)                                                                                  |
-| `loudness`   | media id | a track's `MusicLoudness`: its measured integrated loudness (docs/dev/library/MUSIC.md)                                                     |
+| Object store | Key      | Value                                                                                                                                                                                         |
+| ------------ | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `slideshows` | `id`     | the slideshow record (`StoredSlideshow`)                                                                                                                                                      |
+| `pictures`   | media id | display and thumbnail rendition, bytes + type                                                                                                                                                 |
+| `music`      | media id | the music file, bytes + type                                                                                                                                                                  |
+| `imports`    | `id`     | a claim (import in progress or undoable removal): `startedAt`, media ids                                                                                                                      |
+| `focus`      | media id | a picture's `StoredFocus`: its `PictureFocus` (subject box, scenery, or none, ADR-0012; its sharpness on screen where measured, ADR-0061) and the `detector` version that found it (ADR-0041) |
+| `beats`      | media id | a track's `MusicBeats`: its beat times and tempo, or none (ADR-0021)                                                                                                                          |
+| `videos`     | media id | a video's original file as chosen, bytes + type (ADR-0034)                                                                                                                                    |
+| `loudness`   | media id | a track's `MusicLoudness`: its measured integrated loudness (docs/dev/library/MUSIC.md)                                                                                                       |
 
 Media is written while importing, the slideshow record last. Edits on the slideshow screen
 replace the record through `updateSlideshow`, which reads it in the same transaction and throws

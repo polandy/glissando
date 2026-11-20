@@ -18,7 +18,8 @@ for both halves.
 Under a mood ([MOOD](../app/slideshow-editing/MOOD.md), ADR-0045), the motion's strength is its
 own instead of the standard one.
 
-A sharpness cap is measured but not yet applied to the motion (`TODO.md`): `subjectSharpness`
-takes the variance of the Laplacian inside the subject's box, and `maxZoomForSharpness` turns it
-into the largest zoom at which the frame stays above the cull's blurry floor — magnifying by z
-divides that variance by z⁴ — never below `SMALLEST_ZOOM_TRAVEL`.
+A picture's measured sharpness on screen (`focus.sharpness`, ADR-0061) caps the automatic
+motion: `maxZoomForSharpness` turns it into the largest zoom at which the frame stays above
+`SOFT_ON_SCREEN_SHARPNESS` — zooming by z divides the score by about z² — never below
+`SMALLEST_ZOOM_TRAVEL`. It lowers a subject's zoom and both ends of a scenery sweep; a focus
+without a sharpness (a server picture, an older file) is not capped.

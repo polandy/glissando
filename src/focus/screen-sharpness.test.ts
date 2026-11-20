@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { blurred, checkerboard, greyImage } from "../culling/testing/grey-scenes";
 import { sharpness } from "../culling/sharpness";
-import { SMALLEST_ZOOM_TRAVEL } from "./auto-ken-burns";
-import { maxZoomForSharpness, subjectSharpness } from "./sharpness-zoom-cap";
+import { screenSize, sharpestTile, subjectSharpness } from "./screen-sharpness";
 
 const WHOLE_PICTURE = { x: 0, y: 0, width: 1, height: 1 };
 const LEFT_HALF = { x: 0, y: 0, width: 0.5, height: 1 };
@@ -17,6 +16,22 @@ function sharpLeftSoftRight() {
     x < 32 ? (SHARP_HALF.pixels[y * 32 + x] ?? 0) : (SOFT_HALF.pixels[y * 32 + x - 32] ?? 0),
   );
 }
+
+describe("sharpestTile, a picture without a subject judged by its sharpest part", () => {
+  it("is the sharp tile's score, however plain the rest", () => {
+    const sharpCorner = greyImage(96, 96, (x, y) =>
+      x < 32 && y < 32 ? (SHARP_HALF.pixels[y * 32 + x] ?? 0) : 128,
+    );
+    const corner = { x: 0, y: 0, width: 1 / 3, height: 1 / 3 };
+
+    expect(sharpestTile(sharpCorner)).toBe(subjectSharpness(sharpCorner, corner));
+    expect(sharpestTile(sharpCorner)).toBeGreaterThan(sharpness(sharpCorner));
+  });
+
+  it("is zero for a plain picture", () => {
+    expect(sharpestTile(greyImage(96, 96, () => 128))).toBe(0);
+  });
+});
 
 describe("subjectSharpness, the sharpness inside the subject's box", () => {
   it("over the whole picture is the picture's sharpness", () => {
@@ -43,28 +58,25 @@ describe("subjectSharpness, the sharpness inside the subject's box", () => {
     expect(subjectSharpness(checkerboard(64, 48, 1), tiny)).toBe(0);
   });
 });
-
-describe("maxZoomForSharpness, how far a picture may zoom before its softness shows", () => {
-  // Zoom z magnifies the Laplacian's variance down by z⁴; the cap keeps it at the blurry floor (50).
+describe("screenSize, a picture as large as it fills a Full HD screen at zoom 1", () => {
   it.each([
-    [800, 2],
-    [4050, 3],
-  ])("lets sharpness %d zoom to %d, where it reaches the blurry floor", (score, zoom) => {
-    expect(maxZoomForSharpness(score)).toBeCloseTo(zoom, 10);
-  });
-
-  it("zooms a softer picture less than a sharper one", () => {
-    expect(maxZoomForSharpness(100)).toBeLessThan(maxZoomForSharpness(200));
-  });
-
-  it.each([0, 10, 50])(
-    "still moves a picture as soft as %d by the smallest zoom travel",
-    (score) => {
-      expect(maxZoomForSharpness(score)).toBe(SMALLEST_ZOOM_TRAVEL);
-    },
-  );
-
-  it.each([Number.NaN, Number.POSITIVE_INFINITY])("rejects a sharpness of %d", (score) => {
-    expect(() => maxZoomForSharpness(score)).toThrow(RangeError);
+    [
+      { width: 3840, height: 2160 },
+      { width: 1920, height: 1080 },
+    ],
+    [
+      { width: 2880, height: 2160 },
+      { width: 1920, height: 1440 },
+    ],
+    [
+      { width: 1080, height: 1920 },
+      { width: 1080, height: 1920 },
+    ],
+    [
+      { width: 960, height: 540 },
+      { width: 1920, height: 1080 },
+    ],
+  ])("draws %o at %o", (picture, onScreen) => {
+    expect(screenSize(picture)).toEqual(onScreen);
   });
 });

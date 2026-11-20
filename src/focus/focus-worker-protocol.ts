@@ -4,6 +4,8 @@ import type { PictureFocus } from "../library/picture-focus";
 export interface FocusRequest {
   readonly id: number;
   readonly thumbnail: Blob;
+  /** The picture as shown: present, the reply's focus carries its sharpness on screen (ADR-0061). */
+  readonly display?: Blob;
 }
 
 /**

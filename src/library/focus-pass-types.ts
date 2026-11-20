@@ -14,6 +14,11 @@ export interface FocusPassPorts {
      * directly skips the detector entirely. Omitted, the pass reads `thumbnailBlob` as before.
      */
     detectionInput?(pictureId: string): Promise<PictureFocus | Blob>;
+    /**
+     * The picture as the player shows it, handed to the detector beside a thumbnail to measure
+     * its sharpness on screen (ADR-0061). Omitted, the focus carries no sharpness.
+     */
+    playbackPictureBlob?(pictureId: string): Promise<Blob>;
   };
   readonly detector: FocusDetector;
   /** A detection failed for one picture: logged, the pass carries on. */

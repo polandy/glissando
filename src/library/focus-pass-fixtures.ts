@@ -21,25 +21,32 @@ export function storedFocus(focus: PictureFocus, detector = FOCUS_DETECTOR_VERSI
 export const thumbnail = (id: string): Blob =>
   new Blob([`${id} thumbnail`], { type: "image/jpeg" });
 
+const display = (id: string): Blob => new Blob([`${id} display`], { type: "image/jpeg" });
+
 /**
  * A store holding a slideshow per entry, each created a day after the one before (the pass takes
- * the newest first); each picture's thumbnail is the one returned.
+ * the newest first); each picture's thumbnail and display rendition are the ones returned.
  */
-export async function storeWith(
-  shows: Record<string, readonly string[]>,
-): Promise<{ store: MemoryLibraryStore; thumbnails: Map<string, Blob> }> {
+export async function storeWith(shows: Record<string, readonly string[]>): Promise<{
+  store: MemoryLibraryStore;
+  thumbnails: Map<string, Blob>;
+  displays: Map<string, Blob>;
+}> {
   const store = new MemoryLibraryStore();
   const thumbnails = new Map<string, Blob>();
+  const displays = new Map<string, Blob>();
   for (const [day, [id, pictureIds]] of Object.entries(shows).entries()) {
     for (const pictureId of pictureIds) {
       const blob = thumbnail(pictureId);
+      const shown = display(pictureId);
       thumbnails.set(pictureId, blob);
-      await store.putPicture(pictureId, { display: blob, thumbnail: blob });
+      displays.set(pictureId, shown);
+      await store.putPicture(pictureId, { display: shown, thumbnail: blob });
     }
     const createdAt = new Date(Date.UTC(2025, 6, 1 + day)).toISOString();
     await store.saveSlideshow(slideshow({ id, createdAt, pictures: pictureIds.map(picture) }));
   }
-  return { store, thumbnails };
+  return { store, thumbnails, displays };
 }
 
 /** Answers by which picture's thumbnail it is given; throws for one it does not know. */
@@ -71,13 +78,13 @@ export class ObservedDetector implements FocusDetector {
     return this.#start(count).promise;
   }
 
-  async detect(blob: Blob): Promise<PictureFocus> {
+  async detect(blob: Blob, display?: Blob): Promise<PictureFocus> {
     this.#calls += 1;
     this.#inFlight += 1;
     this.mostAtOnce = Math.max(this.mostAtOnce, this.#inFlight);
     this.#start(this.#calls).resolve(undefined);
     try {
-      return await this.#inner.detect(blob);
+      return await this.#inner.detect(blob, display);
     } finally {
       this.#inFlight -= 1;
     }

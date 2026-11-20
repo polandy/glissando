@@ -39,6 +39,24 @@ class ManualFocusDetector implements FocusDetector {
 }
 
 describe("serializeFocusDetector", () => {
+  it.each(["primary", "secondary"] as const)(
+    "hands the %s side's display rendition on to the detector",
+    async (side) => {
+      const displays: Array<Blob | undefined> = [];
+      const inner: FocusDetector = {
+        detect: (_thumbnail, display) => {
+          displays.push(display);
+          return Promise.resolve(NOTHING);
+        },
+      };
+
+      await serializeFocusDetector(inner)[side].detect(BLOB_A, BLOB_B);
+
+      expect(displays).toHaveLength(1);
+      expect(displays[0]).toBe(BLOB_B);
+    },
+  );
+
   it("never lets the primary and secondary sides detect at the same time", async () => {
     const inner = new ManualFocusDetector();
     const { primary, secondary } = serializeFocusDetector(inner);
