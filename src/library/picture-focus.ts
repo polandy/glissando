@@ -14,10 +14,14 @@ export type SubjectFinder = (typeof SUBJECT_FINDERS)[number];
  * What the detection found in a picture: the box around its people or subject,
  * scenery (a wide view with no one thing to aim at), or nothing to aim at.
  */
-export type PictureFocus =
+export type PictureFocus = (
   | { readonly kind: "subject"; readonly box: FocusBox; readonly foundBy: SubjectFinder }
   | { readonly kind: "scenery" }
-  | { readonly kind: "none" };
+  | { readonly kind: "none" }
+) & {
+  /** The subject's, else the whole picture's, sharpness on screen; absent: not measured (ADR-0061). */
+  readonly sharpness?: number;
+};
 
 /**
  * A picture's focus with the version of the detection that found it, stored by picture id

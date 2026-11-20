@@ -1,3 +1,4 @@
+import { SOFT_ON_SCREEN_SHARPNESS } from "../focus/screen-sharpness";
 import type { PictureFocus } from "../library/picture-focus";
 import type { Size } from "../player/ken-burns";
 import { MIN_KEN_BURNS_ZOOM, type Easing, type KenBurns } from "../player/slideshow";
@@ -38,6 +39,9 @@ export const SCENERY_ZOOM_TIGHT = 1.35;
 /** The group's box grown by this factor is the room its frame keeps around the people. */
 const GROUP_MARGIN = 1.15;
 
+/** Magnifying by z stretches every edge z-fold, so the Laplacian shrinks by z² and its variance by z⁴. */
+const SHARPNESS_FALL_EXPONENT = 4;
+
 /** Today's unscaled Ken Burns motion: a mood's own strength takes its place (ADR-0045). */
 export const DEFAULT_KEN_BURNS_STRENGTH = 1;
 
@@ -47,7 +51,8 @@ export const DEFAULT_KEN_BURNS_STRENGTH = 1;
  * around the middle, raised on a portrait picture toward where faces usually are. A focus box
  * wider or taller than the frame at the largest zoom lowers that zoom until the box fits
  * (ADR-0029); the frame is taken as 1/zoom of the picture on both axes, and the pan is small
- * enough to leave the box inside it. `strength` scales how far the motion travels, `MOOD.md`'s
+ * enough to leave the box inside it. A measured `focus.sharpness` lowers every zoom to where the
+picture still looks sharp on screen (`maxZoomForSharpness`, ADR-0061). `strength` scales how far the motion travels, `MOOD.md`'s
  * Ken Burns strength bullet; `DEFAULT_KEN_BURNS_STRENGTH` reproduces today's motion exactly.
  */
 export function autoKenBurns(
@@ -60,9 +65,12 @@ export function autoKenBurns(
 ): KenBurns {
   const zoomsIn = index % 2 === 0;
   const pansRight = index % 2 === 0;
-  if (focus?.kind === "scenery" && pansHorizontally) return sceneryKenBurns(pansRight, strength);
+  const sharpZoom = focus?.sharpness === undefined ? Infinity : maxZoomForSharpness(focus.sharpness);
+  if (focus?.kind === "scenery" && pansHorizontally) {
+    return sceneryKenBurns(pansRight, strength, sharpZoom);
+  }
   const center = restingCenter(picture, focus);
-  const maxZoom = largestZoomShowing(focus, strength);
+  const maxZoom = Math.min(largestZoomShowing(focus, strength), sharpZoom);
 
   const halfPan = pansHorizontally ? (pansRight ? 1 : -1) * ((PAN_OFFSET * strength) / 2) : 0;
   const startCenterX = clampToPicture(center.x - halfPan);
@@ -91,9 +99,10 @@ export function autoKenBurns(
  * frame inside the picture for every point of the sweep, not only its ends — the pan moves in a
  * straight line between two points that already account for how far the zoom has moved.
  */
-function sceneryKenBurns(pansRight: boolean, strength: number): KenBurns {
-  const fromZoom = scaledZoom(pansRight ? SCENERY_ZOOM_WIDE : SCENERY_ZOOM_TIGHT, strength);
-  const toZoom = scaledZoom(pansRight ? SCENERY_ZOOM_TIGHT : SCENERY_ZOOM_WIDE, strength);
+function sceneryKenBurns(pansRight: boolean, strength: number, sharpZoom: number): KenBurns {
+  const wide = Math.min(scaledZoom(SCENERY_ZOOM_WIDE, strength), sharpZoom);
+  const tight = Math.min(scaledZoom(SCENERY_ZOOM_TIGHT, strength), sharpZoom);
+  const [fromZoom, toZoom] = pansRight ? [wide, tight] : [tight, wide];
   const fromEdge = sceneryEdge(fromZoom);
   const toEdge = sceneryEdge(toZoom);
   const [startX, endX] = pansRight ? [fromEdge, 1 - toEdge] : [1 - fromEdge, toEdge];
@@ -137,4 +146,17 @@ function restingCenter(
 
 function clampToPicture(coordinate: number): number {
   return Math.min(1, Math.max(0, coordinate));
+}
+
+/**
+ * The largest zoom at which a picture of this sharpness, measured on screen at zoom 1, stays above
+ * `SOFT_ON_SCREEN_SHARPNESS`; never below `SMALLEST_ZOOM_TRAVEL`.
+ */
+export function maxZoomForSharpness(score: number): number {
+  if (!Number.isFinite(score)) {
+    throw new RangeError(`sharpness must be a finite number, got ${score}`);
+  }
+  const zoomToFloor =
+    (Math.max(0, score) / SOFT_ON_SCREEN_SHARPNESS) ** (1 / SHARPNESS_FALL_EXPONENT);
+  return Math.max(SMALLEST_ZOOM_TRAVEL, zoomToFloor);
 }
