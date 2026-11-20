@@ -6,23 +6,55 @@ const ALL_ONES = 0xffffffff;
 /** Bounds the memory a checksum over a large blob holds at once. */
 const BLOB_CHUNK_BYTES = 8 * 1024 * 1024;
 
-const TABLE = (() => {
-  const table = new Uint32Array(BYTE_VALUES);
+const SLICES = 8;
+const BYTE_MASK = 0xff;
+
+/** TABLES[k][b] is the checksum register after byte b followed by k zero bytes. */
+const TABLES = (() => {
+  const tables = new Uint32Array(SLICES * BYTE_VALUES);
   for (let value = 0; value < BYTE_VALUES; value++) {
     let crc = value;
     for (let bit = 0; bit < BITS_PER_BYTE; bit++) {
       crc = crc & 1 ? (crc >>> 1) ^ POLYNOMIAL : crc >>> 1;
     }
-    table[value] = crc >>> 0;
+    tables[value] = crc >>> 0;
   }
-  return table;
+  for (let value = 0; value < BYTE_VALUES; value++) {
+    let crc = tables[value] as number;
+    for (let slice = 1; slice < SLICES; slice++) {
+      crc = ((tables[crc & BYTE_MASK] as number) ^ (crc >>> BITS_PER_BYTE)) >>> 0;
+      tables[slice * BYTE_VALUES + value] = crc;
+    }
+  }
+  return tables;
 })();
 
 /** The ZIP checksum of `bytes`; pass the checksum of the bytes before them to continue it. */
 export function crc32(bytes: Uint8Array, previous = 0): number {
+  const t = TABLES;
   let crc = (previous ^ ALL_ONES) >>> 0;
-  for (const byte of bytes) {
-    crc = (TABLE[(crc ^ byte) & 0xff] as number) ^ (crc >>> BITS_PER_BYTE);
+  let i = 0;
+  const wholeSlicesEnd = bytes.length - (bytes.length % SLICES);
+  for (; i < wholeSlicesEnd; i += SLICES) {
+    const low =
+      (crc ^
+        ((bytes[i] as number) |
+          ((bytes[i + 1] as number) << 8) |
+          ((bytes[i + 2] as number) << 16) |
+          ((bytes[i + 3] as number) << 24))) >>>
+      0;
+    crc =
+      (t[7 * BYTE_VALUES + (low & BYTE_MASK)] as number) ^
+      (t[6 * BYTE_VALUES + ((low >>> 8) & BYTE_MASK)] as number) ^
+      (t[5 * BYTE_VALUES + ((low >>> 16) & BYTE_MASK)] as number) ^
+      (t[4 * BYTE_VALUES + (low >>> 24)] as number) ^
+      (t[3 * BYTE_VALUES + (bytes[i + 4] as number)] as number) ^
+      (t[2 * BYTE_VALUES + (bytes[i + 5] as number)] as number) ^
+      (t[BYTE_VALUES + (bytes[i + 6] as number)] as number) ^
+      (t[bytes[i + 7] as number] as number);
+  }
+  for (; i < bytes.length; i++) {
+    crc = (t[(crc ^ (bytes[i] as number)) & BYTE_MASK] as number) ^ (crc >>> BITS_PER_BYTE);
   }
   return (crc ^ ALL_ONES) >>> 0;
 }
