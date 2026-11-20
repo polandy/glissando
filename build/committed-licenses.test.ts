@@ -50,6 +50,26 @@ describe("withCommittedLicenses, the committed components' licences in the shipp
     expect(listed).toContain("https://download.geonames.org/export/dump/cities15000.zip");
   });
 
+  it("credits Rust's core library, compiled into the object kernels (ADR-0060)", () => {
+    const listed = withCommittedLicenses(
+      "# Licenses\n",
+      new Map(COMMITTED_LICENSES.map((entry) => [entry.licenseFilePath, "licence text"])),
+    );
+
+    expect(listed).toContain("## Rust core library - 1.100.0 (MIT OR Apache-2.0)");
+    expect(listed).toContain("src/focus/onnx/object-kernels.wasm");
+  });
+
+  it("names the Rust version the kernels are built with", () => {
+    const toolchain = readFileSync(
+      new URL("wasm/object-kernels/rust-toolchain.toml", PROJECT_ROOT),
+      "utf8",
+    );
+    const rust = COMMITTED_LICENSES.find((entry) => entry.name === "Rust core library");
+
+    expect(toolchain).toContain(`channel = "${rust?.version ?? "missing"}"`);
+  });
+
   it("throws when a component's licence text is missing from the given map", () => {
     expect(() => withCommittedLicenses("# Licenses\n", new Map())).toThrow(/licence text/i);
   });

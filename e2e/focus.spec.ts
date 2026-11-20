@@ -1,5 +1,5 @@
 // Spec: docs/dev/library/FOCUS_SEARCH.md
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import {
   choosePictures,
   expectSlideshowScreen,
@@ -9,28 +9,10 @@ import {
   openImport,
 } from "./support/app";
 import { openApp } from "./support/browser";
+import { holdObjectNetwork } from "./support/hold-object-network";
 import { portraitTakenOn, stripedPictureTakenOn } from "./support/media";
 
 test.use(GERMAN_BROWSER);
-
-/** The built object network; the focus worker downloads it before it searches any picture. */
-const OBJECT_NETWORK = "**/assets/yolox-nano-*.bin";
-
-/**
- * Holds the focus worker's object network until the returned release is called, so the
- * faces-and-subjects search stays running for as long as the test needs to look at it.
- */
-async function holdObjectNetwork(page: Page): Promise<() => void> {
-  let release = (): void => {};
-  const released = new Promise<void>((resolve) => {
-    release = resolve;
-  });
-  await page.context().route(OBJECT_NETWORK, async (route) => {
-    await released;
-    await route.continue();
-  });
-  return release;
-}
 
 test("E2E-028 the automatic motion's focus is found in the background: a face is marked in the picture editor until a chosen motion replaces it, a faceless picture says so, and the library card ends without a search line", async ({
   page,
