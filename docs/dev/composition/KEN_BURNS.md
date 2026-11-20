@@ -22,4 +22,4 @@ A picture's measured sharpness on screen (`focus.sharpness`, ADR-0061) caps the 
 motion: `maxZoomForSharpness` turns it into the largest zoom at which the frame stays above
 `SOFT_ON_SCREEN_SHARPNESS` — zooming by z divides the score by about z² — never below
 `SMALLEST_ZOOM_TRAVEL`. It lowers a subject's zoom and both ends of a scenery sweep; a focus
-without a sharpness (a server picture, an older file) is not capped.
+without a sharpness (an older file) is not capped.

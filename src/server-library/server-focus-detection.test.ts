@@ -4,6 +4,7 @@ import {
   ImmichUnavailableError,
   type ImmichFace,
 } from "../immich/immich-client";
+import type { DetectionInput } from "../library/focus-pass";
 import { MediaNotFoundError } from "../library/library-store";
 import { serverDetectionInput } from "./server-focus-detection";
 
@@ -39,27 +40,46 @@ function detectorFor(options: {
   return { input, calls, reported };
 }
 
+async function displayOf(input: DetectionInput): Promise<string | undefined> {
+  return input.display?.text();
+}
+
 describe("serverDetectionInput", () => {
-  it("answers Immich's face focus directly, without reading or downscaling a preview", async () => {
+  it("answers Immich's face focus as known, with the preview beside it to measure", async () => {
     const { input, calls } = detectorFor({ faces: [FACE] });
 
     const result = await input("asset-1");
 
     expect(result).toEqual({
-      kind: "subject",
-      box: { x: 0.25, y: 0.1, width: 0.5, height: 0.4 },
-      foundBy: "immich-faces",
+      kind: "known",
+      focus: {
+        kind: "subject",
+        box: { x: 0.25, y: 0.1, width: 0.5, height: 0.4 },
+        foundBy: "immich-faces",
+      },
+      display: expect.any(Blob),
     });
-    expect(calls).toEqual(["faces asset-1"]);
+    expect(await displayOf(result)).toBe("preview asset-1");
+    expect(calls).toEqual(["faces asset-1", "preview asset-1"]);
   });
 
-  it("downscales Immich's preview for detection when Immich has no faces", async () => {
+  it("downscales Immich's preview for detection when Immich has no faces, the preview beside it", async () => {
     const { input, calls } = detectorFor({ faces: [] });
 
     const result = await input("asset-1");
 
-    expect(result).toBe(DOWNSCALED);
+    expect(result).toEqual({ kind: "detect", thumbnail: DOWNSCALED, display: expect.any(Blob) });
+    expect(await displayOf(result)).toBe("preview asset-1");
     expect(calls).toEqual(["faces asset-1", "preview asset-1", "downscale 15 bytes"]);
+  });
+
+  it("maps a 404 for the preview of an asset Immich has faces for to MediaNotFoundError", async () => {
+    const { input } = detectorFor({
+      faces: [FACE],
+      previewError: new ImmichRequestFailedError("GET preview", 404),
+    });
+
+    await expect(input("asset-gone")).rejects.toBeInstanceOf(MediaNotFoundError);
   });
 
   it("maps a 404 for the asset's faces to MediaNotFoundError", async () => {

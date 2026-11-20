@@ -8,6 +8,11 @@ export interface FocusDetector {
    * detector can search no picture any more.
    */
   detect(thumbnail: Blob, display?: Blob): Promise<PictureFocus>;
+  /**
+   * `focus`, found elsewhere (Immich's faces), with the sharpness on screen of `display`, the
+   * picture as shown (ADR-0061). Rejects as `detect` does.
+   */
+  measure(display: Blob, focus: PictureFocus): Promise<PictureFocus>;
 }
 
 /**

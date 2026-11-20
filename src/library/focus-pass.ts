@@ -5,13 +5,19 @@ import { scanForOutdatedFocus, takeUpForcedPictures } from "./focus-pass-scan";
 import {
   FocusDetectionFailedError,
   IDLE,
+  type DetectionInput,
   type FocusPassPorts,
   type FocusPassState,
 } from "./focus-pass-types";
 import type { PictureFocus } from "./picture-focus";
 import { MediaNotFoundError } from "./library-store";
 
-export type { FocusPassPorts, FocusPassState, SlideshowSearch } from "./focus-pass-types";
+export type {
+  DetectionInput,
+  FocusPassPorts,
+  FocusPassState,
+  SlideshowSearch,
+} from "./focus-pass-types";
 export { FocusDetectionFailedError } from "./focus-pass-types";
 
 /**
@@ -169,11 +175,9 @@ export class FocusPass {
 
   /** Looks at one picture; resolves true when a `pausesOn` error means the pass should pause. */
   async #lookAt(pictureId: string): Promise<boolean> {
-    let input: PictureFocus | Blob;
-    let display: Blob | undefined;
+    let input: DetectionInput;
     try {
       input = await this.#readInput(pictureId);
-      display = input instanceof Blob ? await this.#readDisplay(pictureId) : undefined;
     } catch (error) {
       if (error instanceof MediaNotFoundError) {
         return false;
@@ -190,20 +194,16 @@ export class FocusPass {
       throw error;
     }
     let focus: PictureFocus;
-    if (!(input instanceof Blob)) {
-      focus = input;
-    } else {
-      try {
-        focus = await this.#ports.detector.detect(input, display);
-      } catch (error) {
-        if (error instanceof FocusDetectorGoneError) {
-          // Every later detection would fail alike: the pass ends, the rest waits for the next.
-          throw error;
-        }
-        this.#ports.log(new FocusDetectionFailedError(pictureId, error));
-        this.#setFailed(pictureId, true);
-        return false;
+    try {
+      focus = await this.#focusOf(input);
+    } catch (error) {
+      if (error instanceof FocusDetectorGoneError) {
+        // Every later detection would fail alike: the pass ends, the rest waits for the next.
+        throw error;
       }
+      this.#ports.log(new FocusDetectionFailedError(pictureId, error));
+      this.#setFailed(pictureId, true);
+      return false;
     }
     try {
       // The store keeps nothing for a picture deleted meanwhile.
@@ -223,20 +223,28 @@ export class FocusPass {
     return false;
   }
 
-  /** What to detect on, or the focus already known without detecting (ADR-0041). */
-  #readInput(pictureId: string): Promise<PictureFocus | Blob> {
+  /** What to look at: the store's own input, else its thumbnail and the picture as shown. */
+  async #readInput(pictureId: string): Promise<DetectionInput> {
     const { store } = this.#ports;
-    return store.detectionInput !== undefined
-      ? store.detectionInput(pictureId)
-      : store.thumbnailBlob(pictureId);
+    if (store.detectionInput !== undefined) {
+      return store.detectionInput(pictureId);
+    }
+    const thumbnail = await store.thumbnailBlob(pictureId);
+    if (store.playbackPictureBlob === undefined) {
+      return { kind: "detect", thumbnail };
+    }
+    return { kind: "detect", thumbnail, display: await store.playbackPictureBlob(pictureId) };
   }
 
-  /** The picture as shown, to measure its sharpness on, where the store can read it (ADR-0061). */
-  #readDisplay(pictureId: string): Promise<Blob | undefined> {
-    const { store } = this.#ports;
-    return store.playbackPictureBlob !== undefined
-      ? store.playbackPictureBlob(pictureId)
-      : Promise.resolve(undefined);
+  /** Detects on the thumbnail, or measures the known focus, on the picture as shown (ADR-0061). */
+  #focusOf(input: DetectionInput): Promise<PictureFocus> {
+    const { detector } = this.#ports;
+    if (input.kind === "detect") {
+      return detector.detect(input.thumbnail, input.display);
+    }
+    return input.display === undefined
+      ? Promise.resolve(input.focus)
+      : detector.measure(input.display, input.focus);
   }
 
   #setFailed(pictureId: string, failed: boolean): void {

@@ -23,7 +23,9 @@ screen size still looks sharp.
 ## Decision
 
 - **Measured in the focus worker, stored in the focus.** The device focus pass hands the
-  detector the picture's display rendition beside its thumbnail; the worker draws it at
+  detector the picture's display rendition beside its thumbnail, the server pass Immich's
+  preview (what the player shows of a server picture) beside its downscaled copy; a focus
+  Immich's faces already give is measured on the preview alone (`FocusDetector.measure`); the worker draws it at
   `screenSize` and stores `sharpness` in the `PictureFocus`: inside the subject's box, or,
   without a subject, the sharpest tile of a 3 × 3 grid, so a plain sky does not count as soft.
   `FOCUS_DETECTOR_VERSION` 4 makes every stored focus outdated once, so every picture is
@@ -45,6 +47,7 @@ screen size still looks sharp.
 - A soft picture moves less, never not at all.
 - The score is absolute: a very low-contrast sharp picture scores low and is zoomed less than
   it could be.
-- The first pass after the update looks at every picture again. The server pass does too, but
-  hands no display rendition (it detects on Immich's faces or preview), so server pictures are
-  not measured and stay uncapped.
+- The first pass after the update looks at every picture again, on the device and on the server.
+- A server picture costs one more preview download where Immich's faces gave its focus.
+- A device picture imported from Immich with faces stores that focus as current, unmeasured,
+  and stays uncapped (`TODO.md`).

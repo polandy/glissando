@@ -61,7 +61,7 @@ export function answersBy(thumbnails: Map<string, Blob>, focus: Record<string, P
   };
 }
 
-/** Wraps a detector: tells when the n-th detection starts and how many ever ran at once. */
+/** Wraps a detector: tells when the n-th detection or measurement starts and how many ran at once. */
 export class ObservedDetector implements FocusDetector {
   readonly #inner: FocusDetector;
   readonly #starts: PromiseWithResolvers<undefined>[] = [];
@@ -78,13 +78,21 @@ export class ObservedDetector implements FocusDetector {
     return this.#start(count).promise;
   }
 
-  async detect(blob: Blob, display?: Blob): Promise<PictureFocus> {
+  detect(blob: Blob, display?: Blob): Promise<PictureFocus> {
+    return this.#observed(() => this.#inner.detect(blob, display));
+  }
+
+  measure(display: Blob, focus: PictureFocus): Promise<PictureFocus> {
+    return this.#observed(() => this.#inner.measure(display, focus));
+  }
+
+  async #observed(work: () => Promise<PictureFocus>): Promise<PictureFocus> {
     this.#calls += 1;
     this.#inFlight += 1;
     this.mostAtOnce = Math.max(this.mostAtOnce, this.#inFlight);
     this.#start(this.#calls).resolve(undefined);
     try {
-      return await this.#inner.detect(blob, display);
+      return await work();
     } finally {
       this.#inFlight -= 1;
     }

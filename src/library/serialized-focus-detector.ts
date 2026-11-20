@@ -9,8 +9,8 @@ export interface SerializedFocusDetectors {
 
 /**
  * Shares one `FocusDetector` between the device pass and the server pass without letting them
- * detect at once (ADR-0041): at most one detection runs at a time, and a primary detection is
- * never held up by a secondary one already waiting its turn, so the device pass's own search
+ * use it at once (ADR-0041): at most one detection or measurement runs at a time, and a primary
+ * one is never held up by a secondary one already waiting its turn, so the device pass's own search
  * always comes first.
  */
 export function serializeFocusDetector(detector: FocusDetector): SerializedFocusDetectors {
@@ -27,15 +27,14 @@ export function serializeFocusDetector(detector: FocusDetector): SerializedFocus
     next();
   }
 
-  function detect(
+  function inTurn(
     queue: Array<() => void>,
-    thumbnail: Blob,
-    display: Blob | undefined,
+    work: () => Promise<PictureFocus>,
   ): Promise<PictureFocus> {
     return new Promise<PictureFocus>((resolve, reject) => {
       const start = (): void => {
         running = true;
-        detector.detect(thumbnail, display).then(
+        work().then(
           (focus) => {
             runNext();
             resolve(focus);
@@ -54,8 +53,12 @@ export function serializeFocusDetector(detector: FocusDetector): SerializedFocus
     });
   }
 
-  return {
-    primary: { detect: (thumbnail, display) => detect(primaryQueue, thumbnail, display) },
-    secondary: { detect: (thumbnail, display) => detect(secondaryQueue, thumbnail, display) },
-  };
+  function side(queue: Array<() => void>): FocusDetector {
+    return {
+      detect: (thumbnail, display) => inTurn(queue, () => detector.detect(thumbnail, display)),
+      measure: (display, focus) => inTurn(queue, () => detector.measure(display, focus)),
+    };
+  }
+
+  return { primary: side(primaryQueue), secondary: side(secondaryQueue) };
 }

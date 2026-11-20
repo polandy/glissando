@@ -1,6 +1,7 @@
 // The worker side of `WorkerFocusDetector`: decodes each thumbnail and runs the face and object
 // detectors on it, off the main thread (ADR-0012, ADR-0036). Typed with the DOM lib, whose `self` covers what a
 // dedicated worker uses here.
+import type { PictureFocus } from "../library/picture-focus";
 import { detectFocus, type FocusModels } from "./detect-focus";
 import cascadeUrl from "./facefinder.bin?url";
 import type { FocusReply, FocusRequest } from "./focus-worker-protocol";
@@ -26,19 +27,30 @@ export function serveFocusRequests(loadObjectNetwork: LoadObjectNetwork): void {
   });
 }
 
-async function answer(
-  { id, thumbnail, display }: FocusRequest,
-  models: Promise<FocusModels>,
-): Promise<FocusReply> {
+async function answer(request: FocusRequest, models: Promise<FocusModels>): Promise<FocusReply> {
+  const { id } = request;
+  if (request.kind === "measure") {
+    return found(id, request.focus, request.display);
+  }
   let loaded: FocusModels;
   try {
     loaded = await models;
   } catch (error) {
     return { id, kind: "unavailable", message: messageOf(error) };
   }
+  let focus: PictureFocus;
   try {
-    const focus = detectFocus(await pixelsOf(thumbnail), loaded);
-    if (display === undefined) return { id, kind: "found", focus };
+    focus = detectFocus(await pixelsOf(request.thumbnail), loaded);
+  } catch (error) {
+    return { id, kind: "failed", message: messageOf(error) };
+  }
+  return found(id, focus, request.display);
+}
+
+/** `focus` as the reply to request `id`, with its sharpness on `display` when there is one. */
+async function found(id: number, focus: PictureFocus, display?: Blob): Promise<FocusReply> {
+  if (display === undefined) return { id, kind: "found", focus };
+  try {
     return {
       id,
       kind: "found",

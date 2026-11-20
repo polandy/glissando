@@ -17,7 +17,15 @@ class ManualFocusDetector implements FocusDetector {
   }[] = [];
 
   detect(thumbnail: Blob): Promise<PictureFocus> {
-    this.order.push(thumbnail);
+    return this.#wait(thumbnail);
+  }
+
+  measure(display: Blob): Promise<PictureFocus> {
+    return this.#wait(display);
+  }
+
+  #wait(blob: Blob): Promise<PictureFocus> {
+    this.order.push(blob);
     const { promise, resolve, reject } = Promise.withResolvers<PictureFocus>();
     this.#pending.push({ resolve, reject });
     return promise;
@@ -48,6 +56,7 @@ describe("serializeFocusDetector", () => {
           displays.push(display);
           return Promise.resolve(NOTHING);
         },
+        measure: () => Promise.reject(new Error("only detections are asked for here")),
       };
 
       await serializeFocusDetector(inner)[side].detect(BLOB_A, BLOB_B);
@@ -71,6 +80,22 @@ describe("serializeFocusDetector", () => {
 
     inner.settleNext(NOTHING);
     expect(await second).toEqual(NOTHING);
+  });
+
+  it("queues a measurement behind a running detection, as another detection", async () => {
+    const inner = new ManualFocusDetector();
+    const { primary, secondary } = serializeFocusDetector(inner);
+
+    const detecting = primary.detect(BLOB_A);
+    const measuring = secondary.measure(BLOB_B, FACES);
+    expect(inner.order).toEqual([BLOB_A]);
+
+    inner.settleNext(NOTHING);
+    await detecting;
+    expect(inner.order).toEqual([BLOB_A, BLOB_B]);
+
+    inner.settleNext(FACES);
+    expect(await measuring).toEqual(FACES);
   });
 
   it("gives the primary side priority over a secondary call already waiting its turn", async () => {

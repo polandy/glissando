@@ -73,7 +73,7 @@ describe("WorkerFocusDetector", () => {
 
     const detection = detector.detect(thumbnail);
     const [worker] = workers;
-    expect(worker?.requestAt(0).thumbnail).toBe(thumbnail);
+    expect(worker?.requestAt(0)).toEqual({ id: expect.any(Number), kind: "detect", thumbnail });
     worker?.answer(0, FACE);
 
     await expect(detection).resolves.toEqual(FACE);
@@ -87,8 +87,25 @@ describe("WorkerFocusDetector", () => {
     void detector.detect(new Blob(["thumbnail"]), display);
     const [worker] = workers;
 
-    expect(worker?.requestAt(0).display).toBeUndefined();
-    expect(worker?.requestAt(1).display).toBe(display);
+    expect(worker?.requestAt(0)).not.toHaveProperty("display");
+    expect(worker?.requestAt(1)).toMatchObject({ kind: "detect", display });
+  });
+
+  it("asks the worker to measure a known focus on the display, and resolves with its answer", async () => {
+    const { detector, workers } = detectorWithFakeWorker();
+    const display = new Blob(["display"]);
+
+    const measuring = detector.measure(display, FACE);
+    const [worker] = workers;
+    expect(worker?.requestAt(0)).toEqual({
+      id: expect.any(Number),
+      kind: "measure",
+      display,
+      focus: FACE,
+    });
+    worker?.answer(0, { ...FACE, sharpness: 30 });
+
+    await expect(measuring).resolves.toEqual({ ...FACE, sharpness: 30 });
   });
 
   it("runs every detection in one worker", async () => {
