@@ -1,6 +1,7 @@
 import { item, read } from "./item";
 import {
   concatDims,
+  convGeometry,
   pooledDims,
   reshapedDims,
   resizedDims,
@@ -8,6 +9,7 @@ import {
   sliceWindow,
   stridesOf,
   transposedDims,
+  type ConvAttributes,
   type PoolAttributes,
   type SliceAttributes,
 } from "./tensor-layout";
@@ -15,42 +17,24 @@ import {
 // The few tensor operators the YOLOX-nano network needs (ADR-0036), on float32 data in NCHW
 // layout. Each one fails loud on a shape or attribute it does not handle.
 
-export type { PoolAttributes, SliceAttributes };
+export type { ConvAttributes, PoolAttributes, SliceAttributes };
 
 export interface Tensor {
   readonly dims: readonly number[];
   readonly data: Float32Array;
 }
 
-export interface ConvAttributes {
-  readonly group: number;
-  readonly strides: readonly [number, number];
-  /** ONNX order: top, left, bottom, right. */
-  readonly pads: readonly [number, number, number, number];
-}
-
 export function conv(
   input: Tensor,
   kernel: Tensor,
   bias: Tensor | undefined,
-  { group, strides, pads }: ConvAttributes,
+  attributes: ConvAttributes,
 ): Tensor {
-  const [batch, inChannels, height, width] = input.dims as [number, number, number, number];
-  const [outChannels, inPerGroup, kernelHeight, kernelWidth] = kernel.dims as [
-    number,
-    number,
-    number,
-    number,
-  ];
-  if (batch !== 1 || inPerGroup * group !== inChannels || outChannels % group !== 0) {
-    throw new RangeError(
-      `conv: input ${input.dims} does not fit kernel ${kernel.dims}, group ${group}`,
-    );
-  }
-  const outHeight = Math.floor((height + pads[0] + pads[2] - kernelHeight) / strides[0]) + 1;
-  const outWidth = Math.floor((width + pads[1] + pads[3] - kernelWidth) / strides[1]) + 1;
+  const { strides, pads } = attributes;
+  const { height, width, outChannels, inPerGroup, kernelHeight, kernelWidth, outHeight, outWidth } =
+    convGeometry(input.dims, kernel.dims, attributes);
   const out = new Float32Array(outChannels * outHeight * outWidth);
-  const outPerGroup = outChannels / group;
+  const outPerGroup = outChannels / attributes.group;
   for (let outChannel = 0; outChannel < outChannels; outChannel++) {
     const plane = out.subarray(
       outChannel * outHeight * outWidth,

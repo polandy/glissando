@@ -3,6 +3,7 @@
 import { item } from "./item";
 import {
   concatDims,
+  convGeometry,
   pooledDims,
   reshapedDims,
   resizedDims,
@@ -11,6 +12,7 @@ import {
   stridesOf,
   transposedDims,
   transposedStrides,
+  type ConvAttributes,
   type PoolAttributes,
   type SliceAttributes,
 } from "./tensor-layout";
@@ -18,6 +20,8 @@ import type { Tensor } from "./tensor-ops";
 
 // The most axes the strided gather walks, as `MAX_RANK` in movement.rs.
 const MAX_RANK = 6;
+// A null pointer: the conv kernel adds no bias.
+const NO_BIAS = 0;
 
 const KERNEL_EXPORTS = [
   "arena_alloc",
@@ -30,6 +34,7 @@ const KERNEL_EXPORTS = [
   "strided_copy",
   "concat_into",
   "copy",
+  "conv",
   "max_pool",
   "resize_nearest",
 ] as const;
@@ -65,6 +70,13 @@ interface KernelModule {
     offset: number,
   ) => void;
   readonly copy: UnaryKernel;
+  readonly conv: (
+    input: Address,
+    kernel: Address,
+    bias: Address,
+    out: Address,
+    ...sizes: number[]
+  ) => void;
   readonly max_pool: (input: Address, out: Address, ...sizes: number[]) => void;
   readonly resize_nearest: (input: Address, out: Address, ...sizes: number[]) => void;
 }
@@ -82,6 +94,7 @@ export interface WasmKernels {
   transpose(input: Tensor, permutation: readonly number[]): Tensor;
   /** `x * sigmoid(x)` in one pass: the network's Mul after Sigmoid. */
   silu(input: Tensor): Tensor;
+  conv(input: Tensor, kernel: Tensor, bias: Tensor | undefined, attributes: ConvAttributes): Tensor;
   /** How far the arena reaches into the module's memory, in bytes. */
   bytesInUse(): number;
 }
@@ -139,6 +152,32 @@ export async function loadWasmKernels(bytes: BufferSource): Promise<WasmKernels>
     mul: binary(module.mul),
     sigmoid: unary(module.sigmoid),
     silu: unary(module.silu),
+    conv(input, kernel, bias, attributes) {
+      const { group, strides, pads } = attributes;
+      const geometry = convGeometry(input.dims, kernel.dims, attributes);
+      const { outChannels, outHeight, outWidth } = geometry;
+      const inputs = bias ? [input, kernel, bias] : [input, kernel];
+      return run(inputs, [1, outChannels, outHeight, outWidth], ({ addresses, out }) =>
+        module.conv(
+          item(addresses, 0),
+          item(addresses, 1),
+          addresses[2] ?? NO_BIAS,
+          out,
+          geometry.inChannels,
+          geometry.height,
+          geometry.width,
+          outChannels,
+          group,
+          geometry.kernelHeight,
+          geometry.kernelWidth,
+          ...strides,
+          pads[0],
+          pads[1],
+          outHeight,
+          outWidth,
+        ),
+      );
+    },
     maxPool(input, attributes) {
       const { kernel, strides, pads } = attributes;
       const [, channels, outHeight, outWidth] = pooledDims(input.dims, attributes);

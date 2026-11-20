@@ -4,6 +4,7 @@ import kernelsUrl from "./object-kernels.wasm?url&inline";
 import {
   add,
   concat,
+  conv,
   maxPool,
   mul,
   reshape,
@@ -125,6 +126,75 @@ describe("the WASM data-movement kernels", () => {
     for (let round = 0; round < 50; round++) {
       kernels.concat([kernels.slice(image, { starts: [1], ends: [5], axes: [2], steps: [1] })], 1);
     }
+
+    expect(kernels.bytesInUse()).toBe(used);
+  });
+});
+
+describe("the WASM convolution kernels", () => {
+  const image = seededTensor([1, 6, 9, 13], 8, [-2, 2]);
+  const padded = { group: 1, strides: [1, 1], pads: [1, 1, 1, 1] } as const;
+
+  it("convolve 3×3 like the reference, padded and strided, with and without a bias", () => {
+    const kernel = seededTensor([5, 6, 3, 3], 9, [-1, 1]);
+    const bias = seededTensor([5], 10, [-1, 1]);
+
+    agrees(kernels.conv(image, kernel, bias, padded), conv(image, kernel, bias, padded));
+    for (const attributes of [
+      { group: 1, strides: [2, 2], pads: [1, 1, 1, 1] },
+      { group: 1, strides: [2, 1], pads: [0, 1, 1, 0] },
+    ] as const) {
+      agrees(
+        kernels.conv(image, kernel, undefined, attributes),
+        conv(image, kernel, undefined, attributes),
+      );
+    }
+  });
+
+  it("convolve depthwise like the reference, each channel with its own kernel", () => {
+    const kernel = seededTensor([6, 1, 3, 3], 11, [-1, 1]);
+    const bias = seededTensor([6], 12, [-1, 1]);
+
+    for (const strides of [
+      [1, 1],
+      [2, 2],
+    ] as const) {
+      const attributes = { group: 6, strides, pads: [1, 1, 1, 1] } as const;
+      agrees(kernels.conv(image, kernel, bias, attributes), conv(image, kernel, bias, attributes));
+    }
+  });
+
+  it("convolve 1×1 like the reference, over output channels that leave a partial block", () => {
+    const pointwise = { group: 1, strides: [1, 1], pads: [0, 0, 0, 0] } as const;
+    const wide = seededTensor([1, 37, 23, 29], 13, [-2, 2]);
+    const kernel = seededTensor([11, 37, 1, 1], 14, [-1, 1]);
+    const bias = seededTensor([11], 15, [-1, 1]);
+
+    agrees(kernels.conv(wide, kernel, bias, pointwise), conv(wide, kernel, bias, pointwise));
+    agrees(
+      kernels.conv(wide, kernel, undefined, { ...pointwise, strides: [2, 2] }),
+      conv(wide, kernel, undefined, { ...pointwise, strides: [2, 2] }),
+    );
+    const grouped = seededTensor([6, 3, 1, 1], 16, [-1, 1]);
+    agrees(
+      kernels.conv(image, grouped, undefined, { ...pointwise, group: 2 }),
+      conv(image, grouped, undefined, { ...pointwise, group: 2 }),
+    );
+  });
+
+  it("refuse a kernel that does not fit the input, as the reference does", () => {
+    const kernel = seededTensor([4, 5, 3, 3], 17, [-1, 1]);
+
+    expect(() => kernels.conv(image, kernel, undefined, padded)).toThrow(RangeError);
+  });
+
+  it("free each call's tensors, so repeated calls do not grow the memory", () => {
+    const kernel = seededTensor([6, 1, 3, 3], 18, [-1, 1]);
+    const depthwise = { ...padded, group: 6 };
+    kernels.conv(image, kernel, undefined, depthwise);
+    const used = kernels.bytesInUse();
+
+    for (let round = 0; round < 50; round++) kernels.conv(image, kernel, undefined, depthwise);
 
     expect(kernels.bytesInUse()).toBe(used);
   });
