@@ -7,7 +7,7 @@ import type { StoredFocus } from "../src/library/picture-focus";
 import { readStoredFocus } from "../src/library/read-stored-focus";
 import { readServerDocument } from "../src/server-library/server-document";
 import type { LibraryRepository, MusicRecord, SlideshowRecord } from "./library-repository";
-import { SQLITE_SCHEMA } from "./sqlite-schema";
+import { NewerSqliteSchemaError, SQLITE_SCHEMA, SQLITE_SCHEMA_VERSION } from "./sqlite-schema";
 
 const SLIDESHOW_COLUMNS = "id, revision, created_at, document";
 
@@ -21,7 +21,12 @@ export function openSqliteRepository(
   database: DatabaseSync,
   log: (line: string) => void,
 ): LibraryRepository {
+  const version = Number(database.prepare("PRAGMA user_version").get()?.user_version);
+  if (version > SQLITE_SCHEMA_VERSION) {
+    throw new NewerSqliteSchemaError(version);
+  }
   database.exec(SQLITE_SCHEMA);
+  database.exec(`PRAGMA user_version = ${SQLITE_SCHEMA_VERSION}`);
   const statement = (sql: string) => database.prepare(sql);
   const findSlideshow = statement(`SELECT ${SLIDESHOW_COLUMNS} FROM slideshows WHERE id = ?`);
   const listSlideshows = statement(

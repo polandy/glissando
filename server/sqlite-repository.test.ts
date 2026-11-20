@@ -2,6 +2,7 @@ import { DatabaseSync } from "node:sqlite";
 import { describe, expect, it } from "vitest";
 import { describeLibraryRepositoryContract } from "./repository-contract";
 import { openSqliteRepository } from "./sqlite-repository";
+import { NewerSqliteSchemaError, SQLITE_SCHEMA_VERSION } from "./sqlite-schema";
 import { sampleDocument } from "./testing/library-harness";
 
 const IN_MEMORY = ":memory:";
@@ -22,6 +23,27 @@ describe("openSqliteRepository", () => {
       uploadedAt: 1000,
     });
     expect(openSqliteRepository(database, ignoreLog).findMusic("music-a")).toBeDefined();
+  });
+
+  it("stamps the schema version, also on a database its tables were created in before", () => {
+    const database = new DatabaseSync(IN_MEMORY);
+    openSqliteRepository(database, ignoreLog);
+    database.exec("PRAGMA user_version = 0");
+    openSqliteRepository(database, ignoreLog);
+    expect(database.prepare("PRAGMA user_version").get()).toEqual({
+      user_version: SQLITE_SCHEMA_VERSION,
+    });
+  });
+
+  it("refuses a database a newer schema version wrote and leaves it as it was", () => {
+    const database = new DatabaseSync(IN_MEMORY);
+    const newer = SQLITE_SCHEMA_VERSION + 1;
+    database.exec(`PRAGMA user_version = ${newer}`);
+    expect(() => openSqliteRepository(database, ignoreLog)).toThrow(NewerSqliteSchemaError);
+    expect(database.prepare("PRAGMA user_version").get()).toEqual({ user_version: newer });
+    expect(database.prepare("SELECT count(*) AS tables FROM sqlite_schema").get()).toEqual({
+      tables: 0,
+    });
   });
 
   it("turns foreign keys on, so deleting a slideshow deletes its share link in a database opened without them", () => {

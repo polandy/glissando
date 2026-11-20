@@ -20,9 +20,21 @@ export function openLibraryStore(
   hooks: LibraryOpenHooks = { onNewerVersion: () => undefined, onBlocked: () => undefined },
 ): Promise<IndexedDbLibraryStore> {
   const request = indexedDB.open(LIBRARY_DATABASE_NAME, SCHEMA_VERSION);
-  request.onupgradeneeded = () => upgradeLibraryDatabase(request.result);
+  let refusal: unknown;
+  request.onupgradeneeded = (event) => {
+    const transaction = request.transaction;
+    if (transaction === null) throw new Error("upgradeneeded fired without its transaction");
+    try {
+      upgradeLibraryDatabase(transaction, event.oldVersion);
+    } catch (error) {
+      // Aborting ourselves keeps the step's error; a thrown one would surface as an AbortError.
+      refusal = error;
+      transaction.abort();
+    }
+  };
   request.onblocked = hooks.onBlocked;
   return requestResult(request).then(
     () => new IndexedDbLibraryStore(request.result, hooks.onNewerVersion),
+    (error: unknown) => Promise.reject(refusal ?? error),
   );
 }
