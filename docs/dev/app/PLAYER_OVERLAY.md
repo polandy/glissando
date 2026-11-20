@@ -5,7 +5,9 @@ and asks for fullscreen where the browser has the Fullscreen API (a refusal is l
 level). Closing destroys the player.
 
 - Start position: the player route may carry a picture id. `app/player/play-start.ts` (`playStart`) maps it to the slide that plays it — a pair's slide for either of its pictures — and that slide's start in seconds; an unknown or skipped picture, or none, starts at 0. The overlay calls `startAt(seconds)`. The show then runs normally; Previous and the seek bar can go before the chosen picture. Starting past 0 fades the music in over `START_FADE_IN_MS` (1 s); a later seek or replay does not. After a picture fails, the show restarts at the next slide through `startAt` too, so the music fades in on every such recovery.
-- A tap toggles the controls. While playing they hide after 2.5 s; paused or ended they stay.
+- A tap toggles the controls; a mouse move or a key press shows them. While playing they hide after
+  2.5 s; paused or ended they stay, and so do they while keyboard focus (`:focus-visible`) is
+  inside them — a Tab shows them, and they neither hide nor go inert until focus leaves.
   They fade in `CAPTION_GLIDE_MS` (0.3 s), the time captions glide with them; the fade is off
   with reduced motion.
 - Top: close, the title with the current slide's own capture date — empty over a slide that

@@ -4,13 +4,15 @@ export const CONTROLS_HIDE_DELAY_MS = 2500;
 
 /**
  * Whether the player's controls show: a tap toggles them; during playback they hide themselves
- * after a moment without interaction, while paused or ended they stay.
+ * after a moment without interaction, while paused or ended or held (keyboard focus inside) they
+ * stay.
  */
 export class ControlsVisibility {
   readonly #scheduler: Scheduler;
   readonly #onChange: (visible: boolean) => void;
   #visible = true;
   #playing = false;
+  #held = false;
   #cancelHide: (() => void) | null = null;
 
   constructor(scheduler: Scheduler, onChange: (visible: boolean) => void) {
@@ -35,8 +37,17 @@ export class ControlsVisibility {
     }
   }
 
+  /** While held the controls show and never hide; ending the hold restarts the hide delay. */
+  hold(held: boolean): void {
+    if (held === this.#held) {
+      return;
+    }
+    this.#held = held;
+    this.reveal();
+  }
+
   toggle(): void {
-    if (this.#visible) {
+    if (this.#visible && !this.#held) {
       this.#cancel();
       this.#set(false);
     } else {
@@ -56,7 +67,7 @@ export class ControlsVisibility {
 
   #armHide(): void {
     this.#cancel();
-    if (this.#playing && this.#visible) {
+    if (this.#playing && this.#visible && !this.#held) {
       this.#cancelHide = this.#scheduler.after(CONTROLS_HIDE_DELAY_MS, () => {
         this.#cancelHide = null;
         this.#set(false);
