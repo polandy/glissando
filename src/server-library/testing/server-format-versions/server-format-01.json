@@ -1,0 +1,54 @@
+{
+  "format": "glissando-server",
+  "formatVersion": 1,
+  "slideshow": {
+    "title": "Server format version 1",
+    "createdAt": "2025-10-01T08:00:00.000Z",
+    "secondsPerPicture": 6,
+    "ownOrder": true,
+    "transition": "alternate",
+    "pictures": [
+      {
+        "capturedAt": "2025-09-30T10:00:00Z",
+        "width": 40,
+        "height": 30,
+        "fileName": "a.jpg",
+        "kenBurns": {
+          "from": {
+            "zoom": 2,
+            "centerX": 0.25,
+            "centerY": 0.5
+          },
+          "to": {
+            "zoom": 1.25,
+            "centerX": 0.6,
+            "centerY": 0.4
+          }
+        },
+        "caption": "Am Steg",
+        "durationMs": 8000,
+        "transition": "dissolve",
+        "immichAssetId": "asset-1"
+      },
+      {
+        "capturedAt": "2025-10-02T10:00:00Z",
+        "width": 40,
+        "height": 30,
+        "fileName": "b.jpg",
+        "immichAssetId": "asset-2"
+      }
+    ],
+    "music": {
+      "musicId": "2d7c9e5a-3b4f-4a8c-9dae-9f8a7b6c5d4e",
+      "fileName": "Walzer.m4a",
+      "durationMs": 240000,
+      "mimeType": "audio/mp4",
+      "trim": {
+        "startMs": 12000,
+        "endMs": 200000
+      },
+      "fadeInMs": 2000,
+      "fadeOutMs": 5000
+    }
+  }
+}

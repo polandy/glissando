@@ -20,7 +20,7 @@ readonly PICTURE_HEADERS="cache-control content-length content-type date etag re
 # never drifts from what the image actually reads.
 SERVER_DOCUMENT_FORMAT_VERSION=$(
 	sed -n 's/^export const SERVER_DOCUMENT_FORMAT_VERSION = \([0-9]*\);$/\1/p' \
-		src/server-library/server-document.ts
+		src/server-library/server-document-versions.ts
 )
 readonly SERVER_DOCUMENT_FORMAT_VERSION
 document() { # title

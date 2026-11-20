@@ -38,5 +38,6 @@ Option 3, for both stores.
   get when created, and each step comes with a test that upgrades a library holding records.
 - A library at schema version 7 or older, from before this rule, does not open; it is deleted by
   hand. Raising `OLDEST_MIGRATABLE_SCHEMA_VERSION` needs an owner decision.
-- An older server document version inside the database is still refused per document
-  (`SERVER_DOCUMENT_FORMAT_VERSION`); migrating it is open work in `TODO.md`.
+- A server document inside the database migrates the same way, per document: every
+  `formatVersion` from 1 on is read through a chain of steps into the current shape
+  (`server-document-versions.ts`, `docs/dev/server_library/SERVER_DOCUMENT.md`, Versions).

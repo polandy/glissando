@@ -215,7 +215,7 @@ function seedDocument(title, createdAt, members, extraPictures = []) {
   }));
   return {
     format: "glissando-server",
-    // Keep in step with src/server-library/server-document.ts's SERVER_DOCUMENT_FORMAT_VERSION.
+    // Keep in step with src/server-library/server-document-versions.ts's SERVER_DOCUMENT_FORMAT_VERSION.
     formatVersion: 7,
     slideshow: {
       title,

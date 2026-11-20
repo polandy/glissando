@@ -1,22 +1,23 @@
 import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
-import { REPEAT_MUSIC_FROM_VERSION, ownMusicFields } from "../glissando-file/glissando-manifest";
+import { ownMusicFields } from "../glissando-file/glissando-manifest";
 import { cardFromManifest, cardToManifest } from "../glissando-file/manifest-card";
 import { DocumentFormatError, readObject, readText } from "../glissando-file/document-values";
 import {
   readPictures,
   readSlideshowFields,
   readSongs,
-  slideshowKeys,
   type MusicFields,
   type PictureFields,
   type SlideshowFields,
 } from "../glissando-file/slideshow-fields";
+import { readMusicFields, readPictureFields } from "../glissando-file/slideshow-fields-media";
 import {
-  musicKeys,
-  pictureKeys,
-  readMusicFields,
-  readPictureFields,
-} from "../glissando-file/slideshow-fields-media";
+  OLDEST_SERVER_DOCUMENT_FORMAT_VERSION,
+  SERVER_DOCUMENT_FORMAT_VERSION,
+  isReadableServerVersion,
+  migrateServerSlideshow,
+  serverKeys,
+} from "./server-document-versions";
 
 /**
  * A slideshow on the Glissando server: the .glissando manifest's slideshow with every picture
@@ -25,34 +26,14 @@ import {
  */
 
 const SERVER_DOCUMENT_FORMAT_ID = "glissando-server";
-/**
- * Version 2 added the slideshow's `openingCard` and `closingCard` (ADR-0032), version 3 a
- * picture's `colours` and a card's picture background `tint` (ADR-0033), version 4 the
- * slideshow's `look` (ADR-0044), version 5 the slideshow's `mood` (ADR-0045), version 6 the
- * slideshow's `energyPacing` (ADR-0046), version 7 the slideshow's `repeatMusic` (ADR-0047). Only
- * version 7 is read: there is no production instance yet, so an older document is refused rather
- * than migrated.
- */
-export const SERVER_DOCUMENT_FORMAT_VERSION = 7;
-/** The manifest format version whose slideshow fields a server document carries. */
-const MANIFEST_FIELDS_VERSION = REPEAT_MUSIC_FROM_VERSION;
-/** Trip chapters (`docs/dev/player/TRIP_CHAPTERS.md`) are not part of a server document yet. */
-const TRIP_CHAPTER_KEYS = ["automaticChaptersOff", "chapterEdits", "addedChapters"];
-/** Every key a server document's slideshow, each picture and each song may carry. */
-export const SERVER_SLIDESHOW_KEYS: readonly string[] = slideshowKeys(
-  MANIFEST_FIELDS_VERSION,
-).filter((key) => !TRIP_CHAPTER_KEYS.includes(key));
-export const SERVER_PICTURE_KEYS: readonly string[] = [
-  // A picture's resolved `place` is not part of a server document yet, like trip chapters.
-  ...pictureKeys(MANIFEST_FIELDS_VERSION).filter((key) => key !== "place"),
-  "immichAssetId",
-];
-export const SERVER_MUSIC_KEYS: readonly string[] = [
-  ...musicKeys(MANIFEST_FIELDS_VERSION),
-  "musicId",
-];
+export { OLDEST_SERVER_DOCUMENT_FORMAT_VERSION, SERVER_DOCUMENT_FORMAT_VERSION };
+const CURRENT_KEYS = serverKeys(SERVER_DOCUMENT_FORMAT_VERSION);
+/** Every key a current server document's slideshow, each picture and each song may carry. */
+export const SERVER_SLIDESHOW_KEYS: readonly string[] = CURRENT_KEYS.slideshow;
+export const SERVER_PICTURE_KEYS: readonly string[] = CURRENT_KEYS.picture;
+export const SERVER_MUSIC_KEYS: readonly string[] = CURRENT_KEYS.music;
 
-/** A server document's picture fields: no resolved `place` yet (`MANIFEST_FIELDS_VERSION`). */
+/** A server document's picture fields: no resolved `place` yet. */
 export interface ServerPicture extends Omit<PictureFields, "place"> {
   readonly immichAssetId: string;
 }
@@ -62,7 +43,7 @@ export interface ServerMusic extends MusicFields {
   readonly musicId: string;
 }
 
-/** A server document's slideshow fields: no trip chapters yet (`MANIFEST_FIELDS_VERSION`). */
+/** A server document's slideshow fields: no trip chapters yet. */
 export interface ServerSlideshow extends Omit<
   SlideshowFields,
   "automaticChaptersOff" | "chapterEdits" | "addedChapters"
@@ -84,20 +65,26 @@ export function readServerDocument(json: unknown): ServerDocument {
   if (root["format"] !== SERVER_DOCUMENT_FORMAT_ID) {
     throw new DocumentFormatError("format", `"${SERVER_DOCUMENT_FORMAT_ID}"`, root["format"]);
   }
-  if (root["formatVersion"] !== SERVER_DOCUMENT_FORMAT_VERSION) {
+  const version = root["formatVersion"];
+  if (!isReadableServerVersion(version)) {
     throw new DocumentFormatError(
       "formatVersion",
-      String(SERVER_DOCUMENT_FORMAT_VERSION),
-      root["formatVersion"],
+      `a whole number from ${OLDEST_SERVER_DOCUMENT_FORMAT_VERSION} to ${SERVER_DOCUMENT_FORMAT_VERSION}`,
+      version,
     );
   }
   const path = "slideshow";
-  // A single `music` is refused as an unknown key, like any other field this version does not
-  // carry (ADR-0023).
-  const show = readObject(root["slideshow"], path, SERVER_SLIDESHOW_KEYS);
-  const pictures = readPictures(show, path, readPicture);
+  const keys = serverKeys(version);
+  const show = readObject(
+    migrateServerSlideshow(root["slideshow"], version, path),
+    path,
+    keys.slideshow,
+  );
+  const pictures = readPictures(show, path, (picture, picturePath) =>
+    readPicture(picture, picturePath, keys.picture),
+  );
   refuseRepeatedAssets(pictures, path);
-  const songs = readSongs(show, path, readMusic);
+  const songs = readSongs(show, path, (song, songPath) => readMusic(song, songPath, keys.music));
   refuseRepeatedMusicIds(songs, path);
   return {
     format: SERVER_DOCUMENT_FORMAT_ID,
@@ -124,8 +111,8 @@ function refuseRepeatedMusicIds(songs: readonly ServerMusic[], path: string): vo
   }
 }
 
-function readPicture(value: unknown, path: string): ServerPicture {
-  const picture = readObject(value, path, SERVER_PICTURE_KEYS);
+function readPicture(value: unknown, path: string, keys: readonly string[]): ServerPicture {
+  const picture = readObject(value, path, keys);
   return {
     ...readPictureFields(picture, path),
     immichAssetId: readText(picture["immichAssetId"], `${path}.immichAssetId`),
@@ -146,8 +133,8 @@ function refuseRepeatedAssets(pictures: readonly ServerPicture[], path: string):
   }
 }
 
-function readMusic(value: unknown, path: string): ServerMusic {
-  const music = readObject(value, path, SERVER_MUSIC_KEYS);
+function readMusic(value: unknown, path: string, keys: readonly string[]): ServerMusic {
+  const music = readObject(value, path, keys);
   return {
     ...readMusicFields(music, path),
     musicId: readText(music["musicId"], `${path}.musicId`),
