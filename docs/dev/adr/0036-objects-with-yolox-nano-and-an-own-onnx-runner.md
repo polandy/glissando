@@ -55,6 +55,7 @@ constraints of ADR-0012 stand: in the browser, offline, every asset shipped by t
   and would race the test timeout on a loaded machine.
 - A different network later needs only the operators it uses added to `tensor-ops.ts`; if the
   time per picture matters more than the download, onnxruntime-web can replace the runner
-  behind the `ObjectNetwork` the worker hands `objectFocus` without touching anything else.
+  behind the `ObjectNetwork` the worker hands `objectFocus` without touching anything else. ADR-0060
+  (proposed) puts an own Rust WASM module there instead.
 - A result found before the object detection is outdated by its detector version and looked at
   again (ADR-0041).
