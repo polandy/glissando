@@ -2,6 +2,7 @@
 // each one allocates its output there and leaves freeing to whoever holds the arena's mark.
 import { item } from "./item";
 import type { Operators } from "./run-onnx";
+import type { Tensor } from "./tensor-ops";
 import {
   concatDims,
   convGeometry,
@@ -16,6 +17,7 @@ import {
 } from "./tensor-layout";
 import {
   allocate,
+  copyIn,
   copyInts,
   floats,
   type Address,
@@ -175,4 +177,28 @@ export function arenaOperators(module: KernelModule): Operators<ArenaTensor> {
       ),
     values: (tensor) => [...floats(module, tensor.address, sizeOf(tensor.dims))],
   };
+}
+
+/** Runs `work` and frees everything it allocated in the arena, also when it throws. */
+export function hosted<T>(module: KernelModule, work: () => T): T {
+  const mark = module.arena_mark();
+  try {
+    return work();
+  } finally {
+    module.arena_reset(mark);
+  }
+}
+
+export function toArena(module: KernelModule, tensor: Tensor): ArenaTensor {
+  if (tensor.data.length !== sizeOf(tensor.dims)) {
+    throw new RangeError(
+      `A tensor of ${tensor.data.length} floats cannot have shape ${tensor.dims}`,
+    );
+  }
+  return { dims: tensor.dims, address: copyIn(module, tensor.data) };
+}
+
+/** A copy of an arena tensor that outlives the arena's next reset. */
+export function readOut(module: KernelModule, tensor: ArenaTensor): Tensor {
+  return { dims: tensor.dims, data: floats(module, tensor.address, sizeOf(tensor.dims)).slice() };
 }

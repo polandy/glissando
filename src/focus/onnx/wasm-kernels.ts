@@ -2,9 +2,8 @@
 // each call copies its tensors into the module's arena and frees them before it returns.
 import type { Operators } from "./run-onnx";
 import type { Tensor } from "./tensor-ops";
-import { sizeOf } from "./tensor-layout";
-import { arenaOperators, type ArenaTensor } from "./wasm-operators";
-import { copyIn, floats, instantiateKernels, type KernelModule } from "./wasm-module";
+import { instantiateKernels } from "./wasm-module";
+import { arenaOperators, hosted, readOut, toArena, type ArenaTensor } from "./wasm-operators";
 
 export type WasmKernels = Omit<Operators<Tensor>, "values"> & {
   /** How far the arena reaches into the module's memory, in bytes. */
@@ -49,28 +48,4 @@ export async function loadWasmKernels(bytes: BufferSource): Promise<WasmKernels>
       ),
     bytesInUse: () => module.arena_mark(),
   };
-}
-
-/** Runs `work` and frees everything it allocated in the arena, also when it throws. */
-export function hosted<T>(module: KernelModule, work: () => T): T {
-  const mark = module.arena_mark();
-  try {
-    return work();
-  } finally {
-    module.arena_reset(mark);
-  }
-}
-
-export function toArena(module: KernelModule, tensor: Tensor): ArenaTensor {
-  if (tensor.data.length !== sizeOf(tensor.dims)) {
-    throw new RangeError(
-      `A tensor of ${tensor.data.length} floats cannot have shape ${tensor.dims}`,
-    );
-  }
-  return { dims: tensor.dims, address: copyIn(module, tensor.data) };
-}
-
-/** A copy of an arena tensor that outlives the arena's next reset. */
-export function readOut(module: KernelModule, tensor: ArenaTensor): Tensor {
-  return { dims: tensor.dims, data: floats(module, tensor.address, sizeOf(tensor.dims)).slice() };
 }

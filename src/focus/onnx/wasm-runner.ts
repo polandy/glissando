@@ -4,9 +4,8 @@ import { fuseSilu } from "./fuse-silu";
 import type { OnnxGraph } from "./onnx-model";
 import { walkGraph } from "./run-onnx";
 import type { Tensor } from "./tensor-ops";
-import { hosted, readOut, toArena } from "./wasm-kernels";
 import { instantiateKernels } from "./wasm-module";
-import { arenaOperators, type ArenaTensor } from "./wasm-operators";
+import { arenaOperators, hosted, readOut, toArena, type ArenaTensor } from "./wasm-operators";
 
 export interface WasmNetwork {
   (input: Tensor): Tensor;
