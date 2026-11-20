@@ -1,3 +1,17 @@
+/** The tables' shape version, kept in `PRAGMA user_version` (ADR-0059). */
+export const SQLITE_SCHEMA_VERSION = 1;
+
+/** A database a newer Glissando server wrote; it is left as it was. */
+export class NewerSqliteSchemaError extends Error {
+  constructor(version: number) {
+    super(
+      `The library database is at schema version ${version}, newer than ${SQLITE_SCHEMA_VERSION}, ` +
+        `the newest this server reads; it left the database untouched. Run a newer Glissando server.`,
+    );
+    this.name = "NewerSqliteSchemaError";
+  }
+}
+
 /**
  * The repository's tables and views, each created when missing. Foreign keys are off in SQLite
  * unless a connection turns them on; share_links needs its cascade.

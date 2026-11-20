@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { IndexedDbLibraryStore, LIBRARY_DATABASE_NAME } from "./indexeddb-store";
 import { isNewerVersionError, openLibraryStore } from "./indexeddb-open";
+import { UnmigratableLibraryError } from "./indexeddb-schema";
 import { describeLibraryStoreContract } from "./testing/library-store-contract";
 import { MemoryLibraryStore } from "./testing/memory-store";
 
@@ -111,73 +112,6 @@ describe("IndexedDbLibraryStore saves", () => {
   });
 });
 
-describe("IndexedDbLibraryStore schema upgrade", () => {
-  /** A library as schema version 3 left it, with records, and a store the current schema lacks. */
-  function openVersionThreeWithRecords(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(LIBRARY_DATABASE_NAME, 3);
-      request.onupgradeneeded = () => {
-        const database = request.result;
-        database.createObjectStore("slideshows", { keyPath: "id" }).put({ id: "show-1" });
-        database.createObjectStore("pictures").put({ display: "d" }, "saved-picture");
-        database.createObjectStore("music").put({ bytes: "m" }, "saved-music");
-        database.createObjectStore("imports", { keyPath: "id" }).put({ id: "import-1" });
-        database.createObjectStore("focus").put({ kind: "none" }, "saved-picture");
-        database.createObjectStore("retired").put("r", "retired-1");
-      };
-      request.onsuccess = () => {
-        request.result.close();
-        resolve();
-      };
-      request.onerror = () => reject(request.error ?? new Error("opening version 3 failed"));
-    });
-  }
-
-  /** Each store of the library database at its current version, with its record count. */
-  function storeCounts(): Promise<Record<string, number>> {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(LIBRARY_DATABASE_NAME);
-      request.onerror = () => reject(request.error ?? new Error("opening the database failed"));
-      request.onsuccess = () => {
-        const database = request.result;
-        const names = [...database.objectStoreNames];
-        const transaction = database.transaction(names, "readonly");
-        const counts: Record<string, number> = {};
-        for (const name of names) {
-          const count = transaction.objectStore(name).count();
-          count.onsuccess = () => (counts[name] = count.result);
-        }
-        transaction.oncomplete = () => {
-          database.close();
-          resolve(counts);
-        };
-        transaction.onerror = () => reject(transaction.error ?? new Error("counting failed"));
-      };
-    });
-  }
-
-  it("drops every store of an older library and creates the current set, empty", async () => {
-    await deleteLibraryDatabase();
-    await openVersionThreeWithRecords();
-
-    (await openLibraryStore(indexedDB)).close();
-    try {
-      expect(await storeCounts()).toEqual({
-        slideshows: 0,
-        pictures: 0,
-        music: 0,
-        imports: 0,
-        focus: 0,
-        beats: 0,
-        videos: 0,
-        loudness: 0,
-      });
-    } finally {
-      await deleteLibraryDatabase();
-    }
-  });
-});
-
 describe("IndexedDbLibraryStore beside another tab's schema version", () => {
   const NEWER_VERSION = 1000;
   const hooks = (events: string[]) => ({
@@ -231,7 +165,8 @@ describe("IndexedDbLibraryStore beside another tab's schema version", () => {
     });
     await blocked.promise;
     holder.close();
-    (await opening).close();
+    // No older version migrates yet, so the upgrade it waited for refuses version 1.
+    await expect(opening).rejects.toBeInstanceOf(UnmigratableLibraryError);
     await deleteLibraryDatabase();
   });
 });

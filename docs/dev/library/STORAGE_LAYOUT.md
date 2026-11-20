@@ -1,9 +1,10 @@
 # Storage layout
 
-One IndexedDB database, `glissando` (schema version 8). An older version is not migrated: its
-upgrade drops every store and creates the current set, so the library starts empty (no production
-instance yet). A slideshow record holds `songs` (ADR-0023); one holding a single `music` is not read,
-and such a database is cleared by hand:
+One IndexedDB database, `glissando` (schema version 8). An upgrade keeps the data: a new library
+gets the current stores, one at version 8 or newer runs the migration steps after its version,
+and an older one is refused untouched with `UnmigratableLibraryError` (ADR-0059). A schema change
+adds a step, never a wipe. A slideshow record holds `songs` (ADR-0023); one holding a single
+`music` is not read:
 
 | Object store | Key      | Value                                                                                                                                       |
 | ------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- |

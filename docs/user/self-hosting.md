@@ -135,7 +135,9 @@ directory of the host instead (`./glissando-data:/data`), make it writable for u
 app asks before deleting, but there is no sign-in of its own; protect it as described above.
 **Back up the volume** with your other backups: a deleted or changed slideshow cannot be restored
 from Glissando. Copy the volume while the container is stopped, or back up the whole directory
-including `library.sqlite-wal` together.
+including `library.sqlite-wal` together. An update keeps the slideshows on the server; an older
+Glissando does not start on a database a newer one has changed, so restore the backup from
+before the update if you go back.
 
 Once the volume is set, the app shows the library in two sections, "On this device" and "On your
 Glissando server". A new slideshow asks "Where should it live?" (the device remembers your last

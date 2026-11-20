@@ -13,7 +13,8 @@
   `music(id, content_type, bytes, uploaded_at)`, `music_beats(music_id, beats)`,
   `picture_focus(asset_id, detector, focus, found_at)` (ADR-0041) and
   `share_links(slideshow_id, token, created_at)` (share_link/STORAGE.md), times in
-  milliseconds since the epoch; WAL mode; every write in one transaction. Whether music or a
+  milliseconds since the epoch; WAL mode; every write in one transaction. The schema version is
+  `PRAGMA user_version` (`SQLITE_SCHEMA_VERSION`); a newer one stops the start, untouched (ADR-0059). Whether music or a
   picture is referenced is read from the documents (`json_extract`), so no second record of it can
   drift.
 - **Ports**: a `LibraryRepository` (the SQLite adapter and an in-memory fake run the same contract
