@@ -147,15 +147,15 @@ async function createSlideshow(page, folder) {
   await chooseFiles(page, "Bilder auswählen", written(folder, await pictures(page)));
   await page.getByText(`${PICTURE_COUNT} Bilder`, { exact: true }).waitFor();
   await page.getByRole("button", { name: "Weiter" }).click();
-  await chooseFiles(page, "Musik auswählen", written(folder, [musicWav(MUSIC_SECONDS)]));
+  await chooseFiles(page, "Dateien wählen", written(folder, [musicWav(MUSIC_SECONDS)]));
   await page.getByRole("button", { name: "Diashow erstellen" }).click();
-  await page.getByRole("status").filter({ hasText: "Diashow erstellt" }).waitFor();
+  await page.getByRole("button", { name: "Abspielen" }).first().waitFor();
 }
 
 async function exportOnce(page, presetId, workDir) {
   await page.getByRole("button", { name: "Teilen", exact: true }).click();
   await page.getByRole("button", { name: /^Video/ }).click();
-  const sheet = page.getByRole("dialog", { name: "Als Video sichern" });
+  const sheet = page.getByRole("dialog", { name: "Video" });
   const radio = sheet.getByRole("radio", { name: new RegExp(`^${PRESET_NAMES[presetId]}`) });
   await radio.waitFor();
   if ((await radio.getAttribute("aria-disabled")) === "true") {
