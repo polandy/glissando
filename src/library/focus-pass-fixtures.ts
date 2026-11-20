@@ -61,7 +61,7 @@ export function answersBy(thumbnails: Map<string, Blob>, focus: Record<string, P
   };
 }
 
-/** Wraps a detector: tells when the n-th detection starts and how many ever ran at once. */
+/** Wraps a detector: tells when the n-th detection or measurement starts and how many ran at once. */
 export class ObservedDetector implements FocusDetector {
   readonly #inner: FocusDetector;
   readonly #starts: PromiseWithResolvers<undefined>[] = [];
