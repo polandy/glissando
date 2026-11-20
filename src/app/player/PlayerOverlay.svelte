@@ -15,6 +15,7 @@
   import PlayerCaption from "./PlayerCaption.svelte";
   import PlayerClipNotice from "./PlayerClipNotice.svelte";
   import PlayerCard from "./PlayerCard.svelte";
+  import { playerRevealHandlers } from "./player-reveal-handlers";
   import type { PlayerFailure } from "./player-failure";
   import { failureOfPlayerError } from "./player-error";
   import { ControlsVisibility } from "../../ui-kit/controls-visibility";
@@ -90,6 +91,7 @@
   // svelte-ignore state_referenced_locally
   const controls = new ControlsVisibility(scheduler, (visible) => (controlsVisible = visible));
 
+  const revealOnInput = playerRevealHandlers(controls, () => root);
   const slideCount = $derived(boundaries.starts.length);
   const slideNumber = $derived(slideIndexAt(boundaries, currentTime) + 1);
   $effect(() => onSlide?.(slideNumber - 1));
@@ -165,6 +167,7 @@
   }
 
   function onKeydown(event: KeyboardEvent): void {
+    revealOnInput.onTab(event);
     const action = playerActionForKey(event);
     if (action !== null) {
       event.preventDefault();
@@ -192,6 +195,7 @@
   aria-modal="true"
   aria-label={slideshow.title}
   aria-busy={waitingForMedia}
+  {...revealOnInput.handlers}
 >
   <!-- A tap toggles the controls; the keyboard has its own shortcuts. -->
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->

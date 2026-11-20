@@ -37,6 +37,12 @@ test("E2E-136 the seek bar jumps to the picture at the chosen time", async ({ pa
   await expect(seekBar(page)).toHaveAttribute("aria-valuetext", "0:20");
 });
 
+/** A click without the pointer move `mouse.click` sends first, which would reveal the controls. */
+async function tapInPlace(page: Page): Promise<void> {
+  await page.mouse.down();
+  await page.mouse.up();
+}
+
 test("E2E-137 a tap hides and shows the controls, and playing hides them after 2.5 s", async ({
   page,
 }) => {
@@ -56,12 +62,40 @@ test("E2E-137 a tap hides and shows the controls, and playing hides them after 2
   await controls.focus();
   await expect(controls).not.toBeFocused();
 
-  // A tap on the picture brings them back, a second tap hides them again.
-  await player(page, TITLE).click({ position: { x: 100, y: 200 } });
+  // The pointer rests on the picture: a tap hides the controls, a second tap brings them back.
+  await page.mouse.move(100, 200);
+  await expect(controls).toBeVisible();
+  await tapInPlace(page);
+  await expect(player(page, TITLE)).toHaveCSS("cursor", "none");
+  await tapInPlace(page);
   await expect(controls).toBeVisible();
   await expect(player(page, TITLE)).toHaveCSS("cursor", "auto");
-  await player(page, TITLE).click({ position: { x: 100, y: 200 } });
+});
+
+test("E2E-152 a mouse move brings the hidden controls back", async ({ page }) => {
+  await playTwoPicturesOnHeldClock(page);
+  await page.clock.fastForward(CONTROLS_HIDE_DELAY_MS);
   await expect(player(page, TITLE)).toHaveCSS("cursor", "none");
+
+  await page.mouse.move(120, 220);
+
+  await expect(player(page, TITLE)).toHaveCSS("cursor", "auto");
+  await expect(player(page, TITLE).getByRole("button", { name: "Pause" })).toBeVisible();
+});
+
+test("E2E-153 the controls stay while keyboard focus is inside them", async ({ page }) => {
+  await playTwoPicturesOnHeldClock(page);
+  await page.clock.fastForward(CONTROLS_HIDE_DELAY_MS);
+  await expect(player(page, TITLE)).toHaveCSS("cursor", "none");
+
+  await page.keyboard.press("Tab");
+  const focused = player(page, TITLE).locator(":focus");
+  await expect(focused).toBeVisible();
+  await expect(player(page, TITLE)).toHaveCSS("cursor", "auto");
+
+  await page.clock.fastForward(CONTROLS_HIDE_DELAY_MS * 4);
+  await expect(focused).toBeFocused();
+  await expect(player(page, TITLE)).toHaveCSS("cursor", "auto");
 });
 
 test("E2E-138 Back more than a second into a picture restarts it, else goes to the one before", async ({

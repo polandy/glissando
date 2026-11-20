@@ -92,6 +92,41 @@ describe("player controls visibility", () => {
     expect(controls.visible).toBe(true);
   });
 
+  it("keeps the controls while held, however long playback runs", () => {
+    const { scheduler, controls } = setUp();
+    controls.setPlaying(true);
+
+    controls.hold(true);
+    scheduler.advance(LONG_PAUSE_MS);
+
+    expect(controls.visible).toBe(true);
+    expect(scheduler.pending).toBe(0);
+  });
+
+  it("does not hide a held control on a tap", () => {
+    const { controls } = setUp();
+    controls.hold(true);
+
+    controls.toggle();
+
+    expect(controls.visible).toBe(true);
+  });
+
+  it("shows the controls when a hold starts, and hides them 2.5 s after it ends", () => {
+    const { scheduler, controls } = setUp();
+    controls.setPlaying(true);
+    scheduler.advance(CONTROLS_HIDE_DELAY_MS);
+    expect(controls.visible).toBe(false);
+
+    controls.hold(true);
+    expect(controls.visible).toBe(true);
+    controls.hold(false);
+    scheduler.advance(CONTROLS_HIDE_DELAY_MS - 1);
+    expect(controls.visible).toBe(true);
+    scheduler.advance(1);
+    expect(controls.visible).toBe(false);
+  });
+
   it("forgets its timer once disposed", () => {
     const { scheduler, controls } = setUp();
     controls.setPlaying(true);
