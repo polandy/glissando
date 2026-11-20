@@ -7,9 +7,11 @@ a time, its thumbnail through the `FocusDetector` (a worker) into the store: a f
 ADR-0012, `foundBy: "face"`), and only when there is none the main object (YOLOX-nano, any of its
 80 classes, ADR-0036, `foundBy: "object"`), stored the same way as a `{kind: "subject"}` box; with
 neither, a wide picture that is mostly green or blue, or has a calm sky over a busier ground, is
-`{kind: "scenery"}` (ADR-0037) and gets a sideways sweep. Every stored focus carries `detector`,
-the `FOCUS_DETECTOR_VERSION` that found it (1 faces, ADR-0012; 2 objects, ADR-0036; 3 scenery,
-ADR-0037); a record from an older version is outdated and is looked at again, the old result used
+`{kind: "scenery"}` (ADR-0037) and gets a sideways sweep. Where the store reads the picture as
+shown (`playbackPictureBlob`, the device pass only), the detector gets it too and the focus
+carries its `sharpness` on screen, which caps the motion's zoom (ADR-0061). Every stored focus
+carries `detector`, the `FOCUS_DETECTOR_VERSION` that found it (1 faces, ADR-0012; 2 objects,
+ADR-0036; 3 scenery, ADR-0037; 4 sharpness, ADR-0061); a record from an older version is outdated and is looked at again, the old result used
 until the new one is stored (ADR-0041). It starts when the app opens and again whenever a
 slideshow is created (an import, an opened file, whose carried focus is stored on opening and
 needs no search while current, ADR-0053); a start while it runs only takes up the

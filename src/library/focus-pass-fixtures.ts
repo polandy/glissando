@@ -21,7 +21,7 @@ export function storedFocus(focus: PictureFocus, detector = FOCUS_DETECTOR_VERSI
 export const thumbnail = (id: string): Blob =>
   new Blob([`${id} thumbnail`], { type: "image/jpeg" });
 
-export const display = (id: string): Blob => new Blob([`${id} display`], { type: "image/jpeg" });
+const display = (id: string): Blob => new Blob([`${id} display`], { type: "image/jpeg" });
 
 /**
  * A store holding a slideshow per entry, each created a day after the one before (the pass takes

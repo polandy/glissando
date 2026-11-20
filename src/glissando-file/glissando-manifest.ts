@@ -38,23 +38,8 @@ export {
 
 export const GLISSANDO_FORMAT_ID = "glissando";
 /**
- * Version 2 added a picture's own Ken Burns motion (ADR-0006), version 3 its caption, version 4
- * its chosen duration and transition (ADR-0008), version 5 the music's excerpt and fades
- * (ADR-0009), version 6 the slideshow's default transition (ADR-0010), version 7 a picture's
- * origin, `immichAssetId` or `fileBytes` (ADR-0016), version 8 the music's picture changes
- * (ADR-0021), version 9 the slideshow's picture length (ADR-0022), version 10 the playlist,
- * `songs` and `betweenSongs` replacing the single `music` (ADR-0023), version 11 the slideshow's
- * `portraitPictures` and a picture's `alone` (ADR-0028), version 12 the slideshow's `openingCard`
- * and `closingCard` (ADR-0032), version 13 a picture's `colours` and a card's picture background
- * `tint` (ADR-0033), version 14 a picture's `video` and the `videos/` entries (ADR-0034), version
- * 15 a song's own volume, `volumeDb` (ADR-0040), version 16 a song's sample-track id,
- * `sampleTrack` (ADR-0042), version 17 a picture's resolved `place` (ADR-0043) and a slideshow's
- * trip chapters, `automaticChaptersOff`, `chapterEdits` and `addedChapters`
- * (`docs/dev/player/TRIP_CHAPTERS.md`), version 18 the slideshow's colour grade, `look`
- * (ADR-0044), version 19 the slideshow's mood (ADR-0045), version 20 the slideshow's energy
- * pacing, `energyPacing` (ADR-0046), version 21 the slideshow's music repeat, `repeatMusic`
- * (ADR-0047), version 22 a picture's found focus, `focus` (ADR-0053), version 23 that focus's measured
- * sharpness, `focus.focus.sharpness` (ADR-0061).
+ * What each version added: the `*_FROM_VERSION` constants below and
+ * `docs/dev/library/GLISSANDO_FILE.md`.
  *
  * Every version is read; `manifest-migrations.ts` reshapes an older slideshow (ADR-0054).
  */
