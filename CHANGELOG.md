@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.13](https://github.com/polandy/glissando/compare/glissando-v0.1.12...glissando-v0.1.13) (2026-11-20)
+
+
+### Bug Fixes
+
+* **scripts:** measure-video-export drives the current import and video sheet UI ([#404](https://github.com/polandy/glissando/issues/404)) ([5eb03a3](https://github.com/polandy/glissando/commit/5eb03a3ba3cadabc0cdc3fb4414433a75e5f444b))
+
+
+### Performance Improvements
+
+* **glissando-file:** slice-by-8 CRC-32 ([#402](https://github.com/polandy/glissando/issues/402)) ([bef87bb](https://github.com/polandy/glissando/commit/bef87bb9c47f70cdc5d6e443897f8a0ff09edba4))
+
 ## [0.1.12](https://github.com/polandy/glissando/compare/glissando-v0.1.11...glissando-v0.1.12) (2026-11-20)
 
 
