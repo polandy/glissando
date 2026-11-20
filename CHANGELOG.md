@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.12](https://github.com/polandy/glissando/compare/glissando-v0.1.11...glissando-v0.1.12) (2026-11-20)
+
+
+### Features
+
+* **library:** migrate the stored library and server database instead of wiping them ([#397](https://github.com/polandy/glissando/issues/397)) ([a622e58](https://github.com/polandy/glissando/commit/a622e58927e94508ee60e37ece2ee34059d0c153))
+
+
+### Bug Fixes
+
+* **player:** a mouse move or Tab shows the controls, and keyboard focus inside keeps them ([#401](https://github.com/polandy/glissando/issues/401)) ([66f52a5](https://github.com/polandy/glissando/commit/66f52a5552acf0eb72169f905ca4ae71ab91f280))
+* **tv:** TV hub robustness — protected pairings, max lifetime, stream and body caps ([#400](https://github.com/polandy/glissando/issues/400)) ([5243fa9](https://github.com/polandy/glissando/commit/5243fa92006e102b8280123ea1517162ae2cb337))
+* **video-export:** a WebGL context lost mid-export fails the export instead of writing black frames ([#399](https://github.com/polandy/glissando/issues/399)) ([da0153f](https://github.com/polandy/glissando/commit/da0153f186baf16f7e3d634ecd72ad82f87f0f0e))
+
 ## [0.1.11](https://github.com/polandy/glissando/compare/glissando-v0.1.10...glissando-v0.1.11) (2026-11-19)
 
 
