@@ -24,7 +24,7 @@ function serverPassStore(store: ServerSlideshowStore, puts: string[]): FocusPass
       puts.push(id);
       return store.putPictureFocus(id, focus);
     },
-    detectionInput: () => Promise.resolve(FACES),
+    detectionInput: () => Promise.resolve({ kind: "known", focus: FACES }),
   };
 }
 
@@ -32,7 +32,7 @@ function passOverServer(store: ServerSlideshowStore, puts: string[] = []): Focus
   return new FocusPass({
     store: serverPassStore(store, puts),
     detector: new FakeFocusDetector(() => {
-      throw new Error("detectionInput already answers a PictureFocus; the detector must not run");
+      throw new Error("detectionInput already answers a known focus; the detector must not run");
     }),
     log: () => undefined,
     reportError: () => undefined,

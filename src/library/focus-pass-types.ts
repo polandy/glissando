@@ -3,17 +3,25 @@ import type { FocusDetector } from "./focus-detector";
 import type { PictureFocus, StoredFocus } from "./picture-focus";
 import type { LibraryStore } from "./library-store";
 
+/**
+ * One picture's input: a thumbnail to detect on, or a focus already known, which skips the
+ * detector (ADR-0041); beside either, the picture as shown, to measure its sharpness on (ADR-0061).
+ */
+export type DetectionInput =
+  | { readonly kind: "detect"; readonly thumbnail: Blob; readonly display?: Blob }
+  | { readonly kind: "known"; readonly focus: PictureFocus; readonly display?: Blob };
+
 export interface FocusPassPorts {
   readonly store: Pick<
     LibraryStore,
     "listSlideshows" | "pictureFocus" | "thumbnailBlob" | "putPictureFocus"
   > & {
     /**
-     * What to detect a picture's focus on, in place of its thumbnail: the server pass's input is
-     * Immich's own faces, or else its downscaled preview (ADR-0041). Answering a `PictureFocus`
-     * directly skips the detector entirely. Omitted, the pass reads `thumbnailBlob` as before.
+     * What to look at for a picture in place of `thumbnailBlob` and `playbackPictureBlob`: the
+     * server pass's input is Immich's own faces, or else its downscaled preview (ADR-0041), with
+     * the preview as shown beside either (ADR-0061).
      */
-    detectionInput?(pictureId: string): Promise<PictureFocus | Blob>;
+    detectionInput?(pictureId: string): Promise<DetectionInput>;
     /**
      * The picture as the player shows it, handed to the detector beside a thumbnail to measure
      * its sharpness on screen (ADR-0061). Omitted, the focus carries no sharpness.

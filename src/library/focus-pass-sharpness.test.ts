@@ -13,6 +13,10 @@ class RecordingDetector implements FocusDetector {
     this.seen.push({ thumbnail, display });
     return Promise.resolve(NOTHING);
   }
+
+  measure(): Promise<PictureFocus> {
+    return Promise.reject(new Error("the device pass has no known focus to measure"));
+  }
 }
 
 /** `store` without `playbackPictureBlob`, the way the server pass hands its store over. */
@@ -72,7 +76,10 @@ describe("FocusPass hands the detector the picture as shown, to measure its shar
   it("stores the focus the detector answers, sharpness included", async () => {
     const { store } = await storeWith({ "show-1": ["a"] });
     const measured: PictureFocus = { kind: "none", sharpness: 120 };
-    const detector: FocusDetector = { detect: () => Promise.resolve(measured) };
+    const detector: FocusDetector = {
+      detect: () => Promise.resolve(measured),
+      measure: () => Promise.reject(new Error("the device pass has no known focus to measure")),
+    };
     const { pass } = passOver(store, detector);
 
     pass.start();

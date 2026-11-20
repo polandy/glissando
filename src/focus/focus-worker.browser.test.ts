@@ -77,6 +77,25 @@ describe("the focus worker", () => {
     expect(unmeasured.sharpness).toBeUndefined();
   });
 
+  it("measures a focus found elsewhere on the picture as shown, keeping the focus", async () => {
+    const known: PictureFocus = {
+      kind: "subject",
+      box: { x: 0.25, y: 0.1, width: 0.5, height: 0.5 },
+      foundBy: "immich-faces",
+    };
+
+    const measured = await detector().measure(await thumbnail(astronautJpegUrl), known);
+
+    expect(measured).toEqual({ ...known, sharpness: expect.any(Number) });
+    expect(measured.sharpness).toBeGreaterThan(0);
+  });
+
+  it("fails a measurement whose display is no picture", async () => {
+    await expect(detector().measure(new Blob(["not a picture"]), { kind: "none" })).rejects.toThrow(
+      FocusDetectionError,
+    );
+  });
+
   it("finds the object in a thumbnail without a face", async () => {
     const focus = await detector().detect(await thumbnail(chelseaJpegUrl));
 

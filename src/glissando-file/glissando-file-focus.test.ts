@@ -34,6 +34,9 @@ class RecordingDetector implements FocusDetector {
     this.searched.push([THUMB_ONE, THUMB_TWO].find((marker) => text.endsWith(marker)) ?? text);
     return { kind: "none" };
   }
+  measure(): Promise<PictureFocus> {
+    return Promise.reject(new Error("an opened file's pictures have no known focus to measure"));
+  }
 }
 
 /** Opens `file` into an empty library and runs the focus pass over it to its end. */

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import type { FocusReply } from "./focus-worker-protocol";
+import type { FocusReply, FocusRequest } from "./focus-worker-protocol";
 import { postReply } from "./post-reply";
 
-const request = { id: 7, thumbnail: new Blob() };
+const request: FocusRequest = { id: 7, kind: "detect", thumbnail: new Blob() };
 const none: FocusReply = { id: 7, kind: "found", focus: { kind: "none" } };
 
 describe("postReply", () => {
