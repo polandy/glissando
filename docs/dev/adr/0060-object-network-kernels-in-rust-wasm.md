@@ -19,7 +19,7 @@ same tap-wise 3×3 conv algorithm as the JS one ran **7.7×** faster with `simd1
 its result within 1.4e-6 of the JS one.
 
 `objectFocus` takes the network as an `ObjectNetwork`, `(input: Tensor) => Tensor`, which
-`focus-worker.ts` builds from `runOnnx`. ADR-0036 names this seam as the place a faster runner
+the focus worker built from `runOnnx`. ADR-0036 names this seam as the place a faster runner
 plugs in without touching anything else.
 
 ## Options weighed
@@ -69,9 +69,12 @@ Option 4.
   `object-kernels` runs the script with `--check`, which fails unless the rebuild is byte for
   byte the committed file, so the committed binary is provably the source's.
 - **The JS interpreter stays as the fallback and the reference.** The worker picks the WASM
-  runner only when a SIMD probe module passes `WebAssembly.validate` and the module
-  instantiates; otherwise, and on any error while instantiating, it builds today's `runOnnx`
-  network. The choice is made once per worker and is visible to tests. WASM SIMD is in every
+  runner only when a SIMD probe module passes `WebAssembly.validate` (`wasm-simd.ts`) and the
+  kernels download and instantiate; otherwise, and on any error while loading them, it builds
+  today's `runOnnx` network and warns with the reason on the console. The choice is made once
+  per worker, in `object-runner.ts`, which reports the runner it picked; `focus-worker.ts` injects
+  the probe result and the load step into it, and `serve-focus-requests.ts` is the worker body
+  that takes the chosen network. WASM SIMD is in every
   target engine (Chrome 91, Firefox 89, Safari 16.4), so the fallback is for old Safari and a
   locked-down page.
 - **`FOCUS_DETECTOR_VERSION` is not raised** (ADR-0041): network, thresholds and preprocessing are
@@ -87,13 +90,17 @@ Option 4.
   the largest absolute difference must stay below 1e-4. Broken on purpose (one flipped kernel
   index), the case goes red.
 - **Whole network**: the focus worker's browser test (scikit-image's CC0 `chelsea`, ADR-0036)
-  runs the cat through both runners in all three engines and expects the same box within one
-  pixel of the 416 px input.
+  runs the cat through both runners in all three engines, each in a worker forced onto one
+  runner (`src/focus/testing/{wasm,js}-focus-worker.ts`), and expects the same box within one
+  pixel of the 416 px input; it also asserts the SIMD probe passes in each engine, so the
+  production worker runs the kernels there.
 - **Fallback**: a seam on the runner choice (the probe result and the instantiate step are
   injected) shows the JS runner is picked when the probe fails or instantiating throws, by the
   reported choice, not by the absence of an error.
 - **The binary**: the sha256 pin and the 150 KB budget in a unit test; the rebuild-and-compare
-  job in CI.
+  job in CI. Rust's `core` library is compiled into it, so its MIT licence ships in the
+  third-party licences (`build/committed-licenses.ts`), its version checked against
+  `rust-toolchain.toml` by a unit test.
 - **Speed is measured, not gated**: a timing test would race on a loaded runner. A script under
   `scripts/` times the network per picture in the host Chrome on the real GPU, at 1× and 4×, and
   the numbers go into this ADR when it is accepted.

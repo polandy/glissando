@@ -1,68 +1,16 @@
-// The worker side of `WorkerFocusDetector`: decodes each thumbnail and runs the face and object
-// detectors on it, off the main thread (ADR-0012, ADR-0036). Typed with the DOM lib, whose `self` covers what a
-// dedicated worker uses here.
-import { detectFocus, type FocusModels } from "./detect-focus";
-import cascadeUrl from "./facefinder.bin?url";
-import type { FocusReply, FocusRequest } from "./focus-worker-protocol";
-import type { RgbaImage } from "./object-focus";
-import { parseOnnx } from "./onnx/onnx-model";
-import { runOnnx } from "./onnx/run-onnx";
-import { unpackCascade } from "./pico";
-import { messageOf, postReply } from "./post-reply";
-import objectNetworkUrl from "./yolox-nano.bin?url";
+// The focus worker's entry: the object network runs on the Rust kernels where the engine has
+// WebAssembly SIMD, on the TypeScript runner otherwise (ADR-0060).
+import { chooseObjectRunner } from "./onnx/object-runner";
+import kernelsUrl from "./onnx/object-kernels.wasm?url";
+import { supportsWasmSimd } from "./onnx/wasm-simd";
+import { loadWasmNetwork } from "./onnx/wasm-runner";
+import { download, serveFocusRequests } from "./serve-focus-requests";
 
-// Loaded once, when the worker starts, and shared by every request.
-const models = loadModels();
-
-self.addEventListener("message", (event: MessageEvent<FocusRequest>) => {
-  void postReply(
-    event.data,
-    () => answer(event.data),
-    (reply) => self.postMessage(reply),
-  );
+serveFocusRequests(async (graph) => {
+  const runner = await chooseObjectRunner(graph, {
+    simdSupported: supportsWasmSimd(),
+    loadWasm: async (walk) => loadWasmNetwork(walk, await download(kernelsUrl, "object kernels")),
+  });
+  if (runner.kind === "js") console.warn(`The object network runs on TypeScript: ${runner.reason}`);
+  return runner.network;
 });
-
-async function answer({ id, thumbnail }: FocusRequest): Promise<FocusReply> {
-  let loaded: FocusModels;
-  try {
-    loaded = await models;
-  } catch (error) {
-    return { id, kind: "unavailable", message: messageOf(error) };
-  }
-  try {
-    return { id, kind: "found", focus: detectFocus(await pixelsOf(thumbnail), loaded) };
-  } catch (error) {
-    return { id, kind: "failed", message: messageOf(error) };
-  }
-}
-
-async function loadModels(): Promise<FocusModels> {
-  const [cascade, objects] = await Promise.all([
-    download(cascadeUrl, "face cascade"),
-    download(objectNetworkUrl, "object network"),
-  ]);
-  const network = parseOnnx(new Uint8Array(objects));
-  return {
-    cascade: unpackCascade(new Int8Array(cascade)),
-    objects: (input) => runOnnx(network, input),
-  };
-}
-
-async function download(url: string, what: string): Promise<ArrayBuffer> {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`The ${what} ${url} did not load: HTTP ${response.status}`);
-  return response.arrayBuffer();
-}
-
-async function pixelsOf(thumbnail: Blob): Promise<RgbaImage> {
-  const bitmap = await createImageBitmap(thumbnail);
-  try {
-    const { width, height } = bitmap;
-    const context = new OffscreenCanvas(width, height).getContext("2d");
-    if (!context) throw new Error("The focus worker has no 2D canvas to decode thumbnails in");
-    context.drawImage(bitmap, 0, 0);
-    return context.getImageData(0, 0, width, height);
-  } finally {
-    bitmap.close();
-  }
-}

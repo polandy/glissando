@@ -43,6 +43,17 @@ export const COMMITTED_LICENSES: readonly CommittedLicense[] = [
     licenseFilePath: "src/focus/LICENSE-yolox.txt",
   },
   {
+    name: "Rust core library",
+    version: "1.100.0",
+    licenseId: "MIT OR Apache-2.0",
+    sourceSentence:
+      "Compiled into the object detector's kernels, src/focus/onnx/object-kernels.wasm, which\n" +
+      "scripts/build-object-kernels.sh builds from wasm/object-kernels/ in Glissando's repository\n" +
+      "with Rust 1.100.0 (https://github.com/rust-lang/rust/tree/1.100.0/library/core); Glissando\n" +
+      "takes it under the MIT licence.",
+    licenseFilePath: "src/focus/onnx/LICENSE-rust-core.txt",
+  },
+  {
     name: "pico.js",
     version: "afffa50ec4134a47005f2cbf8112eaa69f65f37e",
     licenseId: "MIT",
