@@ -55,10 +55,12 @@ export async function loadWasmKernels(bytes: BufferSource): Promise<WasmKernels>
   };
   const binary = (kernel: BinaryKernel) => (a: Tensor, b: Tensor) => {
     requireSameShape(a, b);
-    return run([a, b], ([first = 0, second = 0], out) => kernel(first, second, out, a.data.length));
+    return run([a, b], (addresses, out) =>
+      kernel(item(addresses, 0), item(addresses, 1), out, a.data.length),
+    );
   };
   const unary = (kernel: UnaryKernel) => (input: Tensor) =>
-    run([input], ([first = 0], out) => kernel(first, out, input.data.length));
+    run([input], (addresses, out) => kernel(item(addresses, 0), out, input.data.length));
   return {
     add: binary(module.add),
     mul: binary(module.mul),
