@@ -7,11 +7,11 @@ import { runOnnx } from "./run-onnx";
  * What runs the object network: the Rust kernels (ADR-0060), or the TypeScript interpreter with
  * the reason it was the fallback.
  */
-export type ObjectRunner =
+type ObjectRunner =
   | { readonly kind: "wasm"; readonly network: ObjectNetwork }
   | { readonly kind: "js"; readonly network: ObjectNetwork; readonly reason: string };
 
-export interface RunnerChoice {
+interface RunnerChoice {
   readonly simdSupported: boolean;
   readonly loadWasm: (graph: OnnxGraph) => Promise<ObjectNetwork>;
 }

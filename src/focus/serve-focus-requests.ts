@@ -11,7 +11,7 @@ import { messageOf, postReply } from "./post-reply";
 import objectNetworkUrl from "./yolox-nano.bin?url";
 
 /** Builds what runs the parsed object network: the Rust kernels or the TypeScript runner (ADR-0060). */
-export type LoadObjectNetwork = (graph: OnnxGraph) => Promise<ObjectNetwork>;
+type LoadObjectNetwork = (graph: OnnxGraph) => Promise<ObjectNetwork>;
 
 /** Answers every focus request this worker receives; the models load once, when it starts. */
 export function serveFocusRequests(loadObjectNetwork: LoadObjectNetwork): void {
