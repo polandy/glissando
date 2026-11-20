@@ -1,5 +1,5 @@
 import { item, read } from "./item";
-// The output shapes and index maps of the data-movement operators, shared by the TypeScript
+// The output shapes and index maps of the operators, shared by the TypeScript
 // reference (`tensor-ops.ts`) and the glue of the WASM kernels (`wasm-kernels.ts`).
 
 export interface PoolAttributes {
@@ -7,6 +7,56 @@ export interface PoolAttributes {
   readonly strides: readonly [number, number];
   /** ONNX order: top, left, bottom, right. */
   readonly pads: readonly [number, number, number, number];
+}
+
+export interface ConvAttributes {
+  readonly group: number;
+  readonly strides: readonly [number, number];
+  /** ONNX order: top, left, bottom, right. */
+  readonly pads: readonly [number, number, number, number];
+}
+
+/** The sizes a convolution of one NCHW image works on, its output's included. */
+export interface ConvGeometry {
+  readonly inChannels: number;
+  readonly height: number;
+  readonly width: number;
+  readonly outChannels: number;
+  readonly inPerGroup: number;
+  readonly kernelHeight: number;
+  readonly kernelWidth: number;
+  readonly outHeight: number;
+  readonly outWidth: number;
+}
+
+export function convGeometry(
+  inputDims: readonly number[],
+  kernelDims: readonly number[],
+  { group, strides, pads }: ConvAttributes,
+): ConvGeometry {
+  const [batch, inChannels, height, width] = inputDims as [number, number, number, number];
+  const [outChannels, inPerGroup, kernelHeight, kernelWidth] = kernelDims as [
+    number,
+    number,
+    number,
+    number,
+  ];
+  if (batch !== 1 || inPerGroup * group !== inChannels || outChannels % group !== 0) {
+    throw new RangeError(
+      `conv: input ${inputDims} does not fit kernel ${kernelDims}, group ${group}`,
+    );
+  }
+  return {
+    inChannels,
+    height,
+    width,
+    outChannels,
+    inPerGroup,
+    kernelHeight,
+    kernelWidth,
+    outHeight: Math.floor((height + pads[0] + pads[2] - kernelHeight) / strides[0]) + 1,
+    outWidth: Math.floor((width + pads[1] + pads[3] - kernelWidth) / strides[1]) + 1,
+  };
 }
 
 export interface SliceAttributes {

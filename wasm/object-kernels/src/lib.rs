@@ -4,6 +4,7 @@
 #![cfg_attr(target_arch = "wasm32", no_std)]
 
 mod arena;
+mod conv;
 mod elementwise;
 mod movement;
 mod pooling;
@@ -108,6 +109,57 @@ pub unsafe extern "C" fn concat_into(
 pub unsafe extern "C" fn copy(input: *const f32, out: *mut f32, len: usize) {
     let (input, out) = unsafe { unary(input, out, len) };
     movement::copy(input, out);
+}
+
+/// Conv, see [`conv::conv`]; `bias` is null or holds `out_channels` floats. `in_channels`
+/// divides by `group` into the kernel's input channels per group.
+///
+/// # Safety
+/// `input` holds `in_channels * height * width` floats, `kernel` holds `out_channels *
+/// in_channels / group * kernel_y * kernel_x`, `out` holds `out_channels * out_height *
+/// out_width`; `out` overlaps none of the others.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn conv(
+    input: *const f32,
+    kernel: *const f32,
+    bias: *const f32,
+    out: *mut f32,
+    in_channels: usize,
+    height: usize,
+    width: usize,
+    out_channels: usize,
+    group: usize,
+    kernel_y: usize,
+    kernel_x: usize,
+    stride_y: usize,
+    stride_x: usize,
+    pad_top: usize,
+    pad_left: usize,
+    out_height: usize,
+    out_width: usize,
+) {
+    let kernel_len = out_channels * in_channels / group * kernel_y * kernel_x;
+    unsafe {
+        conv::conv(
+            core::slice::from_raw_parts(input, in_channels * height * width),
+            core::slice::from_raw_parts(kernel, kernel_len),
+            (!bias.is_null()).then(|| core::slice::from_raw_parts(bias, out_channels)),
+            core::slice::from_raw_parts_mut(out, out_channels * out_height * out_width),
+            &conv::Shape {
+                in_channels,
+                height,
+                width,
+                out_channels,
+                kernel: (kernel_y, kernel_x),
+                out: (out_height, out_width),
+            },
+            &conv::Window {
+                group,
+                stride: (stride_y, stride_x),
+                pad: (pad_top, pad_left),
+            },
+        );
+    }
 }
 
 /// # Safety

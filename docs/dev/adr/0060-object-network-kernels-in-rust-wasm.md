@@ -47,8 +47,9 @@ Option 4.
 - **Only the kernels move.** The ONNX reader (`onnx-model.ts`) and the graph walk
   (`run-onnx.ts`) stay in TypeScript; each of the ten operators (Conv incl. 1×1 and depthwise,
   MaxPool, Resize, Slice, Concat, Reshape, Transpose, Add, Mul, Sigmoid) gets a Rust kernel,
-  the 1×1 Conv as a blocked GEMM, Mul after Sigmoid fused into one SiLU pass. An unknown
-  operator still fails loud.
+  the 1×1 Conv at stride 1 without padding as a blocked GEMM (blocks of 4 output channels by
+  256 pixels), every other Conv tap-wise like the JS one, Mul after Sigmoid fused into one SiLU
+  pass. An unknown operator still fails loud.
 - **A `no_std` crate with no dependencies** (`wasm/object-kernels/`, `Cargo.lock` committed),
   target `wasm32-unknown-unknown` with `+simd128`, plain `extern "C"` exports and no
   wasm-bindgen. Tensors live in the module's linear memory: the weights are copied in once when
