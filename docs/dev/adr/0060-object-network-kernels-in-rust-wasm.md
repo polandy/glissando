@@ -66,7 +66,7 @@ Option 4.
   network. The choice is made once per worker and is visible to tests. WASM SIMD is in every
   target engine (Chrome 91, Firefox 89, Safari 16.4), so the fallback is for old Safari and a
   locked-down page.
-- **`FOCUS_DETECTOR_VERSION` is not raised.** Network, thresholds and preprocessing are
+- **`FOCUS_DETECTOR_VERSION` is not raised** (ADR-0041): network, thresholds and preprocessing are
   unchanged and both runners must agree within tolerance (below); a stored result differs from
   a new one at most in float rounding, so re-running every library's pass would buy nothing.
 
