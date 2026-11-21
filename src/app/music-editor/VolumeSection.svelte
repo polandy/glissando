@@ -283,4 +283,9 @@
     color: var(--gl-muted);
     cursor: default;
   }
+  @media (prefers-reduced-motion: reduce) {
+    .hint .dot {
+      animation: none;
+    }
+  }
 </style>

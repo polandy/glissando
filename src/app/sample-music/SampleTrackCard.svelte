@@ -282,4 +282,9 @@
       transform: scaleY(1);
     }
   }
+  @media (prefers-reduced-motion: reduce) {
+    .bars span {
+      animation: none;
+    }
+  }
 </style>
