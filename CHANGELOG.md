@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.14](https://github.com/polandy/glissando/compare/glissando-v0.1.13...glissando-v0.1.14) (2026-11-21)
+
+
+### Features
+
+* **compose:** cap the automatic Ken Burns zoom by the picture's sharpness on screen ([#414](https://github.com/polandy/glissando/issues/414)) ([05566fc](https://github.com/polandy/glissando/commit/05566fc50e505aaff93947f0e77b3f1fe0a1e290))
+* **focus:** first Rust WASM object kernels, built and checked in CI (ADR-0060) ([#406](https://github.com/polandy/glissando/issues/406)) ([d0388c2](https://github.com/polandy/glissando/commit/d0388c2e285ed8473cb8320fd292b17a5df7764c))
+* **focus:** measure the sharpness on screen of server pictures, so their Ken Burns zoom is capped too (ADR-0061) ([#415](https://github.com/polandy/glissando/issues/415)) ([9ea3fbb](https://github.com/polandy/glissando/commit/9ea3fbb99798ed6bac010e5870730238389e819f))
+* **focus:** run the whole object network on the Rust kernels (ADR-0060 step 4) ([#411](https://github.com/polandy/glissando/issues/411)) ([752357d](https://github.com/polandy/glissando/commit/752357dac36861acaaa866cca12a0441f7324a00))
+* **focus:** Rust Conv kernels for the object network, the 1×1 as a blocked GEMM (ADR-0060 step 3) ([#410](https://github.com/polandy/glissando/issues/410)) ([0b5bd7e](https://github.com/polandy/glissando/commit/0b5bd7e76e1a9ef5672e92433ec7f7cbea72607a))
+* **focus:** Rust kernels for the object network's data-movement operators (ADR-0060 step 2) ([#409](https://github.com/polandy/glissando/issues/409)) ([6fb4bec](https://github.com/polandy/glissando/commit/6fb4becd58a47d845c52bbb2462aee3dc35827bf))
+* **focus:** the device pass measures the sharpness of a focus Immich's faces gave (ADR-0061) ([#416](https://github.com/polandy/glissando/issues/416)) ([87f9c62](https://github.com/polandy/glissando/commit/87f9c6245fde9b22cd17b17882d8929ecd46165f))
+* **focus:** the focus worker runs the object network on the Rust kernels where WASM SIMD runs (ADR-0060 step 4) ([#412](https://github.com/polandy/glissando/issues/412)) ([17b6aa5](https://github.com/polandy/glissando/commit/17b6aa539b6e5bd1de01eab9c34f46ac7efe6f27))
+* **server-library:** open every older server document version through a migration chain ([#408](https://github.com/polandy/glissando/issues/408)) ([200e1f5](https://github.com/polandy/glissando/commit/200e1f596d35aab5fe995961d44f266576b5b78e))
+
 ## [0.1.13](https://github.com/polandy/glissando/compare/glissando-v0.1.12...glissando-v0.1.13) (2026-11-20)
 
 
