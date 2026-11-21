@@ -48,4 +48,9 @@
       opacity: 0.25;
     }
   }
+  @media (prefers-reduced-motion: reduce) {
+    .badge .dot {
+      animation: none;
+    }
+  }
 </style>

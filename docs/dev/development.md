@@ -14,6 +14,12 @@ npm run verify    # everything CI runs; steps run in parallel, the unit tests la
 Fast unit tests: `npx vitest run --project unit <path>`. Browser tests and e2e run in the same
 pinned image as CI: `scripts/browser-tests.sh`, `scripts/e2e.sh`.
 
+## Dependency and security upkeep
+
+Dependabot opens weekly update PRs for npm, GitHub Actions and the base image in
+`deploy/Dockerfile`. The `security-scan` workflow runs weekly (and on demand): `npm audit` and a
+Trivy filesystem scan. Both only report in the job log; neither gates a PR.
+
 ## Build the server image
 
 ```sh

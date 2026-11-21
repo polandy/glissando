@@ -50,6 +50,8 @@ Stack-specific conventions are in §7; the stack itself is ADR-0001.
   - **prove it can fail**: break the behaviour and watch exactly that case go red.
 - **Motion is waited on, never timed** — e2e runs with reduced motion; a spec about the motion
   waits on its end state.
+- **A CSS animation is guarded** with `@media (prefers-reduced-motion: reduce)` in the same file;
+  `src/app/reduced-motion-guard.test.ts` fails otherwise.
 - **Coverage is a smoke detector, not a goal.** A count says how many promises have no test,
   never how many deserve one.
 - **E2e follows the owner's OK**: unit/integration tests are test-first; the e2e case for a UI
