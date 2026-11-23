@@ -72,16 +72,31 @@ describe("WorkerRequestClient, ending an idle worker", () => {
     expect(workers[0]?.requests).toHaveLength(1);
   });
 
-  it("does not count a stray reply as the end of a request", async () => {
+  it("lets a stray reply start no idle end of its own, which a later request could not cancel", async () => {
     const { client, scheduler, workers } = clientEndingIdleWorkers();
-    const waiting = ask(client, "a");
-
+    const first = ask(client, "a");
+    workers[0]?.answer(0, "A");
+    await first;
     workers[0]?.reply({ id: 999, kind: "answer", text: "stray" });
+
+    const second = ask(client, "b");
     scheduler.advance(IDLE_MS);
     expect(workers[0]?.terminated).toBe(false);
-    workers[0]?.answer(0, "A");
+    workers[0]?.answer(1, "B");
 
-    await expect(waiting).resolves.toBe("A");
+    await expect(second).resolves.toBe("B");
+  });
+
+  it("counts a failed request as ended too", async () => {
+    const { client, scheduler, workers } = clientEndingIdleWorkers();
+    const failing = ask(client, "a");
+    const worker = workers[0];
+    worker?.reply({ id: worker.idAt(0), kind: "failure", message: "cannot do it" });
+    await failing.catch(() => undefined);
+
+    scheduler.advance(IDLE_MS);
+
+    expect(worker?.terminated).toBe(true);
   });
 
   it("never ends a worker unless asked to", async () => {
