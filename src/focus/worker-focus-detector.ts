@@ -1,5 +1,6 @@
 import { FocusDetectorGoneError, type FocusDetector } from "../library/focus-detector";
 import type { PictureFocus } from "../library/picture-focus";
+import type { Scheduler } from "../ui-kit/scheduler";
 import {
   WorkerRequestClient,
   type ReplyReading,
@@ -9,6 +10,9 @@ import type { FocusReply, FocusRequest } from "./focus-worker-protocol";
 
 /** The part of a `Worker` running `focus-worker.ts` that the detector talks to. */
 export type FocusWorker = RequestWorker<FocusRequest, FocusReply>;
+
+/** How long the worker may sit without a request before it ends and frees its memory (ADR-0060). */
+export const FOCUS_WORKER_IDLE_END_MS = 30_000;
 
 /** A detection the worker could not finish: an undecodable thumbnail. */
 export class FocusDetectionError extends Error {
@@ -22,13 +26,13 @@ export function startFocusWorker(): Worker {
 
 /**
  * Detects in one worker, started on the first detection, so a phone's slow search never blocks
- * playback. Once the worker has crashed, sent a reply that cannot be read or said it can detect
+ * playback, and ended after `FOCUS_WORKER_IDLE_END_MS` without a request. Once the worker has crashed, sent a reply that cannot be read or said it can detect
  * in no picture, every detection rejects with `FocusDetectorGoneError`.
  */
 export class WorkerFocusDetector implements FocusDetector {
   readonly #client: WorkerRequestClient<FocusRequest, FocusReply, PictureFocus>;
 
-  constructor(startWorker: () => FocusWorker) {
+  constructor(startWorker: () => FocusWorker, scheduler: Scheduler) {
     this.#client = new WorkerRequestClient({
       startWorker,
       readReply: readFocusReply,
@@ -36,6 +40,7 @@ export class WorkerFocusDetector implements FocusDetector {
       crashMessage: "The focus worker crashed; no picture can be searched",
       unreadableReplyMessage:
         "A reply of the focus worker could not be read; no picture can be searched",
+      idleEnd: { afterMs: FOCUS_WORKER_IDLE_END_MS, scheduler },
     });
   }
 

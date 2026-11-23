@@ -1,9 +1,18 @@
+import type { Scheduler } from "../ui-kit/scheduler";
+
 /** The part of a `Worker` that a `WorkerRequestClient` talks to. */
 export interface RequestWorker<Request, Reply> {
   postMessage(request: Request, transfer: Transferable[]): void;
   onmessage: ((event: MessageEvent<Reply>) => void) | null;
   onerror: ((event: ErrorEvent) => void) | null;
   onmessageerror: ((event: MessageEvent) => void) | null;
+  terminate(): void;
+}
+
+/** Ends a worker that has had no pending request for `afterMs`, so its memory is released. */
+export interface IdleEnd {
+  readonly afterMs: number;
+  readonly scheduler: Scheduler;
 }
 
 /** What one reply means: an answer or a failure for one request, or the end of the worker. */
@@ -18,6 +27,7 @@ export interface WorkerRequestClientOptions<Request, Reply, Result> {
   goneError(message: string): Error;
   crashMessage: string;
   unreadableReplyMessage: string;
+  idleEnd?: IdleEnd;
 }
 
 interface Pending<Result> {
@@ -28,13 +38,15 @@ interface Pending<Result> {
 /**
  * Sends id-tagged requests to one worker, started on the first request, and settles each by the
  * id of its reply. Once the worker has crashed, sent a reply that cannot be read or been read as
- * gone, every pending and later request rejects with one and the same error.
+ * gone, every pending and later request rejects with one and the same error. With `idleEnd`, a
+ * worker left without a pending request is terminated and the next request starts a fresh one.
  */
 export class WorkerRequestClient<Request, Reply, Result> {
   readonly #options: WorkerRequestClientOptions<Request, Reply, Result>;
   readonly #pending = new Map<number, Pending<Result>>();
   #worker: RequestWorker<Request, Reply> | undefined;
   #gone: Error | undefined;
+  #cancelIdleEnd: (() => void) | undefined;
   #nextId = 0;
 
   constructor(options: WorkerRequestClientOptions<Request, Reply, Result>) {
@@ -48,6 +60,8 @@ export class WorkerRequestClient<Request, Reply, Result> {
 
   request(build: (id: number) => Request, transfer: Transferable[] = []): Promise<Result> {
     if (this.#gone) return Promise.reject(this.#gone);
+    this.#cancelIdleEnd?.();
+    this.#cancelIdleEnd = undefined;
     const id = this.#nextId++;
     const { promise, resolve, reject } = Promise.withResolvers<Result>();
     this.#pending.set(id, { resolve, reject });
@@ -71,9 +85,21 @@ export class WorkerRequestClient<Request, Reply, Result> {
       return;
     }
     const pending = this.#pending.get(reading.id);
+    if (pending === undefined) return;
     this.#pending.delete(reading.id);
-    if (reading.kind === "settled") pending?.resolve(reading.result);
-    else pending?.reject(reading.error);
+    if (reading.kind === "settled") pending.resolve(reading.result);
+    else pending.reject(reading.error);
+    if (this.#pending.size === 0) this.#scheduleIdleEnd();
+  }
+
+  #scheduleIdleEnd(): void {
+    const idleEnd = this.#options.idleEnd;
+    if (idleEnd === undefined) return;
+    this.#cancelIdleEnd = idleEnd.scheduler.after(idleEnd.afterMs, () => {
+      this.#cancelIdleEnd = undefined;
+      this.#worker?.terminate();
+      this.#worker = undefined;
+    });
   }
 
   #goneWith(message: string): void {

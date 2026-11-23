@@ -29,6 +29,7 @@ class FakeAnalysisWorker implements AnalysisWorker {
   onmessage: ((event: MessageEvent<AnalysisReply>) => void) | null = null;
   onerror: ((event: ErrorEvent) => void) | null = null;
   onmessageerror: ((event: MessageEvent) => void) | null = null;
+  terminate(): void {}
   #waiting: (() => void)[] = [];
 
   postMessage(request: AnalysisRequest, transfer: Transferable[]): void {

@@ -127,8 +127,10 @@ Option 4.
   0.3 s, the low end of the phone estimate.
 
 - A run peaks at about 23 MB of module memory (4.7 MB of it weights; holding every activation
-  until the run ended took 100 MB), and the worker keeps it after the first picture, since WASM
-  memory never shrinks. A unit test fails above a 24 MB peak.
+  until the run ended took 100 MB). WASM memory never shrinks, so the focus worker is terminated
+  after 30 s without a request (`FOCUS_WORKER_IDLE_END_MS`) and the next picture starts a fresh
+  one, paying the module's compile and the weights' copy again. A unit test fails above a 24 MB
+  peak.
 - The offline cache grows by at most 150 KB; the model file is unchanged.
 - A second toolchain: Rust joins CI as one pinned image and one job. Upgrading it is a reviewed
   bump of the image digest and the toolchain file with a rebuilt, re-hashed `.wasm`.
