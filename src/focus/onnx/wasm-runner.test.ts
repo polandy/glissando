@@ -11,7 +11,7 @@ import { loadWasmNetwork, type WasmNetwork } from "./wasm-runner";
 const TOLERANCE = 1e-4;
 const INPUT_DIMS = [1, 3, 416, 416];
 const PIXEL_RANGE = [0, 255] as const;
-// A run peaks at 22.7 MB (4.7 MB of it weights); holding every activation took 100 MB.
+// A run peaks at 22.7 MB, 4.7 MB of it weights.
 const PEAK_BUDGET_BYTES = 24 * 1024 * 1024;
 
 let kernelBytes: ArrayBuffer;

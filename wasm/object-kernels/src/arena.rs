@@ -94,9 +94,13 @@ pub extern "C" fn arena_alloc(count: usize) -> *mut f32 {
     start as *mut f32
 }
 
-/// Gives back the `count` floats at `address`, which [`arena_alloc`] handed out.
+/// Gives back the `count` floats at `address`.
+///
+/// # Safety
+/// [`arena_alloc`] handed out `address` for `count` floats since the last [`arena_reset`] below
+/// it, and nothing released it yet; nothing reads it afterwards.
 #[unsafe(no_mangle)]
-pub extern "C" fn arena_release(address: *mut f32, count: usize) {
+pub unsafe extern "C" fn arena_release(address: *mut f32, count: usize) {
     let Some(bytes) = block_bytes(count) else {
         return;
     };
