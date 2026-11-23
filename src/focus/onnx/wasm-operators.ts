@@ -21,6 +21,7 @@ import {
   copyIn,
   copyInts,
   floats,
+  MAX_RANK,
   type Address,
   type BinaryKernel,
   type KernelModule,
@@ -33,8 +34,6 @@ export interface ArenaTensor {
   readonly address: Address;
 }
 
-// The most axes the strided gather walks, as `MAX_RANK` in movement.rs.
-const MAX_RANK = 6;
 // A null pointer: the conv kernel adds no bias.
 const NO_BIAS = 0;
 

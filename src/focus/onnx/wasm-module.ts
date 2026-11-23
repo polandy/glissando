@@ -18,9 +18,51 @@ const KERNEL_EXPORTS = [
   "resize_nearest",
 ] as const;
 
+/** The most axes the strided gather walks, as `MAX_RANK` in movement.rs. */
+export const MAX_RANK = 6;
+
 export type Address = number;
 export type BinaryKernel = (a: Address, b: Address, out: Address, length: number) => void;
 export type UnaryKernel = (input: Address, out: Address, length: number) => void;
+
+/** The trailing sizes of `conv`, in the order of its Rust parameters. */
+export type ConvSizes = [
+  inChannels: number,
+  height: number,
+  width: number,
+  outChannels: number,
+  group: number,
+  kernelY: number,
+  kernelX: number,
+  strideY: number,
+  strideX: number,
+  padTop: number,
+  padLeft: number,
+  outHeight: number,
+  outWidth: number,
+];
+/** The trailing sizes of `max_pool`, in the order of its Rust parameters. */
+export type PoolSizes = [
+  channels: number,
+  height: number,
+  width: number,
+  outHeight: number,
+  outWidth: number,
+  kernelY: number,
+  kernelX: number,
+  strideY: number,
+  strideX: number,
+  padTop: number,
+  padLeft: number,
+];
+/** The trailing sizes of `resize_nearest`, in the order of its Rust parameters. */
+export type ResizeSizes = [
+  channels: number,
+  height: number,
+  width: number,
+  scaleY: number,
+  scaleX: number,
+];
 
 export interface KernelModule {
   readonly memory: WebAssembly.Memory;
@@ -55,10 +97,10 @@ export interface KernelModule {
     kernel: Address,
     bias: Address,
     out: Address,
-    ...sizes: number[]
+    ...sizes: ConvSizes
   ) => void;
-  readonly max_pool: (input: Address, out: Address, ...sizes: number[]) => void;
-  readonly resize_nearest: (input: Address, out: Address, ...sizes: number[]) => void;
+  readonly max_pool: (input: Address, out: Address, ...sizes: PoolSizes) => void;
+  readonly resize_nearest: (input: Address, out: Address, ...sizes: ResizeSizes) => void;
 }
 
 export async function instantiateKernels(bytes: BufferSource): Promise<KernelModule> {
