@@ -2,6 +2,7 @@
 # Builds the object network's kernels of ADR-0060 (wasm/object-kernels/) into
 # src/focus/onnx/object-kernels.wasm, after their Rust tests pass. With --check it only rebuilds
 # and fails unless the result is byte for byte the committed file (the CI job `object-kernels`).
+# A build also writes the source fingerprint that object-kernels-source.test.ts compares.
 set -euo pipefail
 
 RUST_VERSION=1.100.0
@@ -13,8 +14,16 @@ TARGET=wasm32-unknown-unknown
 
 repo="$(cd "$(dirname "$0")/.." && pwd)"
 committed="$repo/src/focus/onnx/object-kernels.wasm"
+fingerprint_file="$repo/src/focus/onnx/object-kernels.source-sha256"
 check=false
 [[ "${1:-}" == --check ]] && check=true
+# sha256 over "<sha256>  <path>" lines of every build input, sorted by path; the unit test mirrors it.
+source_fingerprint() {
+  (cd "$repo" && {
+    find wasm/object-kernels -type f -not -path 'wasm/object-kernels/target/*' -not -name .gitignore
+    echo scripts/build-object-kernels.sh
+  } | LC_ALL=C sort | xargs sha256sum | sha256sum | cut -d' ' -f1)
+}
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 
@@ -46,5 +55,6 @@ if $check; then
   fi
 else
   install -m 644 "$work/out/object_kernels.wasm" "$committed"
+  source_fingerprint >"$fingerprint_file"
 fi
 sha256sum "$committed"
