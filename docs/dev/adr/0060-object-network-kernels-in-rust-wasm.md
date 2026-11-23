@@ -69,6 +69,9 @@ Option 4.
   `src/focus/onnx/object-kernels.wasm`, pinned by sha256 in a unit test. The CI job
   `object-kernels` runs the script with `--check`, which fails unless the rebuild is byte for
   byte the committed file, so the committed binary is provably the source's.
+  A build also writes `object-kernels.source-sha256`, a fingerprint of the Rust sources and the
+  script; a unit test recomputes it, so `npm run verify` flags a stale `.wasm` even without Docker,
+  and with Docker it runs the `--check` rebuild as well.
 - **The JS interpreter stays as the fallback and the reference.** The worker picks the WASM
   runner only when a SIMD probe module passes `WebAssembly.validate` (`wasm-simd.ts`) and the
   kernels download and instantiate; otherwise, and on any error while loading them, it builds
