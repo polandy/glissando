@@ -3,6 +3,7 @@
 
 const KERNEL_EXPORTS = [
   "arena_alloc",
+  "arena_release",
   "arena_mark",
   "arena_reset",
   "add",
@@ -24,6 +25,7 @@ export type UnaryKernel = (input: Address, out: Address, length: number) => void
 export interface KernelModule {
   readonly memory: WebAssembly.Memory;
   readonly arena_alloc: (count: number) => Address;
+  readonly arena_release: (address: Address, count: number) => void;
   readonly arena_mark: () => Address;
   readonly arena_reset: (mark: Address) => void;
   readonly add: BinaryKernel;
