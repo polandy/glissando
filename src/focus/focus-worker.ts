@@ -12,5 +12,5 @@ serveFocusRequests(async (graph) => {
     loadWasm: async (walk) => loadWasmNetwork(walk, await download(kernelsUrl, "object kernels")),
   });
   if (runner.kind === "js") console.warn(`The object network runs on TypeScript: ${runner.reason}`);
-  return runner.network;
+  return runner;
 });

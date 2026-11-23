@@ -96,8 +96,9 @@ Option 4.
 - **Whole network**: the focus worker's browser test (scikit-image's CC0 `chelsea`, ADR-0036)
   runs the cat through both runners in all three engines, each in a worker forced onto one
   runner (`src/focus/testing/{wasm,js}-focus-worker.ts`), and expects the same box within one
-  pixel of the 416 px input; it also asserts the SIMD probe passes in each engine, so the
-  production worker runs the kernels there.
+  pixel of the 416 px input; it also asks the production worker which runner it chose
+  (`runner` request) and demands `wasm` in each engine. A build step fails when no
+  `assets/object-kernels-*.wasm` is among the files `sw.js` precaches, so the kernels load offline.
 - **Fallback**: a seam on the runner choice (the probe result and the instantiate step are
   injected) shows the JS runner is picked when the probe fails or instantiating throws, by the
   reported choice, not by the absence of an error.

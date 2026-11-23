@@ -3,6 +3,7 @@ import kernelsUrl from "../onnx/object-kernels.wasm?url";
 import { loadWasmNetwork } from "../onnx/wasm-runner";
 import { download, serveFocusRequests } from "../serve-focus-requests";
 
-serveFocusRequests(async (graph) =>
-  loadWasmNetwork(graph, await download(kernelsUrl, "object kernels")),
-);
+serveFocusRequests(async (graph) => ({
+  kind: "wasm",
+  network: await loadWasmNetwork(graph, await download(kernelsUrl, "object kernels")),
+}));
