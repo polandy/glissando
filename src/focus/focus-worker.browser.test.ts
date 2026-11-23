@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import type { FocusBox, PictureFocus } from "../library/picture-focus";
+import { FakeScheduler } from "../ui-kit/testing/fake-scheduler";
 import { supportsWasmSimd } from "./onnx/wasm-simd";
 import astronautJpegUrl from "./testing/astronaut-128.jpg?url";
 import blankJpegUrl from "./testing/blank-128.jpg?url";
@@ -31,7 +32,7 @@ function detector(startWorker: () => Worker = startFocusWorker): WorkerFocusDete
     const worker = startWorker();
     workers.push(worker);
     return worker;
-  });
+  }, new FakeScheduler());
 }
 
 function startWorkerOn(runner: "js" | "wasm"): () => Worker {

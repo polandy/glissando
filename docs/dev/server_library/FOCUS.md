@@ -12,7 +12,8 @@ counts as unstored, so the pass puts it again rather than believing it is alread
 Both passes share one `WorkerFocusDetector` through `serializeFocusDetector`
 (`library/serialized-focus-detector.ts`): at most one detection runs at a time, and the device
 pass's own call always goes ahead of a server one already waiting its turn, so a slideshow on this
-device is never kept waiting by the server pass's own search.
+device is never kept waiting by the server pass's own search. The worker ends after 30 s without a
+request, releasing the network's memory, and the next detection starts a fresh one (ADR-0060).
 
 ## What it detects on
 
