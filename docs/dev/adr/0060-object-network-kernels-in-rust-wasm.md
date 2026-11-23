@@ -137,7 +137,10 @@ Option 4.
   peak.
 - The offline cache grows by at most 150 KB; the model file is unchanged.
 - A second toolchain: Rust joins CI as one pinned image and one job. Upgrading it is a reviewed
-  bump of the image digest and the toolchain file with a rebuilt, re-hashed `.wasm`.
+  bump with a rebuilt, re-hashed `.wasm`. The build script reads the version from
+  `rust-toolchain.toml`; a bump touches that file, `RUST_IMAGE` (the new `rust:<version>-slim`
+  digest) and `WASM_STD_SHA256` in the script, the version in `build/committed-licenses.ts` and
+  `LICENSE-rust-core.txt`, then a run of the script.
 - Two implementations of each operator to keep in step; the JS one is the reference the WASM one
   is tested against, and a new operator (ADR-0036) needs a kernel in both.
 - The work is estimated at 1–2 weeks: the crate and its tests, the glue, the build script, the
