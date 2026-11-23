@@ -5,14 +5,15 @@
 # A build also writes the source fingerprint that object-kernels-source.test.ts compares.
 set -euo pipefail
 
-RUST_VERSION=1.100.0
-# rust:1.100.0-slim (multi-platform index); it carries the host target only.
+repo="$(cd "$(dirname "$0")/.." && pwd)"
+RUST_VERSION=$(sed -n 's/^channel = "\(.*\)"$/\1/p' "$repo/wasm/object-kernels/rust-toolchain.toml")
+[[ "$RUST_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "no channel in rust-toolchain.toml" >&2; exit 1; }
+# The slim image of that version (multi-platform index); it carries the host target only.
 RUST_IMAGE=rust@sha256:6f14b2b4b278ec0d50aa1d69541c304ce0f95e0f6268487aa9924af1c2e9aebe
 WASM_STD=rust-std-$RUST_VERSION-wasm32-unknown-unknown
 WASM_STD_SHA256=19b7954d650fc0d22767eceb76b8e03d07ce0d6a9f4234f33c32a17ee8d6d7b9
 TARGET=wasm32-unknown-unknown
 
-repo="$(cd "$(dirname "$0")/.." && pwd)"
 committed="$repo/src/focus/onnx/object-kernels.wasm"
 fingerprint_file="$repo/src/focus/onnx/object-kernels.source-sha256"
 check=false

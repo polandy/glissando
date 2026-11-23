@@ -28,3 +28,11 @@ async function sourceFingerprint(): Promise<string> {
 it("has the .wasm built from the current Rust source (run scripts/build-object-kernels.sh)", async () => {
   expect(await sourceFingerprint()).toBe(fingerprintFile.trim());
 });
+
+it("takes the Rust version from rust-toolchain.toml, not from a copy in the build script", () => {
+  const channel = /channel = "([^"]+)"/.exec(
+    kernelSources["/wasm/object-kernels/rust-toolchain.toml"] ?? "",
+  )?.[1];
+  expect(channel).toMatch(/^\d+\.\d+\.\d+$/);
+  expect(buildScript).not.toContain(channel ?? "missing");
+});
