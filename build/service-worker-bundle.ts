@@ -33,21 +33,26 @@ export interface PublicDirPort {
 /**
  * Writes the list of every built file and every public file into `sw.js` (ADR-0005), and fails
  * the build when `sw.js` is missing, could not run as a classic script, or a `required` file
- * has not been emitted yet.
+ * (a name, or a pattern for a hashed name) has not been emitted yet.
  */
 export async function writeServiceWorker(
   bundle: Readonly<Record<string, BundleFile>>,
   publicFiles: readonly BuiltFile[],
-  required: readonly string[] = [],
+  required: readonly (string | RegExp)[] = [],
 ): Promise<void> {
   const worker = bundle[SERVICE_WORKER_FILE];
   if (worker?.type !== "chunk") {
     throw new Error(`the build emitted no ${SERVICE_WORKER_FILE} chunk`);
   }
-  const missing = required.filter((fileName) => bundle[fileName] === undefined);
+  const emitted = Object.keys(bundle);
+  const missing = required.filter((file) =>
+    typeof file === "string"
+      ? bundle[file] === undefined
+      : !emitted.some((name) => file.test(name)),
+  );
   if (missing.length > 0) {
     throw new Error(
-      `${SERVICE_WORKER_FILE} must precache ${missing.join(", ")}, which the build had not ` +
+      `${SERVICE_WORKER_FILE} must precache ${missing.map(String).join(", ")}, which the build had not ` +
         `emitted yet; write the service worker in a later generateBundle hook`,
     );
   }

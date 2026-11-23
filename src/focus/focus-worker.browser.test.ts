@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import type { FocusBox, PictureFocus } from "../library/picture-focus";
 import { FakeScheduler } from "../ui-kit/testing/fake-scheduler";
+import type { FocusReply, FocusRequest, FocusRunnerKind } from "./focus-worker-protocol";
 import { supportsWasmSimd } from "./onnx/wasm-simd";
 import astronautJpegUrl from "./testing/astronaut-128.jpg?url";
 import blankJpegUrl from "./testing/blank-128.jpg?url";
@@ -40,6 +41,20 @@ function startWorkerOn(runner: "js" | "wasm"): () => Worker {
     ? () => new Worker(new URL("./testing/js-focus-worker.ts", import.meta.url), { type: "module" })
     : () =>
         new Worker(new URL("./testing/wasm-focus-worker.ts", import.meta.url), { type: "module" });
+}
+
+/** Asks a worker which runner it chose, on the wire, as the detector never needs to know. */
+function runnerChosenBy(worker: Worker): Promise<FocusRunnerKind> {
+  workers.push(worker);
+  return new Promise((resolve, reject) => {
+    worker.onmessage = (event: MessageEvent<FocusReply>) => {
+      if (event.data.kind === "runner") resolve(event.data.runner);
+      else reject(new Error(`Unexpected reply: ${JSON.stringify(event.data)}`));
+    };
+    worker.onerror = () => reject(new Error("The focus worker crashed"));
+    const request: FocusRequest = { id: 1, kind: "runner" };
+    worker.postMessage(request);
+  });
 }
 
 function objectBox(focus: PictureFocus): FocusBox {
@@ -103,8 +118,10 @@ describe("the focus worker", () => {
     expect(focus.kind).toBe("subject");
   });
 
-  it("runs on an engine with WebAssembly SIMD, so the worker picks the Rust kernels", () => {
+  it("runs the production worker's object network on the Rust kernels", async () => {
     expect(supportsWasmSimd()).toBe(true);
+
+    expect(await runnerChosenBy(startFocusWorker())).toBe("wasm");
   });
 
   it("finds the cat's box within one input pixel on the Rust kernels and on TypeScript", async () => {

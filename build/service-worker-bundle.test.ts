@@ -68,6 +68,25 @@ describe("writeServiceWorker", () => {
     );
   });
 
+  it("precaches a file named by a pattern, so the hashed Rust kernels work offline", async () => {
+    const sw = worker();
+    const bundle: Record<string, BundleFile> = {
+      ...bundleWith(sw),
+      "assets/object-kernels-a1b2.wasm": {
+        type: "asset",
+        fileName: "assets/object-kernels-a1b2.wasm",
+        source: new Uint8Array([0]),
+      },
+    };
+    await writeServiceWorker(bundle, PUBLIC, [/^assets\/object-kernels-[\w-]+\.wasm$/]);
+    expect(sw.code).toContain("assets/object-kernels-a1b2.wasm");
+  });
+
+  it("fails the build when no emitted file matches a pattern it must precache", async () => {
+    const bundle = bundleWith(worker());
+    await expect(writeServiceWorker(bundle, PUBLIC, [/\.wasm$/])).rejects.toThrow(/\\.wasm/);
+  });
+
   it("fails the build when there is no sw.js", async () => {
     const bundle = bundleWith(worker());
     delete bundle["sw.js"];

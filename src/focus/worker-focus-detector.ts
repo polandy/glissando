@@ -63,6 +63,12 @@ function readFocusReply(reply: FocusReply): ReplyReading<PictureFocus> {
       return { kind: "settled", id: reply.id, result: reply.focus };
     case "failed":
       return { kind: "failed", id: reply.id, error: new FocusDetectionError(reply.message) };
+    case "runner":
+      return {
+        kind: "failed",
+        id: reply.id,
+        error: new Error("Nobody asked the focus worker for its runner"),
+      };
     case "unavailable":
       return { kind: "gone", message: reply.message };
   }
