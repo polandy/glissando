@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import kernelsUrl from "./object-kernels.wasm?url&inline";
 
 /** The kernels of ADR-0060 as scripts/build-object-kernels.sh builds them from wasm/object-kernels/. */
-const OBJECT_KERNELS_SHA256 = "d535f3f1bd20d352add03e342c666ed89deb8558030e9ad3d24d7e0a0e417126";
+const OBJECT_KERNELS_SHA256 = "9ae30a388ef072c0bbbf461c426b20c48be6ff0cc31c9ee5b5666323538669e3";
 const SIZE_BUDGET_BYTES = 150 * 1024;
 
 async function sha256Hex(bytes: ArrayBuffer): Promise<string> {

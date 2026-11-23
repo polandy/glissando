@@ -1,5 +1,6 @@
 // The operators of `tensor-ops.ts` on tensors that live in the Rust kernels' arena (ADR-0060):
-// each one allocates its output there and leaves freeing to whoever holds the arena's mark.
+// each one allocates its output there; the graph walk releases it after its last reader, and
+// whoever holds the arena's mark frees the rest.
 import { item } from "./item";
 import type { Operators } from "./run-onnx";
 import type { Tensor } from "./tensor-ops";
@@ -60,7 +61,7 @@ export function arenaOperators(module: KernelModule): Operators<ArenaTensor> {
     if (outDims.length > MAX_RANK) throw new RangeError(`Rank ${outDims.length} is too high`);
     const dimsAt = copyInts(module, outDims);
     const stridesAt = copyInts(module, inStrides);
-    return produce(outDims, (out) =>
+    const output = produce(outDims, (out) =>
       module.strided_copy(
         input.address,
         sizeOf(input.dims),
@@ -71,6 +72,9 @@ export function arenaOperators(module: KernelModule): Operators<ArenaTensor> {
         base,
       ),
     );
+    module.arena_release(stridesAt, inStrides.length);
+    module.arena_release(dimsAt, outDims.length);
+    return output;
   };
   return {
     add: binary(module.add),
@@ -176,6 +180,7 @@ export function arenaOperators(module: KernelModule): Operators<ArenaTensor> {
         module.copy(input.address, out, sizeOf(input.dims)),
       ),
     values: (tensor) => [...floats(module, tensor.address, sizeOf(tensor.dims))],
+    release: (tensor) => module.arena_release(tensor.address, sizeOf(tensor.dims)),
   };
 }
 

@@ -53,8 +53,9 @@ Option 4.
 - **A `no_std` crate with no dependencies** (`wasm/object-kernels/`, `Cargo.lock` committed),
   target `wasm32-unknown-unknown` with `+simd128`, plain `extern "C"` exports and no
   wasm-bindgen. Tensors live in the module's linear memory: the weights are copied in once when
-  the worker loads the network, activations come from a bump allocator reset at the start of
-  each run. The graph walk of `run-onnx.ts` is generic over where a tensor lives; the glue
+  the worker loads the network, activations come from a bump allocator with a size-keyed free
+  list: the graph walk releases each activation after its last reader, the next one of that
+  size takes its block, and the arena resets at the end of each run. The graph walk of `run-onnx.ts` is generic over where a tensor lives; the glue
   next to it binds the module's exports (`wasm-module.ts`), runs each operator on tensors in
   the arena (`wasm-operators.ts`) and walks the graph with SiLU fused (`fuse-silu.ts`) in
   `wasm-runner.ts`.
@@ -125,9 +126,9 @@ Option 4.
   The kernels run in 73 ms against 1.3 s (18×), inside the expected 55–180 ms; at 4× they take
   0.3 s, the low end of the phone estimate.
 
-- The bump arena holds every activation of a run until the run ends, so the worker's module
-  memory grows to about 100 MB on the first picture (4.7 MB of it weights) and stays there,
-  since WASM memory never shrinks; the JS runner frees each activation after its last reader.
+- A run peaks at about 23 MB of module memory (4.7 MB of it weights; holding every activation
+  until the run ended took 100 MB), and the worker keeps it after the first picture, since WASM
+  memory never shrinks. A unit test fails above a 24 MB peak.
 - The offline cache grows by at most 150 KB; the model file is unchanged.
 - A second toolchain: Rust joins CI as one pinned image and one job. Upgrading it is a reviewed
   bump of the image digest and the toolchain file with a rebuilt, re-hashed `.wasm`.

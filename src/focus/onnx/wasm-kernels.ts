@@ -5,7 +5,7 @@ import type { Tensor } from "./tensor-ops";
 import { instantiateKernels } from "./wasm-module";
 import { arenaOperators, hosted, readOut, toArena, type ArenaTensor } from "./wasm-operators";
 
-export type WasmKernels = Omit<Operators<Tensor>, "values"> & {
+export type WasmKernels = Omit<Operators<Tensor>, "values" | "release"> & {
   /** How far the arena reaches into the module's memory, in bytes. */
   bytesInUse(): number;
 };
