@@ -30,3 +30,7 @@ updates:
       interval: weekly
     commit-message:
       prefix: build
+    ignore:
+      # A new major is bumped by hand (docs/dev/development.md).
+      - dependency-name: "node"
+        update-types: ["version-update:semver-major"]

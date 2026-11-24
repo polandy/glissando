@@ -57,11 +57,11 @@
   <div class="preview-block" class:off-phone={!previewOnPhone}>{@render preview()}</div>
   <div class="who">
     <b>{t("editor.position", { number: picture.number, count: picture.count })}</b>
-    <span class="muted"
-      >{picture.fileName}<Separated text={SEPARATOR} /><span class="mono"
-        >{formatDate(picture.capturedAt)}</span
-      ></span
-    >
+    <span class="muted">
+      {picture.fileName}<Separated text={SEPARATOR} /><span class="mono">
+        {formatDate(picture.capturedAt)}
+      </span>
+    </span>
   </div>
   <section class="motion" aria-label={t("editor.kenBurns")}>
     <SectionHead

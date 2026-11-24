@@ -90,9 +90,9 @@
         onkeydown={(event) => onkeydown(event, index)}
       >
         {t(CHOICE_LABELS[index] as MessageKey)}
-        <span class="mono"
-          >{ms > 0 ? formatSeconds(ms / MILLISECONDS_PER_SECOND) : t("music.fadeNone")}</span
-        >
+        <span class="mono">
+          {ms > 0 ? formatSeconds(ms / MILLISECONDS_PER_SECOND) : t("music.fadeNone")}
+        </span>
       </button>
     {/each}
   </div>

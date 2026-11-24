@@ -129,8 +129,9 @@
         {#if first !== undefined && last !== undefined}
           {@const heading = headingParts(kept !== undefined, first, last)}
           <h3>
-            <Separated text={heading.before} /><span class="when mono">{heading.when}</span
-            ><Separated text={heading.after} />
+            <Separated text={heading.before} /><span class="when mono">
+              {heading.when}
+            </span><Separated text={heading.after} />
           </h3>
         {/if}
         <ul class="set">

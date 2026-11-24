@@ -30,8 +30,10 @@
   tabindex={shown ? 0 : -1}
   aria-label={t("slideshow.splitPairLabel", { first, second })}
   title={t("slideshow.splitPair")}
-  onclick={onSplit}><Icon name="scissors" /></button
+  onclick={onSplit}
 >
+  <Icon name="scissors" />
+</button>
 
 <style>
   .split {

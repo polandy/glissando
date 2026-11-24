@@ -108,9 +108,9 @@
     aria-label={t("import.addMore")}
     onclick={() => (open = !open)}
   >
-    <Icon name="plus" /><span class="wide">{t("import.addMore")}</span><span class="narrow"
-      >{t("add.titleShort")}</span
-    >
+    <Icon name="plus" /><span class="wide">{t("import.addMore")}</span><span class="narrow">
+      {t("add.titleShort")}
+    </span>
   </button>
   {@render popover()}
 </span>

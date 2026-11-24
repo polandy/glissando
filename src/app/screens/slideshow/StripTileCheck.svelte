@@ -8,9 +8,9 @@
   let { selecting, selected }: { selecting: boolean; selected: boolean } = $props();
 </script>
 
-<span class="check" class:shown={selecting} class:selected aria-hidden="true"
-  ><Icon name="check" /></span
->
+<span class="check" class:shown={selecting} class:selected aria-hidden="true">
+  <Icon name="check" />
+</span>
 
 <style>
   .check {
