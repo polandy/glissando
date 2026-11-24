@@ -60,12 +60,13 @@ Option 4.
   the arena (`wasm-operators.ts`) and walks the graph with SiLU fused (`fuse-silu.ts`) in
   `wasm-runner.ts`.
 - **Size budget: 50–150 KB** of raw `.wasm`. A unit test fails above 150 KB.
-- **Built like ADR-0020's libav.js.** `scripts/build-object-kernels.sh` runs `cargo test`, then
-  `cargo build --locked --offline --release`, in the official `rust` image pinned by `@sha256:`
+- **Built like ADR-0020's libav.js.** `scripts/build-object-kernels.sh` runs `cargo clippy -D warnings`
+  and `cargo test`, then `cargo build --locked --offline --release`, in the official `rust` image pinned by `@sha256:`
   with a pinned toolchain (`rust-toolchain.toml`). The image carries only the host target, so the
   script fetches the same release's `rust-std` for `wasm32-unknown-unknown` from
   static.rust-lang.org, pinned by sha256, and links it into a sysroot (the image's toolchain is
-  read-only to the non-root build user). The `.wasm` is committed as
+  read-only to the non-root build user). The slim image has no clippy either, so the script fetches
+  the `clippy` component the same way, pinned by sha256, and runs it from a copy of the toolchain. The `.wasm` is committed as
   `src/focus/onnx/object-kernels.wasm`, pinned by sha256 in a unit test. The CI job
   `object-kernels` runs the script with `--check`, which fails unless the rebuild is byte for
   byte the committed file, so the committed binary is provably the source's.
