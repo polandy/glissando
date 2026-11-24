@@ -11,6 +11,8 @@ import { loadWasmNetwork, type WasmNetwork } from "./wasm-runner";
 const TOLERANCE = 1e-4;
 const INPUT_DIMS = [1, 3, 416, 416];
 const PIXEL_RANGE = [0, 255] as const;
+// A run peaks at 22.7 MB, 4.7 MB of it weights.
+const PEAK_BUDGET_BYTES = 24 * 1024 * 1024;
 
 let kernelBytes: ArrayBuffer;
 let graph: OnnxGraph;
@@ -42,6 +44,14 @@ describe("the WASM object network", () => {
     expect(network(seededTensor(INPUT_DIMS, 2, PIXEL_RANGE)).data).not.toEqual(first.data);
     expect(network(input).data).toEqual(first.data);
     expect(network.bytesInUse()).toBe(weightsOnly);
+  });
+
+  it("frees each activation after its last reader, so a run's peak stays within budget", async () => {
+    const fresh = await loadWasmNetwork(graph, kernelBytes);
+
+    fresh(input);
+
+    expect(fresh.bytesReserved()).toBeLessThanOrEqual(PEAK_BUDGET_BYTES);
   });
 
   it("holds the weights once, not again per run", () => {

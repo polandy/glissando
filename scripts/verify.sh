@@ -18,6 +18,10 @@ steps=(
   "build:npx vite build"
   "build-server:npm run --silent build:server"
 )
+# The kernels' rebuild needs Docker; without it the unit test's source fingerprint still catches a stale .wasm.
+if docker info >/dev/null 2>&1; then
+  steps+=("object-kernels:scripts/build-object-kernels.sh --check")
+fi
 # The CPU-bound focus tests time out when other steps compete for the cores, so the unit
 # tests run alone once the others are done.
 final_step="test:npx vitest run --project unit"

@@ -39,6 +39,9 @@ plugs in without touching anything else.
    that are not hot into Rust and needs a richer boundary (strings, a graph) for no speed gain.
 6. **A full rewrite of Glissando in Rust/WASM.** About 107 k lines, 6–12+ person-months, a
    1–3 MB `.wasm` for the UI, and the measured paths outside this network would not get faster.
+7. **WebGPU.** Rejected: not in every target engine (Firefox and Safari ship it later or behind
+   flags), it needs its own shader implementation of each operator, and a single 416 px run is
+   too small to repay the device setup and the readback.
 
 ## Decision
 
@@ -52,22 +55,30 @@ Option 4.
   pass. An unknown operator still fails loud.
 - **A `no_std` crate with no dependencies** (`wasm/object-kernels/`, `Cargo.lock` committed),
   target `wasm32-unknown-unknown` with `+simd128`, plain `extern "C"` exports and no
-  wasm-bindgen. Tensors live in the module's linear memory: the weights are copied in once when
-  the worker loads the network, activations come from a bump allocator reset at the start of
-  each run. The graph walk of `run-onnx.ts` is generic over where a tensor lives; the glue
+  wasm-bindgen. `no_std` has no `f32::exp`, so Sigmoid and SiLU use an own branch-free `expf`
+  (Cephes, within 2 ulp), unit-tested in the crate. Tensors live in the module's linear memory: the weights are copied in once when
+  the worker loads the network, activations come from a bump allocator with a size-keyed free
+  list: the graph walk releases each activation after its last reader, the next one of that
+  size takes its block, and the arena resets at the end of each run. The graph walk of `run-onnx.ts` is generic over where a tensor lives; the glue
   next to it binds the module's exports (`wasm-module.ts`), runs each operator on tensors in
   the arena (`wasm-operators.ts`) and walks the graph with SiLU fused (`fuse-silu.ts`) in
   `wasm-runner.ts`.
 - **Size budget: 50–150 KB** of raw `.wasm`. A unit test fails above 150 KB.
-- **Built like ADR-0020's libav.js.** `scripts/build-object-kernels.sh` runs `cargo test`, then
-  `cargo build --locked --offline --release`, in the official `rust` image pinned by `@sha256:`
+- **Memory budget: 24 MB** of module memory at the peak of one run (about 23 MB measured). A unit
+  test fails above it.
+- **Built like ADR-0020's libav.js.** `scripts/build-object-kernels.sh` runs `cargo clippy -D warnings`
+  and `cargo test`, then `cargo build --locked --offline --release`, in the official `rust` image pinned by `@sha256:`
   with a pinned toolchain (`rust-toolchain.toml`). The image carries only the host target, so the
   script fetches the same release's `rust-std` for `wasm32-unknown-unknown` from
   static.rust-lang.org, pinned by sha256, and links it into a sysroot (the image's toolchain is
-  read-only to the non-root build user). The `.wasm` is committed as
+  read-only to the non-root build user). The slim image has no clippy either, so the script fetches
+  the `clippy` component the same way, pinned by sha256, and runs it from a copy of the toolchain. The `.wasm` is committed as
   `src/focus/onnx/object-kernels.wasm`, pinned by sha256 in a unit test. The CI job
   `object-kernels` runs the script with `--check`, which fails unless the rebuild is byte for
   byte the committed file, so the committed binary is provably the source's.
+  A build also writes `object-kernels.source-sha256`, a fingerprint of the Rust sources and the
+  script; a unit test recomputes it, so `npm run verify` flags a stale `.wasm` even without Docker,
+  and with Docker it runs the `--check` rebuild as well.
 - **The JS interpreter stays as the fallback and the reference.** The worker picks the WASM
   runner only when a SIMD probe module passes `WebAssembly.validate` (`wasm-simd.ts`) and the
   kernels download and instantiate; otherwise, and on any error while loading them, it builds
@@ -83,17 +94,19 @@ Option 4.
 
 ## Test strategy
 
-- **Per kernel, in Rust**: `cargo test` on the host, the cases of `tensor-ops.test.ts`
-  (hand-computed small tensors, edge padding, strides, odd sizes) ported one to one.
+- **Per kernel, in Rust**: `cargo test` on the host, the same kinds of cases as
+  `tensor-ops.test.ts` (hand-computed small tensors, edge padding, strides, odd sizes), written
+  anew for the Rust kernels, not ported one to one.
 - **Per kernel, WASM against JS**: a vitest unit test loads the committed `.wasm` (Node runs WASM
   SIMD) and runs each operator on tensors from a fixed-seed generator through both runners;
-  the largest absolute difference must stay below 1e-4. Broken on purpose (one flipped kernel
-  index), the case goes red.
+  the largest absolute difference must stay below 1e-4. A kernel with one flipped index
+  should turn it red; that is expected, not yet shown by a run.
 - **Whole network**: the focus worker's browser test (scikit-image's CC0 `chelsea`, ADR-0036)
   runs the cat through both runners in all three engines, each in a worker forced onto one
   runner (`src/focus/testing/{wasm,js}-focus-worker.ts`), and expects the same box within one
-  pixel of the 416 px input; it also asserts the SIMD probe passes in each engine, so the
-  production worker runs the kernels there.
+  pixel of the 416 px input; it also asks the production worker which runner it chose
+  (`runner` request) and demands `wasm` in each engine. A build step fails when no
+  `assets/object-kernels-*.wasm` is among the files `sw.js` precaches, so the kernels load offline.
 - **Fallback**: a seam on the runner choice (the probe result and the instantiate step are
   injected) shows the JS runner is picked when the probe fails or instantiating throws, by the
   reported choice, not by the absence of an error.
@@ -125,12 +138,17 @@ Option 4.
   The kernels run in 73 ms against 1.3 s (18×), inside the expected 55–180 ms; at 4× they take
   0.3 s, the low end of the phone estimate.
 
-- The bump arena holds every activation of a run until the run ends, so the worker's module
-  memory grows to about 100 MB on the first picture (4.7 MB of it weights) and stays there,
-  since WASM memory never shrinks; the JS runner frees each activation after its last reader.
+- A run peaks at about 23 MB of module memory (4.7 MB of it weights; holding every activation
+  until the run ended took 100 MB). WASM memory never shrinks, so the focus worker is terminated
+  after 30 s without a request (`FOCUS_WORKER_IDLE_END_MS`) and the next picture starts a fresh
+  one, paying the module's compile and the weights' copy again. A unit test fails above a 24 MB
+  peak.
 - The offline cache grows by at most 150 KB; the model file is unchanged.
 - A second toolchain: Rust joins CI as one pinned image and one job. Upgrading it is a reviewed
-  bump of the image digest and the toolchain file with a rebuilt, re-hashed `.wasm`.
+  bump with a rebuilt, re-hashed `.wasm`. The build script reads the version from
+  `rust-toolchain.toml`; a bump touches that file, `RUST_IMAGE` (the new `rust:<version>-slim`
+  digest) and `WASM_STD_SHA256` in the script, the version in `build/committed-licenses.ts` and
+  `LICENSE-rust-core.txt`, then a run of the script.
 - Two implementations of each operator to keep in step; the JS one is the reference the WASM one
   is tested against, and a new operator (ADR-0036) needs a kernel in both.
 - The work is estimated at 1–2 weeks: the crate and its tests, the glue, the build script, the

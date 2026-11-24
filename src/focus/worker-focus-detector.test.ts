@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { FocusDetectorGoneError } from "../library/focus-detector";
 import type { PictureFocus } from "../library/picture-focus";
+import { FakeScheduler } from "../ui-kit/testing/fake-scheduler";
 import type { FocusReply, FocusRequest } from "./focus-worker-protocol";
 import {
+  FOCUS_WORKER_IDLE_END_MS,
   FocusDetectionError,
   WorkerFocusDetector,
   type FocusWorker,
@@ -21,9 +23,14 @@ class FakeFocusWorker implements FocusWorker {
   onmessage: ((event: MessageEvent<FocusReply>) => void) | null = null;
   onerror: ((event: ErrorEvent) => void) | null = null;
   onmessageerror: ((event: MessageEvent) => void) | null = null;
+  terminated = false;
 
   postMessage(request: FocusRequest): void {
     this.requests.push(request);
+  }
+
+  terminate(): void {
+    this.terminated = true;
   }
 
   reply(reply: FocusReply): void {
@@ -50,14 +57,19 @@ class FakeFocusWorker implements FocusWorker {
   }
 }
 
-function detectorWithFakeWorker(): { detector: WorkerFocusDetector; workers: FakeFocusWorker[] } {
+function detectorWithFakeWorker(): {
+  detector: WorkerFocusDetector;
+  workers: FakeFocusWorker[];
+  scheduler: FakeScheduler;
+} {
   const workers: FakeFocusWorker[] = [];
+  const scheduler = new FakeScheduler();
   const detector = new WorkerFocusDetector(() => {
     const worker = new FakeFocusWorker();
     workers.push(worker);
     return worker;
-  });
-  return { detector, workers };
+  }, scheduler);
+  return { detector, workers, scheduler };
 }
 
 describe("WorkerFocusDetector", () => {
@@ -119,6 +131,22 @@ describe("WorkerFocusDetector", () => {
 
     expect(workers).toHaveLength(1);
     expect(workers[0]?.requests).toHaveLength(2);
+  });
+
+  it("ends its idle worker, releasing the network's memory, and starts a fresh one when asked again", async () => {
+    const { detector, workers, scheduler } = detectorWithFakeWorker();
+    const first = detector.detect(new Blob(["a"]));
+    workers[0]?.answer(0, FACE);
+    await first;
+
+    scheduler.advance(FOCUS_WORKER_IDLE_END_MS - 1);
+    expect(workers[0]?.terminated).toBe(false);
+    scheduler.advance(1);
+    expect(workers[0]?.terminated).toBe(true);
+    const second = detector.detect(new Blob(["b"]));
+    workers[1]?.answer(0, NONE);
+
+    await expect(second).resolves.toEqual(NONE);
   });
 
   it("matches replies to requests by id, whatever order they arrive in", async () => {
