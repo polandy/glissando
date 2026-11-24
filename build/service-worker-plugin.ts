@@ -6,6 +6,8 @@ import { publicFiles, writeServiceWorker, type PublicDirPort } from "./service-w
 const APP_ENTRY = "index.html";
 const SERVICE_WORKER_ENTRY = "sw";
 const SERVICE_WORKER_SOURCE = "src/sw/service-worker.ts";
+/** The focus worker's Rust kernels, which the object network cannot run without offline (ADR-0060). */
+const OBJECT_KERNELS_FILE = /^assets\/object-kernels-[\w-]+\.wasm$/;
 const ASSET_FILE_NAMES = "assets/[name]-[hash].js";
 
 /**
@@ -43,6 +45,7 @@ export function serviceWorkerPlugin(): Plugin {
         };
         await writeServiceWorker(bundle, await publicFiles(fs, publicDir), [
           THIRD_PARTY_LICENSES_FILE,
+          OBJECT_KERNELS_FILE,
         ]);
       },
     },

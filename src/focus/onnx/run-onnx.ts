@@ -21,6 +21,8 @@ export interface Operators<T> {
   silu(input: T): T;
   /** A small tensor's values, the parameters of Slice, Resize and Reshape. */
   values(tensor: T): number[];
+  /** Frees a tensor no node reads any more. */
+  release(tensor: T): void;
 }
 
 /** The graph's nodes in order; a value is `T` (a weight, the input or a node's output). */
@@ -40,6 +42,7 @@ const referenceOperators: Operators<Tensor> = {
   ...reference,
   silu: (input) => reference.mul(input, reference.sigmoid(input)),
   values: (tensor) => [...tensor.data],
+  release: () => undefined,
 };
 
 /** Runs the graph on its one input and returns its one output. */
@@ -60,8 +63,10 @@ export function walkGraph<T>(graph: GraphWalk<T>, input: T, operators: Operators
     });
     values.set(item(node.outputs, 0), execute(node, args, operators));
     // The activations of a network this size are the memory that matters; the weights stay.
-    for (const name of node.inputs) {
-      if (lastUse.get(name) === index && !graph.weights.has(name)) values.delete(name);
+    for (const name of new Set(node.inputs)) {
+      if (lastUse.get(name) !== index || graph.weights.has(name)) continue;
+      operators.release(values.get(name) as T);
+      values.delete(name);
     }
   });
   const output = values.get(graph.outputName);
