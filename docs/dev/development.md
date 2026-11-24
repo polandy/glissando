@@ -17,7 +17,10 @@ pinned image as CI: `scripts/browser-tests.sh`, `scripts/e2e.sh`.
 ## Dependency and security upkeep
 
 Dependabot opens weekly update PRs for npm, GitHub Actions and the base image in
-`deploy/Dockerfile`. The `security-scan` workflow runs weekly (and on demand): `npm audit` and a
+`deploy/Dockerfile`. Node is the exception: its version lives in `.node-version`, `engines` in
+`package.json` (enforced by `engine-strict`) and both `node` stages of `deploy/Dockerfile`, and a
+Dependabot bump of the Dockerfile alone fails the image's `npm ci`. It is bumped by hand in all
+three at once; `build/node-version.test.ts` fails when they differ. The `security-scan` workflow runs weekly (and on demand): `npm audit` and a
 Trivy filesystem scan. Both only report in the job log; neither gates a PR.
 
 ## Build the server image
