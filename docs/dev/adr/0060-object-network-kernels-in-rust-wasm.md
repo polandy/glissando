@@ -39,6 +39,9 @@ plugs in without touching anything else.
    that are not hot into Rust and needs a richer boundary (strings, a graph) for no speed gain.
 6. **A full rewrite of Glissando in Rust/WASM.** About 107 k lines, 6–12+ person-months, a
    1–3 MB `.wasm` for the UI, and the measured paths outside this network would not get faster.
+7. **WebGPU.** Rejected: not in every target engine (Firefox and Safari ship it later or behind
+   flags), it needs its own shader implementation of each operator, and a single 416 px run is
+   too small to repay the device setup and the readback.
 
 ## Decision
 
@@ -52,7 +55,8 @@ Option 4.
   pass. An unknown operator still fails loud.
 - **A `no_std` crate with no dependencies** (`wasm/object-kernels/`, `Cargo.lock` committed),
   target `wasm32-unknown-unknown` with `+simd128`, plain `extern "C"` exports and no
-  wasm-bindgen. Tensors live in the module's linear memory: the weights are copied in once when
+  wasm-bindgen. `no_std` has no `f32::exp`, so Sigmoid and SiLU use an own branch-free `expf`
+  (Cephes, within 2 ulp), unit-tested in the crate. Tensors live in the module's linear memory: the weights are copied in once when
   the worker loads the network, activations come from a bump allocator with a size-keyed free
   list: the graph walk releases each activation after its last reader, the next one of that
   size takes its block, and the arena resets at the end of each run. The graph walk of `run-onnx.ts` is generic over where a tensor lives; the glue
@@ -60,6 +64,8 @@ Option 4.
   the arena (`wasm-operators.ts`) and walks the graph with SiLU fused (`fuse-silu.ts`) in
   `wasm-runner.ts`.
 - **Size budget: 50–150 KB** of raw `.wasm`. A unit test fails above 150 KB.
+- **Memory budget: 24 MB** of module memory at the peak of one run (about 23 MB measured). A unit
+  test fails above it.
 - **Built like ADR-0020's libav.js.** `scripts/build-object-kernels.sh` runs `cargo clippy -D warnings`
   and `cargo test`, then `cargo build --locked --offline --release`, in the official `rust` image pinned by `@sha256:`
   with a pinned toolchain (`rust-toolchain.toml`). The image carries only the host target, so the
@@ -88,12 +94,13 @@ Option 4.
 
 ## Test strategy
 
-- **Per kernel, in Rust**: `cargo test` on the host, the cases of `tensor-ops.test.ts`
-  (hand-computed small tensors, edge padding, strides, odd sizes) ported one to one.
+- **Per kernel, in Rust**: `cargo test` on the host, the same kinds of cases as
+  `tensor-ops.test.ts` (hand-computed small tensors, edge padding, strides, odd sizes), written
+  anew for the Rust kernels, not ported one to one.
 - **Per kernel, WASM against JS**: a vitest unit test loads the committed `.wasm` (Node runs WASM
   SIMD) and runs each operator on tensors from a fixed-seed generator through both runners;
-  the largest absolute difference must stay below 1e-4. Broken on purpose (one flipped kernel
-  index), the case goes red.
+  the largest absolute difference must stay below 1e-4. A kernel with one flipped index
+  should turn it red; that is expected, not yet shown by a run.
 - **Whole network**: the focus worker's browser test (scikit-image's CC0 `chelsea`, ADR-0036)
   runs the cat through both runners in all three engines, each in a worker forced onto one
   runner (`src/focus/testing/{wasm,js}-focus-worker.ts`), and expects the same box within one
