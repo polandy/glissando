@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { largestDifference, seededTensor } from "../testing/seeded-tensor";
-import kernelsUrl from "./object-kernels.wasm?url&inline";
+import { largestDifference, seededTensor } from "../../testing/seeded-tensor";
+import kernelsUrl from "../object-kernels.wasm?url&inline";
 import {
   add,
   concat,
@@ -13,7 +13,7 @@ import {
   slice,
   transpose,
   type Tensor,
-} from "./tensor-ops";
+} from "../tensor-ops";
 import { loadWasmKernels, type WasmKernels } from "./wasm-kernels";
 
 // ADR-0060: each Rust kernel agrees with its TypeScript reference on the same tensors.
