@@ -2,7 +2,7 @@
 
 ## Run it
 
-Needs Node 26.9.0 (see `engines` in `package.json`).
+Needs Node >=26.9.0 <27 (see `engines` in `package.json`).
 
 ```sh
 npm ci            # frozen install
@@ -16,11 +16,11 @@ pinned image as CI: `scripts/browser-tests.sh`, `scripts/e2e.sh`.
 
 ## Dependency and security upkeep
 
-Dependabot opens weekly update PRs for npm, GitHub Actions and the base image in
-`deploy/Dockerfile`. Node is the exception: its version lives in `.node-version`, `engines` in
-`package.json` (enforced by `engine-strict`) and both `node` stages of `deploy/Dockerfile`, and a
-Dependabot bump of the Dockerfile alone fails the image's `npm ci`. It is bumped by hand in all
-three at once; `build/node-version.test.ts` fails when they differ. The `security-scan` workflow
+Dependabot opens weekly update PRs for npm, GitHub Actions and the base images in
+`deploy/Dockerfile`. `engines.node` in `package.json` is the range `>=26.9.0 <27`; minor and patch
+Node bumps stay inside it, and a new Node major is bumped by hand: `engines.node`, `.node-version`
+and both `node` stages of the Dockerfile together (`build/node-version.test.ts` checks them).
+The `security-scan` workflow
 runs weekly (and on demand): `npm audit` and a Trivy filesystem scan. Both only report in the job
 log; neither gates a PR.
 
