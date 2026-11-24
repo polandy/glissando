@@ -169,16 +169,16 @@
   <VersionGroup {build} {updateWaiting} {onUpdate} />
   <p class="footnote">{t("settings.footnote")}</p>
   <div class="links">
-    <a href={DOCUMENTATION_URL} target="_blank" rel="noopener noreferrer"
-      >{t("settings.documentation")}</a
-    >
-    <a href={SOURCE_CODE_URL} target="_blank" rel="noopener noreferrer"
-      >{t("settings.sourceCode")}</a
-    >
+    <a href={DOCUMENTATION_URL} target="_blank" rel="noopener noreferrer">
+      {t("settings.documentation")}
+    </a>
+    <a href={SOURCE_CODE_URL} target="_blank" rel="noopener noreferrer">
+      {t("settings.sourceCode")}
+    </a>
     <a href={THIRD_PARTY_LICENSES_FILE} target="_blank" rel="noopener">{t("settings.licenses")}</a>
-    <a href={SELF_HOSTING_GUIDE_URL} target="_blank" rel="noopener noreferrer"
-      >{t("settings.selfHosting")}</a
-    >
+    <a href={SELF_HOSTING_GUIDE_URL} target="_blank" rel="noopener noreferrer">
+      {t("settings.selfHosting")}
+    </a>
   </div>
 </Sheet>
 

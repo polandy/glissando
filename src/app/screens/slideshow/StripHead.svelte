@@ -45,9 +45,9 @@
     {#if ownOrder}
       {t("slideshow.ownOrder")}
       {#if variant === "editor"}
-        <Separator /><span class="wide">{t("slideshow.reorderHintWide")}</span><span class="narrow"
-          >{t("slideshow.reorderHintNarrow")}</span
-        >
+        <Separator /><span class="wide">{t("slideshow.reorderHintWide")}</span><span class="narrow">
+          {t("slideshow.reorderHintNarrow")}
+        </span>
       {:else if busy}
         <Separator />{t("import.sortedInAtEnd")}
       {/if}
@@ -95,9 +95,9 @@
         {@render add()}
       {:else}
         <button class="btn small" type="button" onclick={onAdd} aria-label={t("add.title")}>
-          <Icon name="plus" /><span class="wide">{t("add.title")}</span><span class="narrow"
-            >{t("add.titleShort")}</span
-          >
+          <Icon name="plus" /><span class="wide">{t("add.title")}</span><span class="narrow">
+            {t("add.titleShort")}
+          </span>
         </button>
       {/if}
     </span>

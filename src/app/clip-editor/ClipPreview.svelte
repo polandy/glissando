@@ -182,9 +182,9 @@
         <Icon name={playing ? "pause" : "play"} />
       </button>
     {/if}
-    <span class="time mono" aria-hidden="true"
-      >{formatTenths(Math.max(0, positionMs) / MS_PER_SECOND)}</span
-    >
+    <span class="time mono" aria-hidden="true">
+      {formatTenths(Math.max(0, positionMs) / MS_PER_SECOND)}
+    </span>
   </div>
   <ClipScrub
     valueMs={scrubValueMs}

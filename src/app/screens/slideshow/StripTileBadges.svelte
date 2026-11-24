@@ -32,19 +32,19 @@
     <span class="badge timing-badge mono"><Icon name="clock" />{ownSeconds}</span>
   {/if}
   {#if picture.ownTransition !== null}
-    <span class="badge timing-badge" title={t(`effect.${picture.ownTransition}`)}
-      ><Icon name="transition" /></span
-    >
+    <span class="badge timing-badge" title={t(`effect.${picture.ownTransition}`)}>
+      <Icon name="transition" />
+    </span>
   {/if}
   {#if picture.alone}
-    <span class="badge timing-badge alone-badge" title={t("slideshow.aloneBadge")}
-      ><Icon name="soloFrame" /></span
-    >
+    <span class="badge timing-badge alone-badge" title={t("slideshow.aloneBadge")}>
+      <Icon name="soloFrame" />
+    </span>
   {/if}
   {#if picture.blurredFill}
-    <span class="badge timing-badge" title={t("slideshow.blurredFillBadge")}
-      ><Icon name="blurredFill" /></span
-    >
+    <span class="badge timing-badge" title={t("slideshow.blurredFillBadge")}>
+      <Icon name="blurredFill" />
+    </span>
   {/if}
 </span>
 

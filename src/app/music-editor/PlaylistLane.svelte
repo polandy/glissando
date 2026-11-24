@@ -57,12 +57,14 @@
         style:left={pct(song.laneAtMs)}
         style:width={pct(song.laneMs)}
         style:background={songColour(song.number)}
-        ><span
+      >
+        <span
           class="number"
           style:margin-left={percentOf(overlapIntoMs(song.atMs), song.excerptMs)}
-          >{song.number}{song.repeated === true ? " ↻" : ""}</span
-        ></span
-      >
+        >
+          {song.number}{song.repeated === true ? " ↻" : ""}
+        </span>
+      </span>
     {/each}
     {#each playlist.crossfades as crossfade (crossfade.atMs)}
       <span

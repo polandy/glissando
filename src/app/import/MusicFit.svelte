@@ -64,8 +64,10 @@
         class="mono"
         class:unreached={!song.reached}
         style:flex-grow={leadsMs[index]}
-        style:background={songColour(song.number)}>{song.number}</i
+        style:background={songColour(song.number)}
       >
+        {song.number}
+      </i>
     {/each}
   </div>
   <div class="fitline">

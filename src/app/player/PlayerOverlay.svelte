@@ -228,9 +228,9 @@
           {/if}
         {/if}
       </div>
-      <span class="counter mono"
-        >{t("player.counter", { index: slideNumber, total: slideCount })}</span
-      >
+      <span class="counter mono">
+        {t("player.counter", { index: slideNumber, total: slideCount })}
+      </span>
       {#if fullscreenAvailable}
         <button
           class="glass"

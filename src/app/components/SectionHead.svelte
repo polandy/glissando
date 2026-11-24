@@ -20,9 +20,9 @@
   <h2 class="eyebrow" {id}>
     {#if icon}<Icon name={icon} />{/if}{title}
   </h2>
-  {#if stateText !== undefined}<span class="state" class:own data-testid="section-state"
-      ><Separated text={stateText} /></span
-    >{/if}
+  {#if stateText !== undefined}<span class="state" class:own data-testid="section-state">
+      <Separated text={stateText} />
+    </span>{/if}
 </div>
 
 <style>

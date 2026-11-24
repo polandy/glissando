@@ -20,11 +20,11 @@
   <div class="box" class:update={updateWaiting}>
     <div class="text">
       <b>{t("settings.versionName", { version: build.version })}</b>
-      <span
-        >{build.commit}<Separated text={SEPARATOR} /><span class="mono"
-          >{formatDate(build.commitDate)}</span
-        ></span
-      >
+      <span>
+        {build.commit}<Separated text={SEPARATOR} /><span class="mono">
+          {formatDate(build.commitDate)}
+        </span>
+      </span>
     </div>
     {#if updateWaiting}
       <button class="btn primary small" type="button" onclick={onUpdate}>

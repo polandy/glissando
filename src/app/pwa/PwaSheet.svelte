@@ -45,13 +45,13 @@
         {#each guide.steps as step (step.text)}
           {@const [before, after] = around(step)}
           <li>
-            <span
-              >{before}<span class="key"
-                >{#if step.key.icon !== undefined}<Icon name={step.key.icon} />{/if}{t(
+            <span>
+              {before}<span class="key">
+                {#if step.key.icon !== undefined}<Icon name={step.key.icon} />{/if}{t(
                   step.key.label,
-                )}</span
-              >{after}</span
-            >
+                )}
+              </span>{after}
+            </span>
           </li>
         {/each}
       </ol>
