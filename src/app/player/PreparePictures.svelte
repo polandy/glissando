@@ -70,10 +70,10 @@
       <div class="track"><div class="fill measuring"></div></div>
       <div class="nums">
         <span>{t("prepare.measuring")}</span>
-        <span
-          ><b class="mono">{view.measured}</b>
-          {t("prepare.ofMeasuring", { total: view.measuring })}</span
-        >
+        <span>
+          <b class="mono">{view.measured}</b>
+          {t("prepare.ofMeasuring", { total: view.measuring })}
+        </span>
       </div>
     {:else}
       <h2>{t("prepare.preparingTitle")}</h2>
@@ -95,13 +95,14 @@
         <div class="fill" style:width="{(view.ready / view.target) * 100}%"></div>
       </div>
       <div class="nums">
-        <span
-          ><b class="mono">{view.ready}</b> {t("prepare.ofPictures", { total: view.target })}</span
-        >
-        <span
-          >{t("prepare.startsIn")}
-          <b class="mono">~{formatDuration(Math.ceil(view.secondsLeft))}</b></span
-        >
+        <span>
+          <b class="mono">{view.ready}</b>
+          {t("prepare.ofPictures", { total: view.target })}
+        </span>
+        <span>
+          {t("prepare.startsIn")}
+          <b class="mono">~{formatDuration(Math.ceil(view.secondsLeft))}</b>
+        </span>
       </div>
       <div class="squares" aria-hidden="true">
         {#each squares as index (index)}

@@ -13,8 +13,9 @@
   </li>
   <li>
     <Icon name="lock" />
-    <span>{t("share.privateBefore")}<b>{t("share.privateStrong")}</b>{t("share.privateAfter")}</span
-    >
+    <span>
+      {t("share.privateBefore")}<b>{t("share.privateStrong")}</b>{t("share.privateAfter")}
+    </span>
   </li>
   <li>
     <Icon name="sync" />

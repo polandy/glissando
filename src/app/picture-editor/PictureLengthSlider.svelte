@@ -67,13 +67,13 @@
     {/if}
   </div>
   <div class="scale mono" aria-hidden="true">
-    <span
-      >{t("editor.lengthScale", { seconds: MIN_OWN_DURATION_MS / MILLISECONDS_PER_SECOND })}</span
-    >
+    <span>
+      {t("editor.lengthScale", { seconds: MIN_OWN_DURATION_MS / MILLISECONDS_PER_SECOND })}
+    </span>
     {#each SCALE_MIDDLE_SECONDS as middle (middle)}<span>{middle}</span>{/each}
-    <span
-      >{t("editor.lengthScale", { seconds: MAX_OWN_DURATION_MS / MILLISECONDS_PER_SECOND })}</span
-    >
+    <span>
+      {t("editor.lengthScale", { seconds: MAX_OWN_DURATION_MS / MILLISECONDS_PER_SECOND })}
+    </span>
   </div>
 </div>
 

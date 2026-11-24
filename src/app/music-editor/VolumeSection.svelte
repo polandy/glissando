@@ -73,9 +73,9 @@
     {/if}
   </InfoHead>
   <div class="readout">
-    <b data-testid="volume-readout"
-      >{volume.levelled ? t("music.volumeLevelled") : formatVolumeDb(volume.shownDb)}</b
-    >
+    <b data-testid="volume-readout">
+      {volume.levelled ? t("music.volumeLevelled") : formatVolumeDb(volume.shownDb)}
+    </b>
     <span class="sub" data-testid="volume-comparison">{t(subKeys[volume.sub.kind])}</span>
   </div>
   <div class="rail">

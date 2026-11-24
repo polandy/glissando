@@ -26,13 +26,13 @@
 
 {#if several}
   <span class="count several" aria-live="polite">
-    <b class="mono">{count}</b><span class="word"
-      ><Separated
+    <b class="mono">{count}</b><span class="word">
+      <Separated
         text={range === null
           ? t("slideshow.selectedCount", { count })
           : t("slideshow.selectedRange", { count, from: range.from, to: range.to, total })}
-      /></span
-    >
+      />
+    </span>
   </span>
 {:else}
   <span class="count" aria-live="polite">

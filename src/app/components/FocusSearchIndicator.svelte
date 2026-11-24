@@ -41,9 +41,9 @@
   <span class="label">
     <Separated text={progressLine} />
   </span>
-  <span class="label-short"
-    >{t("start.searchShort", { done: search.done, total: search.total })}</span
-  >
+  <span class="label-short">
+    {t("start.searchShort", { done: search.done, total: search.total })}
+  </span>
 </div>
 <!-- Beside an export, it sits on top of the export's thicker line, so both stay readable. -->
 <span

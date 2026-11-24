@@ -16,11 +16,11 @@
   } = $props();
 </script>
 
-<span class="number mono" class:selected aria-hidden="true"
-  >{number}{#if clipLength !== null}<span class="clip-divider"></span><Icon name="play" /><span
-      >{clipLength}</span
-    >{/if}</span
->
+<span class="number mono" class:selected aria-hidden="true">
+  {number}{#if clipLength !== null}<span class="clip-divider"></span><Icon name="play" /><span>
+      {clipLength}
+    </span>{/if}
+</span>
 
 <style>
   .number {

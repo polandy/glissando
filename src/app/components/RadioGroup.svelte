@@ -61,9 +61,9 @@
       {#if option.icon}<Icon name={option.icon} />{/if}
       <span class="text">
         <span class="label" id="{idPrefix}-{index}-label">{option.label}</span>
-        {#if option.hint}<span class="hint" id="{idPrefix}-{index}-hint"
-            ><Separated text={option.hint} /></span
-          >{/if}
+        {#if option.hint}<span class="hint" id="{idPrefix}-{index}-hint">
+            <Separated text={option.hint} />
+          </span>{/if}
       </span>
       {#if checked}<Icon name="check" />{/if}
     </button>

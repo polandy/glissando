@@ -22,14 +22,14 @@
 
 <div class="status">
   {#if status.kind === "looking"}
-    <span
-      ><Separated
+    <span>
+      <Separated
         text={t(status.again ? "focusSheet.lookingAgain" : "focusSheet.looking", {
           done: status.done,
           total: status.total,
         })}
-      /></span
-    >
+      />
+    </span>
     <div class="bar"><i style:width="{(status.done / status.total) * PERCENT}%"></i></div>
     {#if status.again}
       <p class="hint">{t("focusSheet.lookingAgainHint")}</p>

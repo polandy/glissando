@@ -48,11 +48,9 @@
   {#if importing}
     <div class="queue">
       <div class="queue-head">
-        <span
-          ><Separated
-            text={t("import.queueHeader", { done: state.done, count: state.total })}
-          /></span
-        >
+        <span>
+          <Separated text={t("import.queueHeader", { done: state.done, count: state.total })} />
+        </span>
         <span class="muted">
           {t("import.queueLeft", { count: state.total - state.done })}
         </span>
