@@ -30,3 +30,6 @@ updates:
       interval: weekly
     commit-message:
       prefix: build
+    ignore:
+      # Moves with .node-version and engines, so it is bumped by hand (docs/dev/development.md).
+      - dependency-name: "node"
