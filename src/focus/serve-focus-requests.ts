@@ -4,8 +4,9 @@
 import type { PictureFocus } from "../library/picture-focus";
 import { detectFocus, type FocusModels } from "./detect-focus";
 import cascadeUrl from "./facefinder.bin?url";
-import type { FocusReply, FocusRequest } from "./focus-worker-protocol";
-import type { ObjectNetwork, RgbaImage } from "./object-focus";
+import type { FocusReply, FocusRequest, FocusRunnerKind } from "./focus-worker-protocol";
+import type { RgbaImage } from "./object-focus";
+import type { ObjectRunner } from "./onnx/object-runner";
 import { parseOnnx, type OnnxGraph } from "./onnx/onnx-model";
 import { unpackCascade } from "./pico";
 import { messageOf, postReply } from "./post-reply";
@@ -13,11 +14,11 @@ import { screenSharpness } from "./screen-sharpness";
 import objectNetworkUrl from "./yolox-nano.bin?url";
 
 /** Builds what runs the parsed object network: the Rust kernels or the TypeScript runner (ADR-0060). */
-type LoadObjectNetwork = (graph: OnnxGraph) => Promise<ObjectNetwork>;
+type LoadObjectRunner = (graph: OnnxGraph) => Promise<ObjectRunner>;
 
 /** Answers every focus request this worker receives; the models load once, when it starts. */
-export function serveFocusRequests(loadObjectNetwork: LoadObjectNetwork): void {
-  const models = loadModels(loadObjectNetwork);
+export function serveFocusRequests(loadObjectRunner: LoadObjectRunner): void {
+  const models = loadModels(loadObjectRunner);
   self.addEventListener("message", (event: MessageEvent<FocusRequest>) => {
     void postReply(
       event.data,
@@ -27,12 +28,15 @@ export function serveFocusRequests(loadObjectNetwork: LoadObjectNetwork): void {
   });
 }
 
-async function answer(request: FocusRequest, models: Promise<FocusModels>): Promise<FocusReply> {
+async function answer(request: FocusRequest, models: Promise<LoadedModels>): Promise<FocusReply> {
   const { id } = request;
+  if (request.kind === "runner") {
+    return runnerReply(id, models);
+  }
   if (request.kind === "measure") {
     return found(id, request.focus, request.display);
   }
-  let loaded: FocusModels;
+  let loaded: LoadedModels;
   try {
     loaded = await models;
   } catch (error) {
@@ -45,6 +49,14 @@ async function answer(request: FocusRequest, models: Promise<FocusModels>): Prom
     return { id, kind: "failed", message: messageOf(error) };
   }
   return found(id, focus, request.display);
+}
+
+async function runnerReply(id: number, models: Promise<LoadedModels>): Promise<FocusReply> {
+  try {
+    return { id, kind: "runner", runner: (await models).runner };
+  } catch (error) {
+    return { id, kind: "unavailable", message: messageOf(error) };
+  }
 }
 
 /** `focus` as the reply to request `id`, with its sharpness on `display` when there is one. */
@@ -61,14 +73,20 @@ async function found(id: number, focus: PictureFocus, display?: Blob): Promise<F
   }
 }
 
-async function loadModels(loadObjectNetwork: LoadObjectNetwork): Promise<FocusModels> {
+interface LoadedModels extends FocusModels {
+  readonly runner: FocusRunnerKind;
+}
+
+async function loadModels(loadObjectRunner: LoadObjectRunner): Promise<LoadedModels> {
   const [cascade, objects] = await Promise.all([
     download(cascadeUrl, "face cascade"),
     download(objectNetworkUrl, "object network"),
   ]);
+  const runner = await loadObjectRunner(parseOnnx(new Uint8Array(objects)));
   return {
     cascade: unpackCascade(new Int8Array(cascade)),
-    objects: await loadObjectNetwork(parseOnnx(new Uint8Array(objects))),
+    objects: runner.network,
+    runner: runner.kind,
   };
 }
 

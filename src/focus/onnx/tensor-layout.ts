@@ -1,6 +1,6 @@
 import { item, read } from "./item";
 // The output shapes and index maps of the operators, shared by the TypeScript
-// reference (`tensor-ops.ts`) and the glue of the WASM kernels (`wasm-kernels.ts`).
+// reference (`tensor-ops.ts`) and the glue of the WASM kernels (`testing/wasm-kernels.ts`).
 
 export interface PoolAttributes {
   readonly kernel: readonly [number, number];

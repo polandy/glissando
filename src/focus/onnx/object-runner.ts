@@ -7,7 +7,7 @@ import { runOnnx } from "./run-onnx";
  * What runs the object network: the Rust kernels (ADR-0060), or the TypeScript interpreter with
  * the reason it was the fallback.
  */
-type ObjectRunner =
+export type ObjectRunner =
   | { readonly kind: "wasm"; readonly network: ObjectNetwork }
   | { readonly kind: "js"; readonly network: ObjectNetwork; readonly reason: string };
 

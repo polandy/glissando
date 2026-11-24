@@ -141,7 +141,7 @@ sweepPrivateExports(privateExportStorage).catch(logError);
 // One worker, never detecting for the device pass and the server pass at once, the device pass
 // always first (ADR-0041).
 const { primary: deviceFocusDetector, secondary: serverFocusDetector } = serializeFocusDetector(
-  new WorkerFocusDetector(startFocusWorker),
+  new WorkerFocusDetector(startFocusWorker, browserScheduler),
 );
 const focusPass = new FocusPass({
   store,
